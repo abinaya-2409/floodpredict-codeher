@@ -53,10 +53,10 @@ export function Logo({ compact = false }: { compact?: boolean }) {
       <LogoMark className="h-7 w-7 shrink-0 text-accent" />
       {!compact && (
         <span className="flex flex-col leading-none">
-          <span className="font-display text-[15px] font-extrabold tracking-tight text-fg">
+          <span className="font-display text-sm font-extrabold tracking-tight text-fg">
             JalRakshak
           </span>
-          <span className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-subtle">
+          <span className="mt-0.5 text-micro font-medium uppercase tracking-[0.16em] text-subtle">
             Flood Intelligence
           </span>
         </span>

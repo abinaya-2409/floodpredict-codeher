@@ -182,7 +182,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
               onChange={(e) => onUpdateParams({ ...simulationParams, rainfallIntensityMmHr: Number(e.target.value) })}
               className="w-full accent-accent cursor-pointer"
             />
-            <div className="flex justify-between text-[10px] text-subtle font-mono">
+            <div className="flex justify-between text-micro text-subtle font-mono">
               <span>5 mm/hr (Light)</span>
               <span>45 mm/hr (Heavy)</span>
               <span>100+ mm/hr (Cloudburst)</span>
@@ -206,7 +206,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
               onChange={(e) => onUpdateParams({ ...simulationParams, durationHours: Number(e.target.value) })}
               className="w-full accent-accent cursor-pointer"
             />
-            <div className="flex justify-between text-[10px] text-subtle font-mono">
+            <div className="flex justify-between text-micro text-subtle font-mono">
               <span>0.5h (Flash squall)</span>
               <span>6h (Monsoon band)</span>
               <span>18h (Stalled Cyclone)</span>
@@ -231,7 +231,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
                 onChange={(e) => onUpdateParams({ ...simulationParams, tideLevelM: Number(e.target.value) })}
                 className="w-full accent-accent-2 cursor-pointer"
               />
-              <div className="flex justify-between text-[10px] text-subtle font-mono">
+              <div className="flex justify-between text-micro text-subtle font-mono">
                 <span>0.8m (Low Tide)</span>
                 <span>2.0m (High Tide - Canals Siphon Slower)</span>
                 <span>3.5m+ (Severe Tidal Lock)</span>
@@ -256,7 +256,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
               onChange={(e) => onUpdateParams({ ...simulationParams, soilSaturationInitial: Number(e.target.value) })}
               className="w-full accent-risk-low cursor-pointer"
             />
-            <div className="flex justify-between text-[10px] text-subtle font-mono">
+            <div className="flex justify-between text-micro text-subtle font-mono">
               <span>Dry Soil (High Infiltration)</span>
               <span>Saturated (100% Surface Runoff)</span>
             </div>
@@ -271,7 +271,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
               <span className="text-xs font-bold text-fg uppercase tracking-wider">
                 Critical Stormwater Drainage Channels & Outfalls
               </span>
-              <span className="text-[10px] text-muted">Click to Toggle Choke / Unclog</span>
+              <span className="text-micro text-muted">Click to Toggle Choke / Unclog</span>
             </div>
 
             <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1 scrollbar-thin">
@@ -293,11 +293,11 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
                         <span className={`w-2 h-2 rounded-full shrink-0 ${isBlocked ? 'bg-risk-critical animate-ping' : 'bg-risk-low'}`} />
                         <span className="text-xs font-bold truncate">{drain.name}</span>
                       </div>
-                      <div className="text-[11px] text-muted mt-0.5 truncate">
+                      <div className="text-mini text-muted mt-0.5 truncate">
                         Max Capacity: {drain.maxCapacityCusecs} cusecs • Outfall: {drain.outfallCondition}
                       </div>
                       {drain.blockageReason && isBlocked && (
-                        <div className="text-[10px] text-risk-critical mt-0.5">
+                        <div className="text-micro text-risk-critical mt-0.5">
                           ⚠️ {drain.blockageReason}
                         </div>
                       )}
@@ -338,19 +338,19 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
           {/* Real-time Hydraulic Output Metrics */}
           <div className="grid grid-cols-2 gap-3">
             <div className="p-3.5 bg-bg border border-line rounded-card">
-              <div className="text-[11px] text-muted">At-Risk Population</div>
+              <div className="text-mini text-muted">At-Risk Population</div>
               <div className="text-xl font-mono font-bold text-risk-critical mt-1">
                 {totalFloodedPop.toLocaleString()} <span className="text-xs text-muted">citizens</span>
               </div>
-              <div className="text-[10px] text-subtle mt-0.5">In zones exceeding 30cm flood</div>
+              <div className="text-micro text-subtle mt-0.5">In zones exceeding 30cm flood</div>
             </div>
 
             <div className="p-3.5 bg-bg border border-line rounded-card">
-              <div className="text-[11px] text-muted">City-Wide Avg Inundation</div>
+              <div className="text-mini text-muted">City-Wide Avg Inundation</div>
               <div className="text-xl font-mono font-bold text-accent mt-1">
                 {avgInundationDepth} <span className="text-xs text-muted">cm</span>
               </div>
-              <div className="text-[10px] text-subtle mt-0.5">Across all urban micro-basins</div>
+              <div className="text-micro text-subtle mt-0.5">Across all urban micro-basins</div>
             </div>
           </div>
 

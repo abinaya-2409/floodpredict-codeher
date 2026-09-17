@@ -57,7 +57,14 @@ Without that separation a green "safe" ward and a green "online" chip mean
 the same thing to the eye, which is what made the earlier build hard to read.
 
 Radii follow three steps - `rounded-panel`, `rounded-card`, `rounded-control` -
-replacing an ad-hoc mix of five.
+replacing an ad-hoc mix of five, and type uses named steps (`text-nano`,
+`text-micro`, `text-mini`) in place of 120 arbitrary pixel sizes.
+
+Shared primitives live in [`src/components/ui/`](src/components/ui):
+`Button` (four semantic variants), `Panel`, `Badge` / `RiskBadge`, `StatTile`.
+`RiskBadge` and `StatTile` are the only components permitted to paint with the
+severity ramp, and `StatTile` takes a severity only when the value actually
+has one - so a measurement is never permanently red.
 Libraries that cannot read CSS (Leaflet, Recharts) are bridged through
 [`src/theme/useThemeTokens.ts`](src/theme/useThemeTokens.ts).
 

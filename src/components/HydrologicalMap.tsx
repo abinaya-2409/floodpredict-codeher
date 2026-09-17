@@ -337,23 +337,23 @@ export const HydrologicalMap: React.FC<Props> = ({
 
         {/* Floating Map Legend */}
         <div className="absolute bottom-3 left-3 bg-surface/90 border border-line backdrop-blur-md rounded-card p-2.5 text-xs text-fg-soft shadow-lg">
-          <div className="text-[10px] font-mono text-muted uppercase tracking-wider mb-1.5 font-bold">Flood Risk Classification</div>
+          <div className="text-micro font-mono text-muted uppercase tracking-wider mb-1.5 font-bold">Flood Risk Classification</div>
           <div className="grid grid-cols-2 gap-x-3 gap-y-1">
             <div className="flex items-center space-x-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-risk-low inline-block"></span>
-              <span className="text-[11px]">Low (&lt;15cm)</span>
+              <span className="text-mini">Low (&lt;15cm)</span>
             </div>
             <div className="flex items-center space-x-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-risk-high inline-block"></span>
-              <span className="text-[11px]">Watch (15-30cm)</span>
+              <span className="text-mini">Watch (15-30cm)</span>
             </div>
             <div className="flex items-center space-x-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-risk-severe inline-block"></span>
-              <span className="text-[11px]">Warning (30-50cm)</span>
+              <span className="text-mini">Warning (30-50cm)</span>
             </div>
             <div className="flex items-center space-x-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-risk-critical inline-block"></span>
-              <span className="text-[11px]">Evacuate (&gt;50cm)</span>
+              <span className="text-mini">Evacuate (&gt;50cm)</span>
             </div>
           </div>
         </div>
@@ -374,20 +374,20 @@ export const HydrologicalMap: React.FC<Props> = ({
 
           <div className="flex items-center space-x-4">
             <div className="text-right">
-              <div className="text-[10px] text-muted uppercase">Est. Water Depth</div>
+              <div className="text-micro text-muted uppercase">Est. Water Depth</div>
               <div className="font-mono font-bold text-accent-soft text-sm">
                 {selectedZone.predictedInundationDepthCm} cm
               </div>
             </div>
             <div className="text-right">
-              <div className="text-[10px] text-muted uppercase">Flooded Area</div>
+              <div className="text-micro text-muted uppercase">Flooded Area</div>
               <div className="font-mono font-bold text-risk-high text-sm">
                 {selectedZone.predictedFloodedAreaPercent}%
               </div>
             </div>
             <div className="text-right">
-              <div className="text-[10px] text-muted uppercase">Action Tier</div>
-              <span className={`px-2 py-0.5 rounded font-bold uppercase text-[10px] ${
+              <div className="text-micro text-muted uppercase">Action Tier</div>
+              <span className={`px-2 py-0.5 rounded font-bold uppercase text-micro ${
                 selectedZone.alertTier === 'evacuate' ? 'bg-risk-critical text-fg' :
                 selectedZone.alertTier === 'warning' ? 'bg-risk-severe text-fg' :
                 selectedZone.alertTier === 'watch' ? 'bg-risk-high text-on-accent' : 'bg-risk-low text-fg'

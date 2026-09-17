@@ -44,7 +44,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
               <Radio className="w-4 h-4 text-accent shrink-0" />
               <div>
                 <div className="font-bold text-fg">14 AWS Stations</div>
-                <div className="text-[10px] text-muted">5-min rain telemetry</div>
+                <div className="text-micro text-muted">5-min rain telemetry</div>
               </div>
             </div>
 
@@ -52,7 +52,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
               <Activity className="w-4 h-4 text-accent shrink-0" />
               <div>
                 <div className="font-bold text-fg">Doppler S-Band</div>
-                <div className="text-[10px] text-muted">IMD radar reflectivity</div>
+                <div className="text-micro text-muted">IMD radar reflectivity</div>
               </div>
             </div>
 
@@ -60,7 +60,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
               <Database className="w-4 h-4 text-accent-2 shrink-0" />
               <div>
                 <div className="font-bold text-fg">CartoDEM 10m</div>
-                <div className="text-[10px] text-muted">LiDAR slope & elevation</div>
+                <div className="text-micro text-muted">LiDAR slope & elevation</div>
               </div>
             </div>
 
@@ -68,7 +68,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
               <HardDrive className="w-4 h-4 text-risk-high shrink-0" />
               <div>
                 <div className="font-bold text-fg">2015/23 Ground Truth</div>
-                <div className="text-[10px] text-muted">Historical calibration</div>
+                <div className="text-micro text-muted">Historical calibration</div>
               </div>
             </div>
           </div>
@@ -110,7 +110,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
               <strong className="text-fg">
                 {isOfflineSimulated ? 'OFFLINE CACHE ACTIVE (Cached 8 mins ago)' : 'ONLINE STREAM CONNECTED'}
               </strong>
-              <div className="text-[11px] text-muted mt-0.5">
+              <div className="text-mini text-muted mt-0.5">
                 {isOfflineSimulated
                   ? 'Predictive evacuation tiers remain fully active and actionable without internet.'
                   : 'Real-time 5-minute AWS polling active.'}

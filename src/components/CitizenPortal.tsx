@@ -141,7 +141,7 @@ export const CitizenPortal: React.FC<Props> = ({
               <Building className="w-4 h-4" />
               <span>Verified Elevated Relief Camps & Shelters</span>
             </div>
-            <span className="text-[10px] text-risk-low font-mono">● High Ground (Dry Guaranteed)</span>
+            <span className="text-micro text-risk-low font-mono">● High Ground (Dry Guaranteed)</span>
           </div>
 
           <div className="space-y-3">
@@ -152,12 +152,12 @@ export const CitizenPortal: React.FC<Props> = ({
                     <h4 className="text-sm font-bold text-fg">{shelter.name}</h4>
                     <p className="text-xs text-muted mt-0.5">{shelter.address}</p>
                   </div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-accent/20 text-accent-soft shrink-0">
+                  <span className="px-2 py-0.5 rounded text-micro font-mono font-bold bg-accent/20 text-accent-soft shrink-0">
                     {shelter.elevationM}m MSL Elevation
                   </span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-line/80 text-[11px]">
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-line/80 text-mini">
                   <div className="flex items-center space-x-1 text-fg-soft">
                     <Users className="w-3.5 h-3.5 text-accent" />
                     <span>Cap: {shelter.currentOccupancyPersons}/{shelter.capacityPersons}</span>
@@ -294,7 +294,7 @@ export const CitizenPortal: React.FC<Props> = ({
                     <span className="font-semibold text-fg truncate">{r.streetName}</span>
                     <span className="font-mono text-accent-soft font-bold">{r.waterDepthCm} cm</span>
                   </div>
-                  <p className="text-muted text-[11px] mt-0.5">{r.description}</p>
+                  <p className="text-muted text-mini mt-0.5">{r.description}</p>
                 </div>
               ))}
             </div>

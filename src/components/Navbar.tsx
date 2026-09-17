@@ -95,7 +95,7 @@ export const Navbar: React.FC<Props> = ({
           <div className="flex items-center gap-2 pl-4">
             <button
               onClick={onToggleOffline}
-              className="inline-flex items-center gap-1.5 bg-positive/12 border border-positive/35 px-3 py-0.5 rounded-full text-positive font-mono text-[11px] font-semibold shadow-[0_0_10px_currentColor] hover:bg-positive/20 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 bg-positive/12 border border-positive/35 px-3 py-0.5 rounded-full text-positive font-mono text-mini font-semibold shadow-[0_0_10px_currentColor] hover:bg-positive/20 transition-colors cursor-pointer"
             >
               {isOfflineSimulated ? (
                 <>
@@ -121,7 +121,7 @@ export const Navbar: React.FC<Props> = ({
               <span className="font-display text-base sm:text-lg font-extrabold tracking-tight text-fg">
                 JalRakshak
               </span>
-              <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-subtle">
+              <span className="mt-1 text-micro font-medium uppercase tracking-[0.18em] text-subtle">
                 Flood Intelligence
               </span>
             </div>

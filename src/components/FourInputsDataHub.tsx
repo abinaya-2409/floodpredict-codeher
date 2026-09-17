@@ -86,7 +86,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
               <div className="text-2xl font-mono font-bold text-accent mt-1">
                 {weather.currentRainfallMmHr} <span className="text-xs text-muted font-sans">mm/hr</span>
               </div>
-              <div className="text-[10px] text-risk-critical mt-1 font-semibold flex items-center">
+              <div className="text-micro text-risk-critical mt-1 font-semibold flex items-center">
                 <AlertCircle className="w-3 h-3 mr-1" />
                 <span>Exceeding standard drain capacity (30mm/h)</span>
               </div>
@@ -97,7 +97,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
               <div className="text-2xl font-mono font-bold text-accent mt-1">
                 {weather.totalAccumulated24hMm} <span className="text-xs text-muted font-sans">mm</span>
               </div>
-              <div className="text-[10px] text-subtle mt-1">Ground soil saturated</div>
+              <div className="text-micro text-subtle mt-1">Ground soil saturated</div>
             </div>
 
             <div className="p-4 bg-bg border border-line rounded-card">
@@ -105,7 +105,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
               <div className="text-lg font-bold text-risk-high mt-1">
                 {weather.intensityCategory}
               </div>
-              <div className="text-[10px] text-subtle mt-1">IMD Heavy Squall Criteria</div>
+              <div className="text-micro text-subtle mt-1">IMD Heavy Squall Criteria</div>
             </div>
 
             <div className="p-4 bg-bg border border-line rounded-card">
@@ -113,7 +113,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
               <div className="text-2xl font-mono font-bold text-accent-2 mt-1">
                 {weather.atmosphericPressureHpa} <span className="text-xs text-muted font-sans">hPa</span>
               </div>
-              <div className="text-[10px] text-subtle mt-1">Low pressure trough active</div>
+              <div className="text-micro text-subtle mt-1">Low pressure trough active</div>
             </div>
           </div>
 
@@ -139,7 +139,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
                     <span className={`w-2.5 h-2.5 rounded-full ${drain.isBlocked ? 'bg-risk-critical' : 'bg-risk-low'}`} />
                     <span className="font-bold text-fg text-sm">{drain.name}</span>
                   </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
+                  <span className={`text-micro font-bold px-2 py-0.5 rounded uppercase ${
                     drain.isBlocked ? 'bg-risk-critical/20 text-risk-critical border border-risk-critical/30' : 'bg-risk-low/20 text-risk-low'
                   }`}>
                     {drain.isBlocked ? 'Choked' : 'Operational'}
@@ -164,11 +164,11 @@ export const FourInputsDataHub: React.FC<Props> = ({
 
                 <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-line/80">
                   <div>
-                    <span className="text-subtle text-[10px] uppercase block">Silt / Debris Choke</span>
+                    <span className="text-subtle text-micro uppercase block">Silt / Debris Choke</span>
                     <span className="font-mono font-bold text-risk-high">{drain.chokePercentage}% Choked</span>
                   </div>
                   <div>
-                    <span className="text-subtle text-[10px] uppercase block">Outfall Status</span>
+                    <span className="text-subtle text-micro uppercase block">Outfall Status</span>
                     <span className="font-mono text-fg-soft">{drain.outfallCondition.replace('_', ' ')}</span>
                   </div>
                 </div>
@@ -194,7 +194,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
               <div className="text-2xl font-mono font-bold text-accent mt-1">
                 +{weather.forecast6hMm} <span className="text-xs text-muted font-sans">mm</span>
               </div>
-              <div className="text-[10px] text-accent-soft mt-1">Doppler: {weather.dopplerRadarTrend}</div>
+              <div className="text-micro text-accent-soft mt-1">Doppler: {weather.dopplerRadarTrend}</div>
             </div>
 
             <div className="p-4 bg-bg border border-line rounded-card">
@@ -202,7 +202,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
               <div className="text-2xl font-mono font-bold text-accent mt-1">
                 +{weather.forecast12hMm} <span className="text-xs text-muted font-sans">mm</span>
               </div>
-              <div className="text-[10px] text-subtle mt-1">Intense night squall</div>
+              <div className="text-micro text-subtle mt-1">Intense night squall</div>
             </div>
 
             <div className="p-4 bg-bg border border-line rounded-card">
@@ -210,7 +210,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
               <div className="text-2xl font-mono font-bold text-accent-2 mt-1">
                 +{weather.forecast24hMm} <span className="text-xs text-muted font-sans">mm</span>
               </div>
-              <div className="text-[10px] text-risk-critical font-semibold mt-1">High Flood Trigger</div>
+              <div className="text-micro text-risk-critical font-semibold mt-1">High Flood Trigger</div>
             </div>
 
             <div className="p-4 bg-bg border border-line rounded-card">
@@ -218,7 +218,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
               <div className="text-2xl font-mono font-bold text-accent-2 mt-1">
                 +{weather.forecast48hMm} <span className="text-xs text-muted font-sans">mm</span>
               </div>
-              <div className="text-[10px] text-subtle mt-1">Depression crossing coast</div>
+              <div className="text-micro text-subtle mt-1">Depression crossing coast</div>
             </div>
           </div>
 
@@ -255,7 +255,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
                   <strong className="text-fg-soft">Hydrological Root Cause:</strong> {deluge.primaryCause}
                 </p>
 
-                <div className="flex items-center space-x-4 text-[11px] text-muted pt-2 border-t border-line/80 font-mono">
+                <div className="flex items-center space-x-4 text-mini text-muted pt-2 border-t border-line/80 font-mono">
                   <span>Peak Inundation: <strong className="text-fg-soft">{deluge.peakInundationAreaSqKm} sq.km</strong></span>
                   <span>•</span>
                   <span>Impacted Population: <strong className="text-risk-critical">{deluge.affectedPopulation.toLocaleString()}</strong></span>

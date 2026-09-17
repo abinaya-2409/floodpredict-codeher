@@ -81,7 +81,7 @@ export const GeminiExecutiveReport: React.FC<Props> = ({
           className="relative z-10 flex items-start gap-2 rounded-card border border-risk-high/40 bg-risk-high/10 px-3 py-2"
         >
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-risk-high" aria-hidden="true" />
-          <div className="text-[11px] leading-snug">
+          <div className="text-mini leading-snug">
             <strong className="font-bold uppercase tracking-wider text-risk-high">
               Sample output - not AI generated
             </strong>
@@ -108,7 +108,7 @@ export const GeminiExecutiveReport: React.FC<Props> = ({
           </svg>
         </div>
         <div className="flex flex-col min-w-0">
-          <span className="font-mono text-[10px] text-accent-2 uppercase tracking-widest font-bold truncate">
+          <span className="font-mono text-micro text-accent-2 uppercase tracking-widest font-bold truncate">
             GEMINI 3.8 FLASH HYDROLOGICAL ADVISOR
           </span>
           <h3 className="font-bold text-sm text-fg truncate">AI Incident Command &amp; Multi-Agency Plan</h3>
@@ -145,11 +145,11 @@ export const GeminiExecutiveReport: React.FC<Props> = ({
         {report ? (
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between border-b border-line-strong/60 pb-2">
-              <span className="font-mono text-[11px] text-risk-critical uppercase flex items-center gap-1.5 font-bold">
+              <span className="font-mono text-mini text-risk-critical uppercase flex items-center gap-1.5 font-bold">
                 <span className="w-2 h-2 rounded-full bg-risk-critical animate-ping" />
                 TACTICAL DIRECTIVE: {city.name.toUpperCase()}
               </span>
-              <span className="font-mono text-[10px] text-risk-low font-bold">
+              <span className="font-mono text-micro text-risk-low font-bold">
                 {reportGeneratedTime ? `CONF: 91.8% • ${reportGeneratedTime}` : 'CONF: 91.8%'}
               </span>
             </div>
@@ -195,7 +195,7 @@ export const GeminiExecutiveReport: React.FC<Props> = ({
               </div>
             </div>
             <span className="text-xs font-semibold text-fg">No Incident Briefing Generated Yet</span>
-            <p className="text-[11px] text-muted max-w-[270px] leading-relaxed">
+            <p className="text-mini text-muted max-w-[270px] leading-relaxed">
               Click "Generate Live Incident Briefing" to run Gemini's hydrological ML engine on current rain telemetry, drain chokes, and elevation models.
             </p>
           </div>

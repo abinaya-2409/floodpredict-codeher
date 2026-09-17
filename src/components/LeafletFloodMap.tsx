@@ -703,7 +703,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
               className="absolute left-0 right-0 top-11 z-[1200] max-h-72 overflow-y-auto rounded-card border border-line bg-surface/95 p-1 shadow-2xl backdrop-blur"
             >
               {placeResults.length === 0 && !isSearching && (
-                <li className="px-3 py-2.5 text-[11px] text-subtle">
+                <li className="px-3 py-2.5 text-mini text-subtle">
                   No place found in India for that search.
                 </li>
               )}
@@ -721,12 +721,12 @@ export const LeafletFloodMap: React.FC<Props> = ({
                         {place.name}
                       </span>
                       {place.context && (
-                        <span className="block truncate text-[10px] text-subtle">
+                        <span className="block truncate text-micro text-subtle">
                           {place.context}
                         </span>
                       )}
                     </span>
-                    <span className="shrink-0 rounded-full bg-surface-3 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted">
+                    <span className="shrink-0 rounded-full bg-surface-3 px-1.5 py-0.5 text-nano font-medium uppercase tracking-wide text-muted">
                       {place.kind}
                     </span>
                   </button>
@@ -805,7 +805,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
                   aria-label={`${b.label} base map. ${b.description}`}
                   title={b.description}
                   onClick={() => setBasemapId(b.id)}
-                  className={`h-7 rounded-full px-2.5 text-[11px] font-semibold transition-colors whitespace-nowrap cursor-pointer ${
+                  className={`h-7 rounded-full px-2.5 text-mini font-semibold transition-colors whitespace-nowrap cursor-pointer ${
                     active
                       ? 'bg-accent text-on-accent'
                       : 'text-muted hover:bg-surface-3 hover:text-fg'
@@ -853,7 +853,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
               <span className="text-lg text-accent font-bold font-mono">
                 {simulationParams.rainfallIntensityMmHr}
               </span>
-              <span className="text-[11px] text-muted">mm/hr</span>
+              <span className="text-mini text-muted">mm/hr</span>
             </div>
           </div>
 
@@ -867,7 +867,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
               onChange={(e) => onUpdateParams({ ...simulationParams, rainfallIntensityMmHr: Number(e.target.value) })}
               className="fluid-slider w-full"
             />
-            <div className="flex justify-between text-[10px] font-mono text-muted">
+            <div className="flex justify-between text-micro font-mono text-muted">
               <span>20 Moderate</span>
               <span>80 Severe</span>
               <span>150+ 2015 Deluge</span>
@@ -882,10 +882,10 @@ export const LeafletFloodMap: React.FC<Props> = ({
         <div className="absolute top-3 right-3 z-[500] hidden md:block">
           <div className="glass rounded-card px-3 py-2.5 shadow-xl border border-line-strong/40">
             <div className="mb-1.5 flex items-baseline gap-2">
-              <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted">
+              <span className="font-mono text-nano uppercase tracking-[0.14em] text-muted">
                 Predicted depth
               </span>
-              <span className="font-mono text-[9px] text-subtle">cm</span>
+              <span className="font-mono text-nano text-subtle">cm</span>
             </div>
 
             {/* Continuous ramp, read left to right like any map legend. */}
@@ -899,7 +899,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
               ))}
             </div>
 
-            <div className="mt-1 flex w-56 justify-between font-mono text-[9px] text-subtle">
+            <div className="mt-1 flex w-56 justify-between font-mono text-nano text-subtle">
               <span>0</span>
               <span>15</span>
               <span>30</span>
@@ -915,7 +915,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
                     style={{ background: b.color }}
                     aria-hidden="true"
                   />
-                  <span className="text-[10px] font-medium text-fg-soft">{b.label}</span>
+                  <span className="text-micro font-medium text-fg-soft">{b.label}</span>
                 </li>
               ))}
             </ul>
@@ -924,7 +924,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
 
         {/* Model provenance. Kept bottom-left so it never sits under
             Leaflet's own attribution control in the bottom-right. */}
-        <div className="absolute bottom-1.5 left-3 z-[400] text-[10px] text-subtle font-mono pointer-events-none">
+        <div className="absolute bottom-1.5 left-3 z-[400] text-micro text-subtle font-mono pointer-events-none">
           GIS Hydro Model v4.2 &bull; SRTM 30m DEM
         </div>
       </div>

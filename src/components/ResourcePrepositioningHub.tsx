@@ -75,35 +75,35 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
         {/* Tactical Metric Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="p-3.5 bg-bg border border-line rounded-card">
-            <div className="text-[11px] text-muted">Total Population at Risk</div>
+            <div className="text-mini text-muted">Total Population at Risk</div>
             <div className="text-xl font-mono font-bold text-risk-critical mt-1">
               {totalImpactedPop.toLocaleString()} <span className="text-xs text-muted">citizens</span>
             </div>
-            <div className="text-[10px] text-subtle mt-0.5">In &gt;30cm inundation zones</div>
+            <div className="text-micro text-subtle mt-0.5">In &gt;30cm inundation zones</div>
           </div>
 
           <div className="p-3.5 bg-bg border border-line rounded-card">
-            <div className="text-[11px] text-muted">Dewatering Pumps Deployed</div>
+            <div className="text-mini text-muted">Dewatering Pumps Deployed</div>
             <div className="text-xl font-mono font-bold text-accent mt-1">
               {totalDewateringPumpsNeeded} <span className="text-xs text-muted">Pumps (100 HP)</span>
             </div>
-            <div className="text-[10px] text-subtle mt-0.5">Siphoning 12,000 LPS</div>
+            <div className="text-micro text-subtle mt-0.5">Siphoning 12,000 LPS</div>
           </div>
 
           <div className="p-3.5 bg-bg border border-line rounded-card">
-            <div className="text-[11px] text-muted">NDRF / SDRF Dinghy Squads</div>
+            <div className="text-mini text-muted">NDRF / SDRF Dinghy Squads</div>
             <div className="text-xl font-mono font-bold text-risk-high mt-1">
               {totalRescueBoatsNeeded} <span className="text-xs text-muted">Boat Units</span>
             </div>
-            <div className="text-[10px] text-subtle mt-0.5">Pre-staged at low bridges</div>
+            <div className="text-micro text-subtle mt-0.5">Pre-staged at low bridges</div>
           </div>
 
           <div className="p-3.5 bg-bg border border-line rounded-card">
-            <div className="text-[11px] text-muted">Critical Catchments</div>
+            <div className="text-mini text-muted">Critical Catchments</div>
             <div className="text-xl font-mono font-bold text-accent-2 mt-1">
               {criticalZones.length} of {zones.length} <span className="text-xs text-muted">Wards</span>
             </div>
-            <div className="text-[10px] text-subtle mt-0.5">Evacuation directives issued</div>
+            <div className="text-micro text-subtle mt-0.5">Evacuation directives issued</div>
           </div>
         </div>
       </div>
@@ -197,7 +197,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
                     </div>
                   </div>
 
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 ${
+                  <span className={`px-2 py-0.5 rounded text-micro font-bold uppercase shrink-0 ${
                     res.priority === 'CRITICAL' ? 'bg-risk-critical/20 text-risk-critical border border-risk-critical/40' :
                     res.priority === 'HIGH' ? 'bg-risk-severe/20 text-risk-severe border border-risk-severe/40' : 'bg-accent/20 text-accent-soft'
                   }`}>

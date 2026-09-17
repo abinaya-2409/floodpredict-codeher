@@ -35,7 +35,7 @@ export function EvacuationPriorityQueue({
           <ListOrdered className="h-4 w-4 text-accent" aria-hidden="true" />
           Evacuation Priority Queue
         </h3>
-        <p className="mt-1 text-[11px] text-subtle">
+        <p className="mt-1 text-mini text-subtle">
           Ranked by vulnerability index weighted by time to critical level - recomputed
           live from the current scenario.
         </p>
@@ -72,7 +72,7 @@ export function EvacuationPriorityQueue({
                   <span className="block truncate text-xs font-semibold text-fg">
                     {a.zoneName}
                   </span>
-                  <span className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] text-subtle">
+                  <span className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-micro text-subtle">
                     <span className="inline-flex items-center gap-1">
                       <Accessibility className="h-2.5 w-2.5" aria-hidden="true" />
                       {a.assistedEvacuationNeeded.toLocaleString('en-IN')} need assistance
@@ -91,7 +91,7 @@ export function EvacuationPriorityQueue({
                   <span className="block font-mono text-sm font-bold" style={{ color }}>
                     {a.vri}
                   </span>
-                  <span className="block text-[9px] uppercase tracking-wider text-subtle">
+                  <span className="block text-nano uppercase tracking-wider text-subtle">
                     VRI
                   </span>
                 </span>
