@@ -1,5 +1,5 @@
 {
-  "name": "react-example",
+  "name": "jalrakshak-ai",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -34,5 +34,6 @@
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.3"
-  }
+  },
+  "description": "AI-assisted urban flood risk prediction, vulnerability prioritisation and tiered early warning"
 }
