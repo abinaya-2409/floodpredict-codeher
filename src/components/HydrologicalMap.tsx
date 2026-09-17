@@ -367,7 +367,7 @@ export const HydrologicalMap: React.FC<Props> = ({
               <MapPin className="w-4 h-4" />
             </div>
             <div>
-              <span className="font-bold text-white text-sm">{selectedZone.name}</span>
+              <span className="font-bold text-fg text-sm">{selectedZone.name}</span>
               <span className="text-muted ml-2">Wards: {selectedZone.wardNumbers.join(', ')}</span>
             </div>
           </div>
@@ -388,9 +388,9 @@ export const HydrologicalMap: React.FC<Props> = ({
             <div className="text-right">
               <div className="text-[10px] text-muted uppercase">Action Tier</div>
               <span className={`px-2 py-0.5 rounded font-bold uppercase text-[10px] ${
-                selectedZone.alertTier === 'evacuate' ? 'bg-risk-critical text-white' :
-                selectedZone.alertTier === 'warning' ? 'bg-risk-severe text-white' :
-                selectedZone.alertTier === 'watch' ? 'bg-risk-high text-on-accent' : 'bg-risk-low text-white'
+                selectedZone.alertTier === 'evacuate' ? 'bg-risk-critical text-fg' :
+                selectedZone.alertTier === 'warning' ? 'bg-risk-severe text-fg' :
+                selectedZone.alertTier === 'watch' ? 'bg-risk-high text-on-accent' : 'bg-risk-low text-fg'
               }`}>
                 {selectedZone.alertTier}
               </span>

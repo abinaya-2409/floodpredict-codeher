@@ -43,7 +43,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
             <div className="p-2.5 bg-bg rounded-xl border border-line flex items-center space-x-2">
               <Radio className="w-4 h-4 text-accent shrink-0" />
               <div>
-                <div className="font-bold text-white">14 AWS Stations</div>
+                <div className="font-bold text-fg">14 AWS Stations</div>
                 <div className="text-[10px] text-muted">5-min rain telemetry</div>
               </div>
             </div>
@@ -51,7 +51,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
             <div className="p-2.5 bg-bg rounded-xl border border-line flex items-center space-x-2">
               <Activity className="w-4 h-4 text-accent shrink-0" />
               <div>
-                <div className="font-bold text-white">Doppler S-Band</div>
+                <div className="font-bold text-fg">Doppler S-Band</div>
                 <div className="text-[10px] text-muted">IMD radar reflectivity</div>
               </div>
             </div>
@@ -59,7 +59,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
             <div className="p-2.5 bg-bg rounded-xl border border-line flex items-center space-x-2">
               <Database className="w-4 h-4 text-accent-2 shrink-0" />
               <div>
-                <div className="font-bold text-white">CartoDEM 10m</div>
+                <div className="font-bold text-fg">CartoDEM 10m</div>
                 <div className="text-[10px] text-muted">LiDAR slope & elevation</div>
               </div>
             </div>
@@ -67,7 +67,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
             <div className="p-2.5 bg-bg rounded-xl border border-line flex items-center space-x-2">
               <HardDrive className="w-4 h-4 text-risk-high shrink-0" />
               <div>
-                <div className="font-bold text-white">2015/23 Ground Truth</div>
+                <div className="font-bold text-fg">2015/23 Ground Truth</div>
                 <div className="text-[10px] text-muted">Historical calibration</div>
               </div>
             </div>
@@ -107,7 +107,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
           }`}>
             <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isOfflineSimulated ? 'bg-risk-high animate-ping' : 'bg-risk-low'}`} />
             <div>
-              <strong className="text-white">
+              <strong className="text-fg">
                 {isOfflineSimulated ? 'OFFLINE CACHE ACTIVE (Cached 8 mins ago)' : 'ONLINE STREAM CONNECTED'}
               </strong>
               <div className="text-[11px] text-muted mt-0.5">
@@ -127,7 +127,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
             <Activity className="w-4 h-4" />
             <span>Multi-Variable Historical vs Forecast Progression</span>
           </div>
-          <h3 className="text-lg md:text-xl font-bold text-white mt-1">
+          <h3 className="text-lg md:text-xl font-bold text-fg mt-1">
             Rainfall Inflow (mm/hr) vs. Inundation Depth (cm) vs. Risk Score (0-100)
           </h3>
           <p className="text-muted text-xs mt-0.5">

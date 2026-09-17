@@ -231,7 +231,7 @@ export default function App() {
               <span className="font-mono text-[11px] text-risk-critical/80 uppercase tracking-wider font-semibold">
                 Critical Inundation Zones
               </span>
-              <div className="w-10 h-10 rounded-2xl bg-risk-critical/20 border border-risk-critical/40 flex items-center justify-center text-risk-critical shadow-[0_0_16px_rgba(244,63,94,0.35)]">
+              <div className="w-10 h-10 rounded-2xl bg-risk-critical/20 border border-risk-critical/40 flex items-center justify-center text-risk-critical shadow-[0_0_16px_currentColor]">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                   <line x1="12" x2="12" y1="9" y2="13" />
@@ -240,7 +240,7 @@ export default function App() {
               </div>
             </div>
             <div className="flex items-baseline gap-1.5 mt-3">
-              <span className="text-3xl font-extrabold text-white tracking-tight font-sans">{severeOrCriticalZonesCount}</span>
+              <span className="text-3xl font-extrabold text-fg tracking-tight font-sans">{severeOrCriticalZonesCount}</span>
               <span className="text-muted text-sm">of</span>
               <span className="text-3xl font-extrabold text-risk-critical tracking-tight font-sans">{computedZones.length}</span>
               <span className="text-xs text-muted ml-1 font-medium">wards</span>
@@ -263,7 +263,7 @@ export default function App() {
               <span className="font-mono text-[11px] text-risk-high/80 uppercase tracking-wider font-semibold">
                 Shortest Flood Lead-Time
               </span>
-              <div className="w-10 h-10 rounded-2xl bg-risk-high/20 border border-risk-high/40 flex items-center justify-center text-risk-high shadow-[0_0_16px_rgba(245,158,11,0.3)]">
+              <div className="w-10 h-10 rounded-2xl bg-risk-high/20 border border-risk-high/40 flex items-center justify-center text-risk-high shadow-[0_0_16px_currentColor]">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                   <circle cx="12" cy="13" r="8" />
                   <path d="M12 9v4l2.5 2.5" />
@@ -296,7 +296,7 @@ export default function App() {
               <span className="font-mono text-[11px] text-accent-2/80 uppercase tracking-wider font-semibold">
                 At-Risk Citizens
               </span>
-              <div className="w-10 h-10 rounded-2xl bg-accent-2/20 border border-accent-2/40 flex items-center justify-center text-accent-2 shadow-[0_0_16px_rgba(139,92,246,0.35)]">
+              <div className="w-10 h-10 rounded-2xl bg-accent-2/20 border border-accent-2/40 flex items-center justify-center text-accent-2 shadow-[0_0_16px_currentColor]">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                   <circle cx="9" cy="7" r="4" />
@@ -306,7 +306,7 @@ export default function App() {
               </div>
             </div>
             <div className="flex items-baseline gap-1 mt-3">
-              <span className="text-3xl font-extrabold text-white tracking-tight font-sans">
+              <span className="text-3xl font-extrabold text-fg tracking-tight font-sans">
                 {totalAtRiskPopulation.toLocaleString()}
               </span>
             </div>
@@ -325,7 +325,7 @@ export default function App() {
               <span className="font-mono text-[11px] text-accent-soft/80 uppercase tracking-wider font-semibold">
                 Choked Drainage Canals
               </span>
-              <div className="w-10 h-10 rounded-2xl bg-accent/20 border border-accent/40 flex items-center justify-center text-accent-soft shadow-[0_0_16px_rgba(6,182,212,0.35)]">
+              <div className="w-10 h-10 rounded-2xl bg-accent/20 border border-accent/40 flex items-center justify-center text-accent-soft shadow-[0_0_16px_currentColor]">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M4 4v16" />
                   <path d="M20 4v16" />
@@ -384,8 +384,8 @@ export default function App() {
                   onClick={() => setMapRenderMode('leaflet')}
                   className={`h-8 px-4 rounded-full text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                     mapRenderMode === 'leaflet'
-                      ? 'bg-gradient-to-r from-risk-low to-risk-low text-white font-bold shadow-[0_0_14px_rgba(16,185,129,0.35)]'
-                      : 'text-muted hover:text-white'
+                      ? 'bg-gradient-to-r from-risk-low to-risk-low text-fg font-bold shadow-[0_0_14px_currentColor]'
+                      : 'text-muted hover:text-fg'
                   }`}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
@@ -401,8 +401,8 @@ export default function App() {
                   onClick={() => setMapRenderMode('schematic')}
                   className={`h-8 px-4 rounded-full text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                     mapRenderMode === 'schematic'
-                      ? 'bg-gradient-to-r from-risk-low to-risk-low text-white font-bold shadow-[0_0_14px_rgba(16,185,129,0.35)]'
-                      : 'text-muted hover:text-white'
+                      ? 'bg-gradient-to-r from-risk-low to-risk-low text-fg font-bold shadow-[0_0_14px_currentColor]'
+                      : 'text-muted hover:text-fg'
                   }`}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
@@ -457,7 +457,7 @@ export default function App() {
                         <span className="font-mono text-[10px] text-muted uppercase tracking-wider font-semibold">
                           Selected Catchment Focus
                         </span>
-                        <h2 className="text-xl font-bold text-white tracking-tight mt-0.5">{selectedZone.name}</h2>
+                        <h2 className="text-xl font-bold text-fg tracking-tight mt-0.5">{selectedZone.name}</h2>
                       </div>
                       <span className={`px-3 py-1 rounded-full font-mono text-[11px] font-bold uppercase tracking-wider ${
                         selectedZone.alertTier === 'evacuate'
@@ -528,7 +528,7 @@ export default function App() {
                           </svg>
                         </div>
                         <div className="flex items-baseline gap-1 mt-1.5">
-                          <span className="text-2xl font-bold text-white font-mono">
+                          <span className="text-2xl font-bold text-fg font-mono">
                             {selectedZone.catchmentAreaSqKm}
                           </span>
                           <span className="text-xs text-muted">km²</span>
@@ -549,7 +549,7 @@ export default function App() {
                           </svg>
                         </div>
                         <div className="flex items-baseline gap-1 mt-1.5">
-                          <span className="text-2xl font-bold text-white font-mono">
+                          <span className="text-2xl font-bold text-fg font-mono">
                             {selectedZone.population.toLocaleString()}
                           </span>
                         </div>
@@ -580,13 +580,13 @@ export default function App() {
                                 </svg>
                               </div>
                               <div className="flex flex-col min-w-0">
-                                <span className="text-xs font-semibold text-white truncate">{st.name}</span>
+                                <span className="text-xs font-semibold text-fg truncate">{st.name}</span>
                                 <span className="text-[10px] text-muted font-mono truncate">
                                   Culvert threshold: {st.criticalRainfallThresholdMmHr}mm/hr
                                 </span>
                               </div>
                             </div>
-                            <span className="font-mono text-xs px-2.5 py-1 rounded-full bg-risk-critical/20 border border-risk-critical/40 text-risk-critical font-bold whitespace-nowrap shadow-[0_0_8px_rgba(244,63,94,0.25)]">
+                            <span className="font-mono text-xs px-2.5 py-1 rounded-full bg-risk-critical/20 border border-risk-critical/40 text-risk-critical font-bold whitespace-nowrap shadow-[0_0_8px_currentColor]">
                               {st.criticalRainfallThresholdMmHr} mm/h
                             </span>
                           </div>

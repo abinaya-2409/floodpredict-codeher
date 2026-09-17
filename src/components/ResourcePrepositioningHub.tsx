@@ -57,7 +57,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
               <ShieldAlert className="w-4 h-4" />
               <span>Disaster Response Resource Optimization</span>
             </div>
-            <h2 className="text-xl md:text-2xl font-bold text-white mt-1">
+            <h2 className="text-xl md:text-2xl font-bold text-fg mt-1">
               Municipal & NDRF Tactical Pre-Positioning Command
             </h2>
             <p className="text-muted text-xs md:text-sm mt-0.5">
@@ -112,7 +112,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
       <div className="bg-surface border border-line rounded-2xl p-5 md:p-6 shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-line gap-3">
           <div className="flex items-center space-x-2">
-            <span className="text-xs font-bold text-white uppercase tracking-wider">
+            <span className="text-xs font-bold text-fg uppercase tracking-wider">
               Priority Asset Staging Recommendations
             </span>
           </div>
@@ -189,7 +189,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
                        res.type === 'mobile_power_generator' ? <Zap className="w-4 h-4" /> : <Truck className="w-4 h-4" />}
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-white">{res.name}</h4>
+                      <h4 className="text-sm font-bold text-fg">{res.name}</h4>
                       <div className="flex items-center space-x-1.5 text-xs text-muted mt-0.5">
                         <MapPin className="w-3.5 h-3.5 text-accent" />
                         <span>{res.targetStreet}</span>

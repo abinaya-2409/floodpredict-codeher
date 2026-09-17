@@ -62,7 +62,7 @@ export const CitizenPortal: React.FC<Props> = ({
             <ShieldCheck className="w-4 h-4" />
             <span>Citizen Safe Zone & Dry Route Portal</span>
           </div>
-          <h2 className="text-xl md:text-2xl font-bold text-white mt-1">
+          <h2 className="text-xl md:text-2xl font-bold text-fg mt-1">
             Is Your Street Safe Right Now?
           </h2>
           <p className="text-muted text-xs md:text-sm mt-0.5">
@@ -76,7 +76,7 @@ export const CitizenPortal: React.FC<Props> = ({
           <select
             value={selectedUserZone}
             onChange={(e) => setSelectedUserZone(e.target.value)}
-            className="w-full bg-bg border border-line-strong rounded-xl px-3 py-2 text-xs text-white font-semibold focus:outline-none focus:border-accent"
+            className="w-full bg-bg border border-line-strong rounded-xl px-3 py-2 text-xs text-fg font-semibold focus:outline-none focus:border-accent"
           >
             {zones.map((z) => (
               <option key={z.id} value={z.id}>
@@ -97,8 +97,8 @@ export const CitizenPortal: React.FC<Props> = ({
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-start space-x-3">
               <div className={`p-2.5 rounded-xl mt-0.5 ${
-                currentZone.alertTier === 'evacuate' ? 'bg-risk-critical text-white' :
-                currentZone.alertTier === 'warning' ? 'bg-risk-severe text-white' : 'bg-risk-high text-on-accent'
+                currentZone.alertTier === 'evacuate' ? 'bg-risk-critical text-fg' :
+                currentZone.alertTier === 'warning' ? 'bg-risk-severe text-fg' : 'bg-risk-high text-on-accent'
               }`}>
                 <AlertTriangle className="w-5 h-5" />
               </div>
@@ -106,7 +106,7 @@ export const CitizenPortal: React.FC<Props> = ({
                 <div className="text-xs font-mono font-bold uppercase tracking-wider text-fg-soft">
                   {currentZone.name} Advisory Status
                 </div>
-                <div className="text-lg md:text-xl font-bold text-white mt-0.5">
+                <div className="text-lg md:text-xl font-bold text-fg mt-0.5">
                   Tier {currentZone.alertTier.toUpperCase()} Alert Active • {currentZone.predictedInundationDepthCm} cm Est. Water
                 </div>
                 <p className="text-xs text-fg-soft mt-1">
@@ -122,7 +122,7 @@ export const CitizenPortal: React.FC<Props> = ({
             <div className="flex items-center space-x-2 shrink-0">
               <a
                 href="tel:1913"
-                className="px-4 py-2 bg-risk-critical hover:bg-risk-critical text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors shadow-lg shadow-risk-critical/30"
+                className="px-4 py-2 bg-risk-critical hover:bg-risk-critical text-fg rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors shadow-lg shadow-risk-critical/30"
               >
                 <Phone className="w-4 h-4" />
                 <span>Call Emergency (1913 / 1070)</span>
@@ -149,7 +149,7 @@ export const CitizenPortal: React.FC<Props> = ({
               <div key={shelter.id} className="p-4 bg-bg border border-line rounded-xl space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h4 className="text-sm font-bold text-white">{shelter.name}</h4>
+                    <h4 className="text-sm font-bold text-fg">{shelter.name}</h4>
                     <p className="text-xs text-muted mt-0.5">{shelter.address}</p>
                   </div>
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-accent/20 text-accent-soft shrink-0">
@@ -291,7 +291,7 @@ export const CitizenPortal: React.FC<Props> = ({
               {citizenReports.map((r) => (
                 <div key={r.id} className="p-2.5 rounded-lg bg-bg border border-line text-xs">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-white truncate">{r.streetName}</span>
+                    <span className="font-semibold text-fg truncate">{r.streetName}</span>
                     <span className="font-mono text-accent-soft font-bold">{r.waterDepthCm} cm</span>
                   </div>
                   <p className="text-muted text-[11px] mt-0.5">{r.description}</p>

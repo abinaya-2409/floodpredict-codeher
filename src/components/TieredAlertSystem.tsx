@@ -151,7 +151,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
             <BellRing className="w-4 h-4" />
             <span>Proportional Tiered Early Warning Hub</span>
           </div>
-          <h2 className="text-xl md:text-2xl font-bold text-white mt-1">
+          <h2 className="text-xl md:text-2xl font-bold text-fg mt-1">
             Tiered Multi-Channel Alert & Broadcast Engine
           </h2>
           <p className="text-muted text-xs md:text-sm mt-0.5">
@@ -164,7 +164,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
           onClick={playSirenSimulation}
           className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center space-x-2 border transition-all ${
             audioSirenPlaying
-              ? 'bg-risk-critical text-white border-risk-critical animate-bounce'
+              ? 'bg-risk-critical text-fg border-risk-critical animate-bounce'
               : 'bg-surface-2 hover:bg-surface-3 text-fg-soft border-line-strong'
           }`}
         >
@@ -190,7 +190,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
             </span>
             <span className="text-xs font-mono text-muted">30-60mm</span>
           </div>
-          <div className="text-base font-bold text-white mt-2">WATCH (Preparedness)</div>
+          <div className="text-base font-bold text-fg mt-2">WATCH (Preparedness)</div>
           <p className="text-xs text-fg-soft mt-1 leading-relaxed">
             Municipal desilting teams active, trash racks cleared at sluice gates, relief center keys unlocked.
           </p>
@@ -211,7 +211,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
             </span>
             <span className="text-xs font-mono text-muted">60-120mm</span>
           </div>
-          <div className="text-base font-bold text-white mt-2">WARNING (Asset Protection)</div>
+          <div className="text-base font-bold text-fg mt-2">WARNING (Asset Protection)</div>
           <p className="text-xs text-fg-soft mt-1 leading-relaxed">
             Residents directed to move vehicles to multi-deck parking and bridges; ground-floor electrical isolation.
           </p>
@@ -232,7 +232,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
             </span>
             <span className="text-xs font-mono text-muted">&gt;120mm / Overflow</span>
           </div>
-          <div className="text-base font-bold text-white mt-2">EVACUATE (Life Safety)</div>
+          <div className="text-base font-bold text-fg mt-2">EVACUATE (Life Safety)</div>
           <p className="text-xs text-fg-soft mt-1 leading-relaxed">
             Immediate relocation of ground-dwelling citizens to dry relief camps. NDRF dinghies & SDRF teams mobilized.
           </p>
@@ -243,7 +243,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Dispatch Controls */}
         <div className="lg:col-span-6 bg-bg border border-line rounded-xl p-5 space-y-4">
-          <div className="flex items-center space-x-2 text-xs font-bold text-white uppercase tracking-wider pb-2 border-b border-line">
+          <div className="flex items-center space-x-2 text-xs font-bold text-fg uppercase tracking-wider pb-2 border-b border-line">
             <Send className="w-4 h-4 text-accent" />
             <span>Targeted Geo-Fenced Dispatch Console</span>
           </div>
@@ -311,9 +311,9 @@ export const TieredAlertSystem: React.FC<Props> = ({
             disabled={isBroadcasting}
             className={`w-full py-3 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 transition-all shadow-lg ${
               selectedTier === 'evacuate'
-                ? 'bg-risk-critical hover:bg-risk-critical text-white shadow-risk-critical/30'
+                ? 'bg-risk-critical hover:bg-risk-critical text-fg shadow-risk-critical/30'
                 : selectedTier === 'warning'
-                ? 'bg-risk-severe hover:bg-risk-severe text-white shadow-risk-severe/30'
+                ? 'bg-risk-severe hover:bg-risk-severe text-fg shadow-risk-severe/30'
                 : 'bg-accent hover:bg-accent text-on-accent font-bold shadow-accent/30'
             }`}
           >
@@ -341,7 +341,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
                   <span className="p-1 rounded-md bg-accent/20 text-accent">
                     <AlertTriangle className="w-3.5 h-3.5 text-risk-critical" />
                   </span>
-                  <span className="font-bold text-white text-xs">DISASTER MANAGEMENT AUTHORITY</span>
+                  <span className="font-bold text-fg text-xs">DISASTER MANAGEMENT AUTHORITY</span>
                 </div>
                 <span className="text-[10px] text-muted">Now</span>
               </div>
@@ -357,7 +357,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
 
           {/* Broadcast Activity Log */}
           <div className="p-4 bg-bg border border-line rounded-xl">
-            <div className="text-xs font-bold text-white mb-2 flex items-center justify-between">
+            <div className="text-xs font-bold text-fg mb-2 flex items-center justify-between">
               <span>Recent Emergency Broadcast Dispatch Logs</span>
               <span className="text-[10px] text-subtle font-mono">{broadcastLogs.length} transmissions</span>
             </div>

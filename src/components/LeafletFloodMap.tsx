@@ -56,6 +56,15 @@ export const LeafletFloodMap: React.FC<Props> = ({
    * resource units piling into an unreadable stack when zoomed out.
    */
   const [zoomLevel, setZoomLevel] = useState(12);
+
+  /** Mirrors the thresholds in calculateZoneHydrology. */
+  const DEPTH_BANDS = [
+    { key: 'low', label: 'Passable', color: tokens.risk.low },
+    { key: 'moderate', label: '15-30', color: tokens.risk.moderate },
+    { key: 'high', label: '30-50', color: tokens.risk.high },
+    { key: 'severe', label: '50-75', color: tokens.risk.severe },
+    { key: 'critical', label: '75+', color: tokens.risk.critical },
+  ];
   const LABEL_ZOOM = 12;
   const baseLayerRef = useRef<L.TileLayer | null>(null);
   const labelLayerRef = useRef<L.TileLayer | null>(null);
@@ -234,6 +243,17 @@ export const LeafletFloodMap: React.FC<Props> = ({
       mapInstanceRef.current.setView([city.lat, city.lng], 12);
     }
 
+    // Frame the modelled catchments rather than the city centroid - otherwise
+    // the zones this app exists to show sit off-screen on first paint.
+    const map = mapInstanceRef.current;
+    const zonePoints = zones
+      .map((z) => ZONE_COORDINATES[z.id]?.polygon)
+      .filter(Boolean)
+      .flat() as [number, number][];
+    if (map && zonePoints.length > 0) {
+      map.fitBounds(L.latLngBounds(zonePoints), { padding: [48, 48], animate: false });
+    }
+
     return () => {
       // Keep map instance alive across re-renders
     };
@@ -281,17 +301,25 @@ export const LeafletFloodMap: React.FC<Props> = ({
       const riskColor = getRiskColor(zone.currentRisk);
 
       if (coords) {
-        const polygon = L.polygon(coords.polygon, {
+        const isSelected = selectedZone?.id === zone.id;
+        const baseStyle: L.PathOptions = {
           color: riskColor,
-          weight: selectedZone?.id === zone.id ? 3 : 1.5,
+          weight: isSelected ? 3 : 1.75,
           fillColor: riskColor,
-          fillOpacity: 0.35 + (zone.predictedInundationDepthCm / 200) * 0.35,
-          dashArray: selectedZone?.id === zone.id ? undefined : '4, 4',
-        });
+          // Depth drives opacity, so deeper water simply looks heavier.
+          fillOpacity: Math.min(0.62, 0.28 + (zone.predictedInundationDepthCm / 100) * 0.34),
+          opacity: isSelected ? 1 : 0.85,
+          dashArray: isSelected ? undefined : '5, 5',
+          className: zone.currentRisk === 'critical' ? 'zone-critical' : undefined,
+        };
+        const polygon = L.polygon(coords.polygon, baseStyle);
 
-        polygon.on('click', () => {
-          onSelectZone(zone);
+        polygon.on('click', () => onSelectZone(zone));
+        polygon.on('mouseover', () => {
+          polygon.setStyle({ weight: 3.5, fillOpacity: Math.min(0.75, (baseStyle.fillOpacity ?? 0.4) + 0.14) });
+          polygon.bringToFront();
         });
+        polygon.on('mouseout', () => polygon.setStyle(baseStyle));
 
         // Popup
         polygon.bindPopup(`
@@ -644,9 +672,9 @@ export const LeafletFloodMap: React.FC<Props> = ({
   return (
     <div className="fluid-glass rounded-[32px] overflow-hidden relative shadow-[0_24px_50px_rgba(0,0,0,0.65)] border border-accent/25 flex flex-col" id="leaflet-flood-map-wrapper">
       {/* Top Map Control Bar */}
-      <div className="p-3 sm:p-4 bg-bg/70 border-b border-line/80 flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="p-3 sm:p-4 bg-bg/70 border-b border-line/80 flex flex-col lg:flex-row lg:items-start justify-between gap-3">
         {/* Search Input */}
-        <form onSubmit={handleSearch} className="relative w-full md:w-80" role="search">
+        <form onSubmit={handleSearch} className="relative w-full lg:w-72 lg:shrink-0" role="search">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-accent/80" aria-hidden="true" />
           <input
             type="text"
@@ -709,13 +737,13 @@ export const LeafletFloodMap: React.FC<Props> = ({
         </form>
 
         {/* Layer Filter Toggles */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none text-xs">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
           <button
             onClick={() => setShow2015Historical(!show2015Historical)}
             className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer shadow-sm ${
               show2015Historical
-                ? 'bg-risk-high/25 border-risk-high text-risk-high font-bold shadow-[0_0_12px_rgba(245,158,11,0.3)]'
-                : 'bg-surface-2/60 hover:bg-surface-3/80 text-risk-high/80 border-risk-high/40 hover:text-white'
+                ? 'bg-risk-high/25 border-risk-high text-risk-high font-bold shadow-[0_0_12px_currentColor]'
+                : 'bg-surface-2/60 hover:bg-surface-3/80 text-risk-high/80 border-risk-high/40 hover:text-fg'
             }`}
           >
             <svg className="w-3.5 h-3.5 text-risk-high" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -729,8 +757,8 @@ export const LeafletFloodMap: React.FC<Props> = ({
             onClick={() => setShow2023Historical(!show2023Historical)}
             className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer shadow-sm ${
               show2023Historical
-                ? 'bg-risk-critical/25 border-risk-critical text-risk-critical font-bold shadow-[0_0_12px_rgba(244,63,94,0.3)]'
-                : 'bg-surface-2/60 hover:bg-surface-3/80 text-risk-critical/80 border-risk-critical/40 hover:text-white'
+                ? 'bg-risk-critical/25 border-risk-critical text-risk-critical font-bold shadow-[0_0_12px_currentColor]'
+                : 'bg-surface-2/60 hover:bg-surface-3/80 text-risk-critical/80 border-risk-critical/40 hover:text-fg'
             }`}
           >
             <svg className="w-3.5 h-3.5 text-risk-critical" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -745,8 +773,8 @@ export const LeafletFloodMap: React.FC<Props> = ({
             onClick={() => setShowEvacRoutes(!showEvacRoutes)}
             className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer shadow-sm ${
               showEvacRoutes
-                ? 'bg-risk-low/25 border-risk-low text-risk-low font-bold shadow-[0_0_12px_rgba(16,185,129,0.3)]'
-                : 'bg-surface-2/60 hover:bg-surface-3/80 text-risk-low/80 border-risk-low/40 hover:text-white'
+                ? 'bg-risk-low/25 border-risk-low text-risk-low font-bold shadow-[0_0_12px_currentColor]'
+                : 'bg-surface-2/60 hover:bg-surface-3/80 text-risk-low/80 border-risk-low/40 hover:text-fg'
             }`}
           >
             <svg className="w-3.5 h-3.5 text-risk-low" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24">
@@ -793,8 +821,8 @@ export const LeafletFloodMap: React.FC<Props> = ({
             onClick={() => setShowShelters(!showShelters)}
             className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer shadow-sm ${
               showShelters
-                ? 'bg-accent/25 border-accent text-accent-soft font-bold shadow-[0_0_12px_rgba(6,182,212,0.3)]'
-                : 'bg-surface-2/60 hover:bg-surface-3/80 text-accent-soft/80 border-accent/40 hover:text-white'
+                ? 'bg-accent/25 border-accent text-accent-soft font-bold shadow-[0_0_12px_currentColor]'
+                : 'bg-surface-2/60 hover:bg-surface-3/80 text-accent-soft/80 border-accent/40 hover:text-fg'
             }`}
           >
             <ShieldCheck className="w-3.5 h-3.5 text-accent" />
@@ -804,11 +832,14 @@ export const LeafletFloodMap: React.FC<Props> = ({
       </div>
 
       {/* Map Container */}
-      <div className="relative w-full h-[560px] bg-[#050b14]">
-        <div ref={mapContainerRef} className="w-full h-full z-10" />
+      <div className="relative w-full h-[clamp(24rem,58vh,40rem)] bg-bg-deep">
+        <div
+          ref={mapContainerRef}
+          className={`w-full h-full z-10 ${basemapId === 'dark' ? 'map-dim' : ''}`}
+        />
 
         {/* Real-time Scenario Slider (Floating Hydro Wave Slider) */}
-        <div className="absolute bottom-10 left-4 right-4 md:right-auto md:w-[26rem] z-[500] glass rounded-2xl p-4 shadow-2xl border border-line-strong/50 space-y-2">
+        <div className="absolute bottom-9 left-3 right-3 md:right-auto md:w-[24rem] z-[500] glass rounded-xl p-3.5 shadow-xl border border-line-strong/40 space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-xl bg-risk-low/15 border border-risk-low/35 flex items-center justify-center text-risk-low">
@@ -816,7 +847,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
                   <path d="M2 12c3-4 6-4 9 0s6 4 9 0M2 17c3-4 6-4 9 0s6 4 9 0" />
                 </svg>
               </div>
-              <span className="text-xs font-bold text-white uppercase tracking-wider">Hydro-Rainfall Scenario Slider</span>
+              <span className="text-xs font-bold text-fg uppercase tracking-wider">Rainfall scenario</span>
             </div>
             <div className="bg-surface/80 border border-risk-low/30 px-3 py-1 rounded-full flex items-baseline gap-1 shadow-inner">
               <span className="text-lg text-risk-low font-bold font-mono">
@@ -837,48 +868,57 @@ export const LeafletFloodMap: React.FC<Props> = ({
               className="fluid-slider w-full"
             />
             <div className="flex justify-between text-[10px] font-mono text-muted">
-              <span className="text-risk-low">20mm (Moderate)</span>
-              <span className="text-risk-high">80mm (Severe)</span>
-              <span className="text-risk-critical">150mm+ (2015 Deluge)</span>
+              <span>20 Moderate</span>
+              <span>80 Severe</span>
+              <span>150+ 2015 Deluge</span>
             </div>
           </div>
         </div>
 
-        {/* Legend Overlay */}
-        <div className="absolute top-4 right-4 z-[500] glass rounded-2xl p-3.5 w-60 shadow-2xl border border-line-strong/50 hidden md:block">
-          <div className="flex items-center justify-between pb-2 mb-2 border-b border-line-strong/60">
-            <span className="font-mono text-[10px] text-muted uppercase tracking-wider font-semibold">Inundation Risk Tier</span>
-            <span className="text-[10px] text-risk-low font-mono">MSL Rel.</span>
-          </div>
-          <div className="space-y-1.5 text-xs">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-risk-critical shadow-[0_0_8px_#f43f5e]" />
-                <span className="text-fg-soft font-medium">Critical (&gt;60cm)</span>
-              </div>
-              <span className="font-mono text-risk-critical font-bold text-[11px]">ZONE A</span>
+        {/* Depth legend.
+            Thresholds are the ones calculateZoneHydrology actually uses - the
+            previous legend claimed "Critical >60cm" and omitted Severe
+            entirely, so it disagreed with the model it was labelling. */}
+        <div className="absolute top-3 right-3 z-[500] hidden md:block">
+          <div className="glass rounded-xl px-3 py-2.5 shadow-xl border border-line-strong/40">
+            <div className="mb-1.5 flex items-baseline gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted">
+                Predicted depth
+              </span>
+              <span className="font-mono text-[9px] text-subtle">cm</span>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-risk-high shadow-[0_0_8px_#f59e0b]" />
-                <span className="text-fg-soft font-medium">High (30-60cm)</span>
-              </div>
-              <span className="font-mono text-risk-high font-bold text-[11px]">ZONE B</span>
+
+            {/* Continuous ramp, read left to right like any map legend. */}
+            <div
+              className="flex h-2 w-56 overflow-hidden rounded-full"
+              role="img"
+              aria-label="Depth scale from low under 15 centimetres to critical above 75 centimetres"
+            >
+              {DEPTH_BANDS.map((b) => (
+                <span key={b.key} className="flex-1" style={{ background: b.color }} />
+              ))}
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-accent-2 shadow-[0_0_8px_#a855f7]" />
-                <span className="text-fg-soft font-medium">Moderate (15-30cm)</span>
-              </div>
-              <span className="font-mono text-accent-2 text-[11px] font-bold">ZONE C</span>
+
+            <div className="mt-1 flex w-56 justify-between font-mono text-[9px] text-subtle">
+              <span>0</span>
+              <span>15</span>
+              <span>30</span>
+              <span>50</span>
+              <span>75+</span>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-risk-low shadow-[0_0_8px_#10b981]" />
-                <span className="text-fg-soft font-medium">Low / Passable (&lt;15cm)</span>
-              </div>
-              <span className="font-mono text-risk-low text-[11px] font-bold">SAFE</span>
-            </div>
+
+            <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-0.5">
+              {DEPTH_BANDS.map((b) => (
+                <li key={b.key} className="flex items-center gap-1.5">
+                  <span
+                    className="h-2 w-2 shrink-0 rounded-sm"
+                    style={{ background: b.color }}
+                    aria-hidden="true"
+                  />
+                  <span className="text-[10px] font-medium text-fg-soft">{b.label}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 

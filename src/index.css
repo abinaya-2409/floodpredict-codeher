@@ -36,13 +36,15 @@
   --color-accent-2: #a78bfa;
   --color-on-accent: #04121f;
 
-  /* Risk ramp - blue to magenta, chosen to stay distinguishable for
-     deuteranopia and protanopia, unlike the usual green/amber/red. */
+  /* Severity ramp. Hue advances teal -> yellow -> orange -> red -> magenta,
+     the ordering meteorological agencies use, with "beyond red" magenta for
+     the worst band. Hue and lightness both move, so the sequence still reads
+     as ordered under deuteranopia and protanopia. */
   --color-risk-low: #2dd4bf;
-  --color-risk-moderate: #60a5fa;
-  --color-risk-high: #fbbf24;
-  --color-risk-severe: #fb7185;
-  --color-risk-critical: #e879f9;
+  --color-risk-moderate: #fcd34d;
+  --color-risk-high: #fb923c;
+  --color-risk-severe: #ef4444;
+  --color-risk-critical: #c026d3;
 
   /* Status */
   --color-positive: #34d399;
@@ -259,6 +261,11 @@
    and attribution bar in every theme.
    =========================================================================== */
 
+/* The basemap is context, not content: dim it so risk colours dominate. */
+.map-dim .leaflet-tile-pane {
+  filter: brightness(0.82) saturate(0.55) contrast(1.05);
+}
+
 .leaflet-container {
   background: var(--color-bg-deep);
   font-family: var(--font-sans);
@@ -308,4 +315,65 @@
 /* Vanta injects a fixed canvas; keep it behind everything and inert. */
 .vanta-canvas-host canvas {
   pointer-events: none !important;
+}
+
+/* Critical catchments pulse gently so they are findable without hunting. */
+.leaflet-interactive.zone-critical {
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--color-risk-critical) 70%, transparent));
+}
+
+/* ===========================================================================
+   Range sliders
+   The scenario slider referenced .fluid-slider, which was never defined, so
+   it rendered as a raw browser control.
+   =========================================================================== */
+
+.fluid-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  /* The track is the severity ramp, so the handle's position reads as a
+     severity, not just a number. */
+  background: linear-gradient(
+    to right,
+    var(--color-risk-low) 0%,
+    var(--color-risk-moderate) 28%,
+    var(--color-risk-high) 50%,
+    var(--color-risk-severe) 72%,
+    var(--color-risk-critical) 100%
+  );
+}
+
+.fluid-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--color-fg);
+  border: 3px solid var(--color-bg-deep);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.55);
+  transition: transform 0.15s ease;
+}
+
+.fluid-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.fluid-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--color-fg);
+  border: 3px solid var(--color-bg-deep);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.55);
+}
+
+.fluid-slider:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
 }

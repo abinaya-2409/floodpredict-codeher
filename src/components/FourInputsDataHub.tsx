@@ -25,7 +25,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
             <Radio className="w-4 h-4" />
             <span>Official 4-Pillar Telemetry Pipeline</span>
           </div>
-          <h2 className="text-xl md:text-2xl font-bold text-white mt-1">
+          <h2 className="text-xl md:text-2xl font-bold text-fg mt-1">
             Hydrological Data Ingestion & ML Validation Engine
           </h2>
           <p className="text-muted text-xs md:text-sm mt-0.5">
@@ -118,7 +118,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
           </div>
 
           <div className="p-4 bg-bg border border-line rounded-xl text-xs space-y-2">
-            <h4 className="font-bold text-white text-sm">How Rainfall Input Operates:</h4>
+            <h4 className="font-bold text-fg text-sm">How Rainfall Input Operates:</h4>
             <p className="text-fg-soft leading-relaxed">
               Automatic Weather Stations (AWS) stream 5-minute precipitation intensity readings. Rather than only summing total rain, 
               the ML hydrological model continuously tracks the <em>rate of water volume inflow</em> (Q_in = C × I × A) 
@@ -137,7 +137,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <span className={`w-2.5 h-2.5 rounded-full ${drain.isBlocked ? 'bg-risk-critical' : 'bg-risk-low'}`} />
-                    <span className="font-bold text-white text-sm">{drain.name}</span>
+                    <span className="font-bold text-fg text-sm">{drain.name}</span>
                   </div>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
                     drain.isBlocked ? 'bg-risk-critical/20 text-risk-critical border border-risk-critical/30' : 'bg-risk-low/20 text-risk-low'
@@ -178,7 +178,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
 
           <div className="p-4 bg-bg border border-line rounded-xl text-xs">
             <p className="text-fg-soft leading-relaxed">
-              <strong className="text-white">Why Drainage is the critical multiplier:</strong> A 40mm/hr rainstorm with clear drains creates minimal pooling; 
+              <strong className="text-fg">Why Drainage is the critical multiplier:</strong> A 40mm/hr rainstorm with clear drains creates minimal pooling; 
               the identical 40mm/hr rainstorm with a 65% choked surplus channel causes 70+ cm water stagnation into surrounding residential neighborhoods within 45 minutes.
             </p>
           </div>
@@ -223,7 +223,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
           </div>
 
           <div className="p-4 bg-bg border border-line rounded-xl text-xs space-y-2">
-            <h4 className="font-bold text-white text-sm">Predicting Hours Before Water Rises:</h4>
+            <h4 className="font-bold text-fg text-sm">Predicting Hours Before Water Rises:</h4>
             <p className="text-fg-soft leading-relaxed">
               By combining high-resolution atmospheric models (WRF / ECMWF) with Doppler Radar nowcasts, 
               JalRakshak AI forecasts inundation <strong>6 to 12 hours prior to storm landfall</strong>, 
@@ -237,7 +237,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
       {activeTab === 'historical' && (
         <div className="space-y-4 animate-in fade-in duration-200">
           <div className="p-3.5 bg-bg border border-line rounded-xl text-xs text-fg-soft">
-            <span className="font-bold text-white">Machine Learning Ground-Truth Training:</span> The hydrological risk model is calibrated and validated against real past inundation datasets from the 2015 Deluge and 2023 Cyclone Michaung in Chennai.
+            <span className="font-bold text-fg">Machine Learning Ground-Truth Training:</span> The hydrological risk model is calibrated and validated against real past inundation datasets from the 2015 Deluge and 2023 Cyclone Michaung in Chennai.
           </div>
 
           <div className="space-y-3">
@@ -246,7 +246,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <span className="p-1 rounded bg-accent/20 text-accent font-mono text-xs font-bold">{deluge.year}</span>
-                    <span className="font-bold text-white text-sm">{deluge.eventName}</span>
+                    <span className="font-bold text-fg text-sm">{deluge.eventName}</span>
                   </div>
                   <span className="font-mono text-xs text-accent-soft font-bold">{deluge.recordedRainfallMm24h} mm / 24h</span>
                 </div>

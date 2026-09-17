@@ -127,7 +127,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
             <Sliders className="w-4 h-4" />
             <span>Hydraulic Stress Testing Sandbox</span>
           </div>
-          <h2 className="text-xl md:text-2xl font-bold text-white mt-1">
+          <h2 className="text-xl md:text-2xl font-bold text-fg mt-1">
             "What-If" Scenario Simulator (Municipal Authorities Mode)
           </h2>
           <p className="text-muted text-xs md:text-sm mt-0.5">
@@ -268,7 +268,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
           {/* Drain Checkpoints List */}
           <div className="p-4 bg-bg border border-line rounded-xl">
             <div className="flex items-center justify-between pb-3 border-b border-line mb-3">
-              <span className="text-xs font-bold text-white uppercase tracking-wider">
+              <span className="text-xs font-bold text-fg uppercase tracking-wider">
                 Critical Stormwater Drainage Channels & Outfalls
               </span>
               <span className="text-[10px] text-muted">Click to Toggle Choke / Unclog</span>
@@ -309,7 +309,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
                         onClick={() => handleDrainToggle(drain.id)}
                         className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
                           isBlocked
-                            ? 'bg-risk-critical text-white shadow-md shadow-risk-critical/30'
+                            ? 'bg-risk-critical text-fg shadow-md shadow-risk-critical/30'
                             : 'bg-surface-2 text-fg-soft hover:bg-surface-3'
                         }`}
                       >
@@ -358,7 +358,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
           <button
             onClick={runAiDiagnosis}
             disabled={isLoadingAi}
-            className="w-full py-3 bg-gradient-to-r from-accent to-accent hover:from-accent hover:to-accent text-white font-bold text-xs rounded-xl shadow-lg shadow-accent/20 flex items-center justify-center space-x-2 transition-all disabled:opacity-50"
+            className="w-full py-3 bg-gradient-to-r from-accent to-accent hover:from-accent hover:to-accent text-fg font-bold text-xs rounded-xl shadow-lg shadow-accent/20 flex items-center justify-center space-x-2 transition-all disabled:opacity-50"
           >
             <Sparkles className="w-4 h-4 text-accent-soft animate-pulse" />
             <span>{isLoadingAi ? 'Running Gemini Hydraulic Diagnosis...' : 'Generate AI Hydraulic Action Report'}</span>
