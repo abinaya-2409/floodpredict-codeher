@@ -1,8 +1,8 @@
 import React from 'react';
 import { CityData, WeatherForecast } from '../types';
-import { Shield, CloudRain, Cpu, Radio, MapPin, Users, HelpCircle, Activity, Waves, Languages, ShieldAlert, Wifi, WifiOff, Clock } from 'lucide-react';
 import { CITIES } from '../data/mockData';
 import { Language, TRANSLATIONS } from '../utils/translations';
+import { Wifi, WifiOff } from 'lucide-react';
 
 interface Props {
   selectedCity: CityData;
@@ -36,226 +36,297 @@ export const Navbar: React.FC<Props> = ({
   const t = TRANSLATIONS[language];
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-950/95 border-b border-slate-800/80 backdrop-blur-md" id="main-navigation">
-      {/* Top Telemetry Ticker Bar */}
-      <div className="bg-slate-900/80 border-b border-slate-800/60 px-4 py-1 text-[11px] text-slate-400 flex items-center justify-between overflow-x-auto whitespace-nowrap scrollbar-none">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-1.5 text-cyan-400 font-mono">
-            <span className={`w-2 h-2 rounded-full ${isOfflineSimulated ? 'bg-amber-400 animate-ping' : 'bg-cyan-400 animate-pulse'}`} />
-            <span className="font-bold">{t.liveTelemetry}:</span>
-            <span>{selectedCity.name} AWS Doppler Radar</span>
-          </div>
-          <span className="text-slate-600">|</span>
-          <span>{t.rainfall}: <strong className="text-cyan-300 font-mono">{weather.currentRainfallMmHr} mm/hr</strong></span>
-          <span className="text-slate-600">|</span>
-          <span>{t.forecast24h}: <strong className="text-blue-300 font-mono">+{weather.forecast24hMm} mm</strong></span>
-          <span className="text-slate-600">|</span>
-          <span>{t.tide}: <strong className="text-indigo-300 font-mono">{weather.stormSurgeTideM}m MSL</strong></span>
-          <span className="text-slate-600">|</span>
-          <span>{t.dopplerTrend}: <strong className="text-amber-300 font-mono uppercase">{weather.dopplerRadarTrend}</strong></span>
-        </div>
-
-        <div className="hidden md:flex items-center space-x-3 text-slate-400">
-          <span className="font-mono text-[10px] text-emerald-400 font-medium">● 87.4% Model Confidence</span>
-          <span className="text-slate-600">|</span>
-          <button
-            onClick={onToggleOffline}
-            className="hover:text-slate-200 flex items-center space-x-1 cursor-pointer"
-            title="Toggle offline simulated mode"
-          >
-            {isOfflineSimulated ? (
-              <span className="text-amber-400 font-semibold flex items-center"><WifiOff className="w-3 h-3 mr-1" /> Offline Cache</span>
-            ) : (
-              <span className="text-emerald-400 flex items-center"><Wifi className="w-3 h-3 mr-1" /> Online</span>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Main Nav Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
-        {/* Brand & City Selector */}
-        <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-600/30 flex items-center justify-center shrink-0">
-            <Waves className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="font-extrabold text-white text-base tracking-tight font-display">{t.appTitle}</span>
-              <span className="px-2 py-0.2 rounded text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                S-34 ENGINE
-              </span>
+    <header className="sticky top-0 z-50 w-full px-3 sm:px-6 pt-3 pb-2 backdrop-blur-md bg-transparent">
+      <div className="max-w-7xl mx-auto flex flex-col gap-2">
+        {/* Top Live Telemetry Pill Strip */}
+        <div className="fluid-glass rounded-full px-4 py-1.5 flex items-center justify-between text-xs overflow-x-auto whitespace-nowrap shadow-[0_4px_24px_rgba(0,0,0,0.5)] border border-emerald-500/20">
+          <div className="flex items-center gap-3">
+            {/* Radar Animated Pulse & Sweep Icon */}
+            <div className="flex items-center gap-2 text-emerald-400 font-mono tracking-wider font-bold">
+              <div className="relative w-4 h-4 flex items-center justify-center">
+                <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.3" strokeWidth="1.5" />
+                  <circle cx="12" cy="12" r="5.5" stroke="currentColor" strokeOpacity="0.5" strokeWidth="1.5" />
+                  <line stroke="currentColor" strokeOpacity="0.25" strokeWidth="1" x1="12" x2="12" y1="2" y2="22" />
+                  <line stroke="currentColor" strokeOpacity="0.25" strokeWidth="1" x1="2" x2="22" y1="12" y2="12" />
+                  <g className="animate-radar-sweep origin-center">
+                    <path d="M12 12 L21.5 8" stroke="#34d399" strokeLinecap="round" strokeWidth="2" />
+                    <path d="M12 12 L22 12 A10 10 0 0 0 19 6 Z" fill="url(#navRadarSectorGrad)" opacity="0.4" />
+                  </g>
+                  <defs>
+                    <radialGradient id="navRadarSectorGrad">
+                      <stop offset="0%" stopColor="#34d399" stopOpacity="0.8" />
+                      <stop offset="100%" stopColor="#34d399" stopOpacity="0" />
+                    </radialGradient>
+                  </defs>
+                </svg>
+                <span className="absolute w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
+                <span className="absolute w-1 h-1 rounded-full bg-rose-500" />
+              </div>
+              <span className="text-white">LIVE HYDRO-TELEMETRY</span>
             </div>
-            <div className="text-[11px] text-slate-400 hidden sm:block truncate max-w-md">
-              {t.tagline}
-            </div>
+            <span className="text-slate-600">•</span>
+            <span className="font-mono text-slate-200">{selectedCity.name} AWS Doppler Radar</span>
+            <span className="text-slate-600">•</span>
+            <span className="font-mono text-slate-400">
+              Rainfall: <strong className="text-cyan-400 font-bold">{weather.currentRainfallMmHr} mm/hr</strong>
+            </span>
+            <span className="text-slate-600">•</span>
+            <span className="font-mono text-slate-400">
+              24h Outlook: <strong className="text-amber-400 font-bold">+{weather.forecast24hMm} mm</strong>
+            </span>
+            <span className="text-slate-600">•</span>
+            <span className="font-mono text-slate-400">
+              Tide: <strong className="text-emerald-300 font-semibold">{weather.stormSurgeTideM}m MSL</strong>
+            </span>
+            <span className="text-slate-600">•</span>
+            <span className="font-mono text-slate-400">
+              Doppler Trend: <strong className="text-rose-400 font-bold uppercase">{weather.dopplerRadarTrend}</strong>
+            </span>
+            <span className="text-slate-600">•</span>
+            <span className="font-mono text-slate-400">
+              Confidence: <strong className="text-purple-400 font-bold">87.4%</strong>
+            </span>
           </div>
-        </div>
 
-        {/* Controls: City Switcher, Multi-Language, Role, Explainer */}
-        <div className="flex items-center space-x-2">
-          {/* Multi-language button (English / Tamil) */}
-          <button
-            onClick={onToggleLanguage}
-            className="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 hover:border-cyan-500/50 text-slate-200 hover:text-white text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer"
-            title="Switch Language (English / தமிழ்)"
-          >
-            <Languages className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="font-bold">{language === 'en' ? 'தமிழ்' : 'English'}</span>
-          </button>
-
-          {/* City Selector */}
-          <div className="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-1 text-xs">
-            <MapPin className="w-3.5 h-3.5 text-cyan-400 ml-1.5 mr-1" />
-            <select
-              value={selectedCity.id}
-              onChange={(e) => {
-                const found = CITIES.find(c => c.id === e.target.value);
-                if (found) onSelectCity(found);
-              }}
-              className="bg-transparent text-white font-semibold pr-2 py-1 text-xs focus:outline-none cursor-pointer"
+          <div className="flex items-center gap-2 pl-4">
+            <button
+              onClick={onToggleOffline}
+              className="inline-flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-400/40 px-3 py-0.5 rounded-full text-emerald-300 font-mono text-[11px] font-semibold shadow-[0_0_10px_rgba(16,185,129,0.2)] hover:bg-emerald-500/25 transition-colors cursor-pointer"
             >
-              {CITIES.map((c) => (
-                <option key={c.id} value={c.id} className="bg-slate-900 text-white">
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              {isOfflineSimulated ? (
+                <>
+                  <WifiOff className="w-3 h-3 text-amber-400" />
+                  <span className="text-amber-300">Offline Simulation</span>
+                </>
+              ) : (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Telemetry Online</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Main Navigation Fluid Island */}
+        <div className="fluid-glass rounded-[26px] px-4 sm:px-6 py-2.5 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.55)] border border-slate-700/50">
+          {/* Logo & Engine Branding: Cybernetic Multi-Layer Hydro-Shield */}
+          <div className="flex items-center gap-3.5">
+            <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500/25 via-cyan-500/20 to-slate-900 flex items-center justify-center border border-emerald-400/40 shadow-[0_0_22px_rgba(16,185,129,0.35)] group">
+              <svg className="w-7 h-7 text-emerald-400 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 32 32">
+                <path
+                  d="M16 3 L27 7 V15 C27 22.5 16 28 16 28 C16 28 5 22.5 5 15 V7 L16 3 Z"
+                  fill="url(#brandShieldGrad)"
+                  fillOpacity="0.25"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.75"
+                />
+                <path
+                  d="M16 9 C16 9 21.5 16 21.5 19 C21.5 22 19 24.5 16 24.5 C13 24.5 10.5 22 10.5 19 C10.5 16 16 9 16 9 Z"
+                  fill="#06b6d4"
+                  fillOpacity="0.85"
+                />
+                <path
+                  d="M12.5 20 C13.5 19.2 14.7 19.2 16 20 C17.3 20.8 18.5 20.8 19.5 20"
+                  stroke="#f0fdf4"
+                  strokeLinecap="round"
+                  strokeWidth="1.5"
+                />
+                <defs>
+                  <linearGradient id="brandShieldGrad" x1="5" y1="3" x2="27" y2="28" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#34d399" />
+                    <stop offset="100%" stopColor="#0284c7" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-slate-900 animate-ping" />
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-slate-900" />
+            </div>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-lg sm:text-xl font-extrabold tracking-tight text-white font-sans">JalRakshak AI</span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 font-mono text-[10px] font-bold tracking-wider shadow-[0_0_8px_rgba(16,185,129,0.25)]">
+                  S-34 ENGINE
+                </span>
+              </div>
+              <span className="text-xs text-slate-400 hidden sm:inline">{t.tagline}</span>
+            </div>
           </div>
 
-          {/* Explainer Modal Button */}
-          <button
-            onClick={onOpenExplainer}
-            className="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer hidden md:flex"
-            title="Understand how the 4 inputs predict flood risk"
-          >
-            <HelpCircle className="w-3.5 h-3.5" />
-            <span>Concept</span>
-          </button>
+          {/* Controls: Language, Ward/City Picker, Concept, Authority Hub CTA */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Translation Button */}
+            <button
+              onClick={onToggleLanguage}
+              className="h-9 px-3 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition-all border border-slate-700/60 flex items-center gap-1.5 shadow-sm cursor-pointer"
+              title="Switch Language"
+            >
+              <svg className="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+              <span>{language === 'en' ? 'தமிழ் / EN' : 'EN / தமிழ்'}</span>
+            </button>
 
-          {/* User Persona Toggle (Authority vs Citizen) */}
-          <button
-            onClick={onToggleRole}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 border transition-all cursor-pointer ${
-              userRole === 'authority'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-500/50 shadow-md shadow-blue-600/30'
-                : 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-500/50 shadow-md shadow-emerald-600/30'
-            }`}
-          >
-            {userRole === 'authority' ? (
-              <>
-                <Shield className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{t.authorityHub}</span>
-              </>
-            ) : (
-              <>
-                <Users className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{t.citizenView}</span>
-              </>
-            )}
-          </button>
+            {/* City / Ward Selector */}
+            <div className="flex items-center bg-slate-800/80 border border-slate-700/60 hover:border-cyan-500/50 rounded-full px-3.5 h-9 gap-2 text-slate-200 text-xs font-medium transition-all shadow-sm">
+              <svg className="w-4 h-4 text-cyan-400 shrink-0" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M3 21h18" />
+                <path d="M5 21V7l5-4v18" />
+                <path d="M10 9l9 4v8" />
+                <line x1="7" y1="10" x2="7.01" y2="10" />
+                <line x1="7" y1="14" x2="7.01" y2="14" />
+                <line x1="14" y1="15" x2="14.01" y2="15" />
+              </svg>
+              <select
+                value={selectedCity.id}
+                onChange={(e) => {
+                  const found = CITIES.find((c) => c.id === e.target.value);
+                  if (found) onSelectCity(found);
+                }}
+                className="bg-transparent text-slate-100 font-semibold text-xs focus:outline-none cursor-pointer pr-1"
+              >
+                {CITIES.map((c) => (
+                  <option key={c.id} value={c.id} className="bg-slate-900 text-white">
+                    {c.name} ({c.zones.length} Wards)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Concept Link */}
+            <button
+              onClick={onOpenExplainer}
+              className="hidden lg:flex items-center h-9 px-4 rounded-full bg-slate-800/70 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition-all border border-slate-700/60 cursor-pointer"
+            >
+              Concept
+            </button>
+
+            {/* Authority Hub CTA */}
+            <button
+              onClick={onToggleRole}
+              className={`relative h-9 px-4 rounded-full font-bold text-xs tracking-wide transition-all flex items-center gap-2 border cursor-pointer shadow-lg ${
+                userRole === 'authority'
+                  ? 'bg-gradient-to-r from-rose-600 to-rose-700 hover:brightness-110 text-white border-rose-400/40 shadow-[0_0_20px_rgba(244,63,94,0.45)]'
+                  : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-110 text-white border-emerald-400/40 shadow-[0_0_20px_rgba(16,185,129,0.35)]'
+              }`}
+            >
+              <span className="relative flex h-4 w-4 items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" />
+                  <circle cx="12" cy="11.5" r="2.5" fill="currentColor" />
+                </svg>
+                {userRole === 'authority' && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-yellow-300 animate-ping" />
+                )}
+              </span>
+              <span>{userRole === 'authority' ? 'Authority Hub' : 'Citizen Portal'}</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Navigation Tabs Bar */}
-      <div className="border-t border-slate-800/80 bg-slate-950/80 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex items-center space-x-1 sm:space-x-2 overflow-x-auto py-2 scrollbar-none text-xs">
+        {/* Fluid Pill Navigation Tabs */}
+        <nav className="flex items-center gap-1.5 px-3 py-1.5 rounded-full fluid-glass overflow-x-auto border border-slate-700/50">
           <button
             onClick={() => onChangeTab('map')}
-            className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 cursor-pointer ${
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'map'
-                ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                ? 'bg-gradient-to-r from-emerald-500/25 via-teal-500/20 to-cyan-500/25 text-emerald-300 border border-emerald-400/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'
             }`}
           >
-            <Activity className="w-3.5 h-3.5" />
-            <span>{t.tabMap}</span>
+            {activeTab === 'map' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />}
+            <span>Interactive Inundation Map</span>
           </button>
 
           <button
             onClick={() => onChangeTab('streets')}
-            className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 cursor-pointer ${
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'streets'
-                ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                ? 'bg-gradient-to-r from-emerald-500/25 via-teal-500/20 to-cyan-500/25 text-emerald-300 border border-emerald-400/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'
             }`}
           >
-            <MapPin className="w-3.5 h-3.5" />
-            <span>{t.tabStreets}</span>
+            {activeTab === 'streets' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />}
+            <span>Street-Level Vulnerability</span>
           </button>
 
           <button
             onClick={() => onChangeTab('whatif')}
-            className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 cursor-pointer ${
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'whatif'
-                ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                ? 'bg-gradient-to-r from-emerald-500/25 via-teal-500/20 to-cyan-500/25 text-emerald-300 border border-emerald-400/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'
             }`}
           >
-            <Cpu className="w-3.5 h-3.5" />
-            <span>{t.tabWhatIf}</span>
+            {activeTab === 'whatif' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />}
+            <span>"What-If" Hydraulic Sandbox</span>
           </button>
 
           <button
             onClick={() => onChangeTab('alerts')}
-            className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 cursor-pointer ${
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'alerts'
-                ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                ? 'bg-gradient-to-r from-emerald-500/25 via-teal-500/20 to-cyan-500/25 text-emerald-300 border border-emerald-400/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'
             }`}
           >
-            <Radio className="w-3.5 h-3.5" />
-            <span>{t.tabAlerts}</span>
+            {activeTab === 'alerts' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />}
+            <span>Tiered Early Warning Hub</span>
           </button>
 
           <button
             onClick={() => onChangeTab('resources')}
-            className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 cursor-pointer ${
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'resources'
-                ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                ? 'bg-gradient-to-r from-emerald-500/25 via-teal-500/20 to-cyan-500/25 text-emerald-300 border border-emerald-400/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'
             }`}
           >
-            <ShieldAlert className="w-3.5 h-3.5" />
-            <span>{t.tabResources}</span>
+            {activeTab === 'resources' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />}
+            <span>Resource Pre-Positioning</span>
           </button>
 
           <button
             onClick={() => onChangeTab('fourinputs')}
-            className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 cursor-pointer ${
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'fourinputs'
-                ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                ? 'bg-gradient-to-r from-emerald-500/25 via-teal-500/20 to-cyan-500/25 text-emerald-300 border border-emerald-400/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'
             }`}
           >
-            <CloudRain className="w-3.5 h-3.5" />
-            <span>{t.tabFourInputs}</span>
+            {activeTab === 'fourinputs' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />}
+            <span>The 4 Input Data Streams</span>
           </button>
 
           <button
             onClick={() => onChangeTab('timeline')}
-            className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 cursor-pointer ${
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'timeline'
-                ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                ? 'bg-gradient-to-r from-emerald-500/25 via-teal-500/20 to-cyan-500/25 text-emerald-300 border border-emerald-400/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'
             }`}
           >
-            <Clock className="w-3.5 h-3.5" />
-            <span>{t.tabTimeline}</span>
+            {activeTab === 'timeline' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />}
+            <span>72h Timeline &amp; Risk</span>
           </button>
 
           <button
             onClick={() => onChangeTab('citizen')}
-            className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 cursor-pointer ${
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'citizen'
-                ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                ? 'bg-gradient-to-r from-emerald-500/25 via-teal-500/20 to-cyan-500/25 text-emerald-300 border border-emerald-400/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'
             }`}
           >
-            <Users className="w-3.5 h-3.5" />
-            <span>{t.tabCitizen}</span>
+            {activeTab === 'citizen' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />}
+            <span>Citizen Portal</span>
           </button>
-        </div>
+        </nav>
       </div>
     </header>
   );

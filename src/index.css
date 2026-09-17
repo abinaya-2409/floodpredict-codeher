@@ -1,27 +1,120 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+/* Hydrodynamic Theme & Custom CSS */
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #060b13;
+    color: #f0f6fc;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+::-webkit-scrollbar { display: none; }
+
+/* Hydrodynamic Multi-Accent Fluid Glass */
+.fluid-glass {
+  background: radial-gradient(140% 125% at 15% 0%, rgba(16, 26, 40, 0.82) 0%, rgba(8, 14, 24, 0.9) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(56, 189, 248, 0.16);
+  box-shadow: 0 16px 40px -10px rgba(2, 8, 20, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+}
+
+.fluid-glass-interactive {
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fluid-glass-interactive:hover {
+  transform: translateY(-2px);
+}
+
+/* Ambient Wave Ripples & Animations */
+@keyframes hydroPulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
+.animate-hydro-pulse {
+  animation: hydroPulse 4s ease-in-out infinite;
+}
+
+@keyframes radarSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-radar-sweep {
+  animation: radarSpin 3s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes fluidFlow {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(-10px, 8px) rotate(1deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+.animate-fluid-flow {
+  animation: fluidFlow 14s ease-in-out infinite;
+}
+
+/* Custom Hydro Slider */
+input[type=range].fluid-slider {
+  -webkit-appearance: none;
+  background: transparent;
+}
+
+input[type=range].fluid-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 22px;
+  width: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #6ee7b7, #059669);
+  cursor: pointer;
+  box-shadow: 0 0 16px #10b981, 0 0 28px rgba(16,185,129,0.5);
+  border: 2px solid #ffffff;
+  margin-top: -8px;
+  transition: transform 0.15s ease;
+}
+
+input[type=range].fluid-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.22);
+}
+
+input[type=range].fluid-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  cursor: pointer;
+  background: linear-gradient(90deg, #10b981 0%, #06b6d4 35%, #f59e0b 70%, #f43f5e 100%);
+  border-radius: 9999px;
+  border: none;
+}
+
 /* Leaflet dark theme customizations */
 .leaflet-container {
-  background-color: #020617 !important;
+  background-color: #050b14 !important;
   font-family: inherit;
 }
 
 .leaflet-popup-content-wrapper, .leaflet-popup-tip {
-  background: #0f172a !important;
+  background: rgba(15, 23, 42, 0.95) !important;
+  backdrop-filter: blur(16px);
   color: #f8fafc !important;
-  border: 1px solid #334155;
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 1rem;
+  box-shadow: 0 16px 36px -5px rgba(0, 0, 0, 0.7);
 }
 
 .leaflet-popup-content {
-  margin: 12px 14px;
+  margin: 14px 16px;
   line-height: 1.4;
 }
 
 .leaflet-control-zoom a {
-  background-color: #0f172a !important;
+  background-color: #0c131d !important;
   color: #38bdf8 !important;
   border-color: #334155 !important;
 }

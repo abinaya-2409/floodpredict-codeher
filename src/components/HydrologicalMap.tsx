@@ -50,9 +50,9 @@ export const HydrologicalMap: React.FC<Props> = ({
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col h-full" id="hydrological-map-card">
+    <div className="fluid-glass rounded-[32px] overflow-hidden relative shadow-[0_24px_50px_rgba(0,0,0,0.65)] border border-cyan-500/25 flex flex-col h-full" id="hydrological-map-card">
       {/* Map Control Toolbar */}
-      <div className="p-4 bg-slate-950/70 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+      <div className="p-4 bg-slate-950/70 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-2 text-cyan-400 font-bold text-sm">
             <Layers className="w-4 h-4" />
