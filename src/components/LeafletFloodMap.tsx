@@ -507,125 +507,167 @@ export const LeafletFloodMap: React.FC<Props> = ({
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl relative" id="leaflet-flood-map-wrapper">
+    <div className="fluid-glass rounded-[32px] overflow-hidden relative shadow-[0_24px_50px_rgba(0,0,0,0.65)] border border-cyan-500/25 flex flex-col" id="leaflet-flood-map-wrapper">
       {/* Top Map Control Bar */}
-      <div className="p-4 bg-slate-950/90 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="p-3 sm:p-4 bg-slate-950/70 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Search Input */}
         <form onSubmit={handleSearch} className="relative w-full md:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400/80" />
           <input
             type="text"
             placeholder="Search address (e.g. Velachery 100ft Rd)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+            className="w-full h-9 bg-slate-900/80 text-slate-100 pl-10 pr-4 rounded-full text-xs placeholder:text-slate-500 border border-slate-700/60 focus:outline-none focus:border-cyan-400/70 focus:ring-1 focus:ring-cyan-400/40 transition-all"
           />
         </form>
 
         {/* Layer Filter Toggles */}
-        <div className="flex items-center space-x-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none text-xs">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none text-xs">
           <button
             onClick={() => setShow2015Historical(!show2015Historical)}
-            className={`px-2.5 py-1.5 rounded-lg border font-semibold flex items-center space-x-1 transition-all whitespace-nowrap ${
+            className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer shadow-sm ${
               show2015Historical
-                ? 'bg-rose-500/20 border-rose-500 text-rose-300 font-bold'
-                : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                ? 'bg-amber-500/25 border-amber-400 text-amber-300 font-bold shadow-[0_0_12px_rgba(245,158,11,0.3)]'
+                : 'bg-slate-800/60 hover:bg-slate-700/80 text-amber-300/80 border-amber-500/40 hover:text-white'
             }`}
           >
-            {show2015Historical ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+            <svg className="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 5a5 5 0 1 1-5 5 5 5 0 0 1 5-5z" />
+              <circle cx="12" cy="12" fill="currentColor" r="2" />
+            </svg>
             <span>2015 Deluge Overlay</span>
           </button>
 
           <button
             onClick={() => setShow2023Historical(!show2023Historical)}
-            className={`px-2.5 py-1.5 rounded-lg border font-semibold flex items-center space-x-1 transition-all whitespace-nowrap ${
+            className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer shadow-sm ${
               show2023Historical
-                ? 'bg-orange-500/20 border-orange-500 text-orange-300 font-bold'
-                : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                ? 'bg-rose-500/25 border-rose-400 text-rose-300 font-bold shadow-[0_0_12px_rgba(244,63,94,0.3)]'
+                : 'bg-slate-800/60 hover:bg-slate-700/80 text-rose-300/80 border-rose-500/40 hover:text-white'
             }`}
           >
-            {show2023Historical ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+            <svg className="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M12 2a10 10 0 0 1 9.9 8.6c.1.7-.4 1.4-1.1 1.4h-3.8a5 5 0 0 0-5-5V3.2c0-.7-.7-1.2-1.4-1.1A10 10 0 0 1 12 2z" />
+              <path d="M12 22a10 10 0 0 1-9.9-8.6c-.1-.7.4-1.4 1.1-1.4h3.8a5 5 0 0 0 5 5v3.8c0 .7.7 1.2 1.4 1.1A10 10 0 0 1 12 22z" />
+              <circle cx="12" cy="12" fill="currentColor" r="2.5" />
+            </svg>
             <span>2023 Michaung</span>
           </button>
 
           <button
             onClick={() => setShowEvacRoutes(!showEvacRoutes)}
-            className={`px-2.5 py-1.5 rounded-lg border font-semibold flex items-center space-x-1 transition-all whitespace-nowrap ${
+            className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer shadow-sm ${
               showEvacRoutes
-                ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 font-bold'
-                : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                ? 'bg-emerald-500/25 border-emerald-400 text-emerald-300 font-bold shadow-[0_0_12px_rgba(16,185,129,0.3)]'
+                : 'bg-slate-800/60 hover:bg-slate-700/80 text-emerald-300/80 border-emerald-400/40 hover:text-white'
             }`}
           >
-            <Navigation className="w-3.5 h-3.5" />
+            <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24">
+              <polyline points="18 15 22 15 22 11" />
+              <path d="M14 9l8 6" />
+              <path d="M4 19h4l4-8V4" />
+              <polyline points="10 4 12 2 14 4" />
+            </svg>
             <span>Evacuation Routes</span>
           </button>
 
           <button
             onClick={() => setShowShelters(!showShelters)}
-            className={`px-2.5 py-1.5 rounded-lg border font-semibold flex items-center space-x-1 transition-all whitespace-nowrap ${
+            className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer shadow-sm ${
               showShelters
-                ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300 font-bold'
-                : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                ? 'bg-cyan-500/25 border-cyan-400 text-cyan-300 font-bold shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                : 'bg-slate-800/60 hover:bg-slate-700/80 text-cyan-300/80 border-cyan-400/40 hover:text-white'
             }`}
           >
-            <ShieldCheck className="w-3.5 h-3.5" />
+            <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
             <span>Relief Camps</span>
           </button>
         </div>
       </div>
 
       {/* Map Container */}
-      <div className="relative w-full h-[520px] bg-slate-950">
+      <div className="relative w-full h-[560px] bg-[#050b14]">
         <div ref={mapContainerRef} className="w-full h-full z-10" />
 
-        {/* Real-time Scenario Slider (Floating Demo Controller) */}
-        <div className="absolute bottom-4 left-4 right-4 md:right-auto md:w-96 z-20 bg-slate-950/95 border border-slate-700/90 rounded-2xl p-4 shadow-2xl backdrop-blur-md space-y-3">
+        {/* Real-time Scenario Slider (Floating Hydro Wave Slider) */}
+        <div className="absolute bottom-4 left-4 right-4 md:right-auto md:w-md z-20 fluid-glass rounded-3xl p-4 shadow-2xl border border-emerald-400/25 space-y-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-1.5 text-cyan-400 text-xs font-bold uppercase tracking-wider">
-              <Sliders className="w-4 h-4" />
-              <span>Rainfall Scenario Slider (20 - 200mm)</span>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-xl bg-emerald-500/15 border border-emerald-400/35 flex items-center justify-center text-emerald-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M2 12c3-4 6-4 9 0s6 4 9 0M2 17c3-4 6-4 9 0s6 4 9 0" />
+                </svg>
+              </div>
+              <span className="text-xs font-bold text-white uppercase tracking-wider">Hydro-Rainfall Scenario Slider</span>
             </div>
-            <span className="font-mono text-sm font-extrabold text-cyan-300 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-500/30">
-              {simulationParams.rainfallIntensityMmHr} mm/hr
-            </span>
+            <div className="bg-slate-900/80 border border-emerald-400/30 px-3 py-1 rounded-full flex items-baseline gap-1 shadow-inner">
+              <span className="text-lg text-emerald-400 font-bold font-mono">
+                {simulationParams.rainfallIntensityMmHr}
+              </span>
+              <span className="text-[11px] text-slate-400">mm/hr</span>
+            </div>
           </div>
 
-          <input
-            type="range"
-            min="20"
-            max="200"
-            step="5"
-            value={simulationParams.rainfallIntensityMmHr}
-            onChange={(e) => onUpdateParams({ ...simulationParams, rainfallIntensityMmHr: Number(e.target.value) })}
-            className="w-full accent-cyan-400 cursor-pointer h-2 bg-slate-800 rounded-lg"
-          />
-
-          <div className="flex justify-between text-[10px] font-mono text-slate-400">
-            <span>20mm (Moderate)</span>
-            <span>80mm (Severe)</span>
-            <span>150mm+ (2015 Cloudburst)</span>
+          <div className="space-y-1.5 pt-1">
+            <input
+              type="range"
+              min="20"
+              max="200"
+              step="1"
+              value={simulationParams.rainfallIntensityMmHr}
+              onChange={(e) => onUpdateParams({ ...simulationParams, rainfallIntensityMmHr: Number(e.target.value) })}
+              className="fluid-slider w-full"
+            />
+            <div className="flex justify-between text-[10px] font-mono text-slate-400">
+              <span className="text-emerald-400">20mm (Moderate)</span>
+              <span className="text-amber-400">80mm (Severe)</span>
+              <span className="text-rose-400">150mm+ (2015 Deluge)</span>
+            </div>
           </div>
         </div>
 
         {/* Legend Overlay */}
-        <div className="absolute top-4 right-4 z-20 bg-slate-950/90 border border-slate-800 rounded-xl p-3 shadow-xl backdrop-blur-md hidden sm:block text-xs space-y-1.5">
-          <div className="font-bold text-slate-300 text-[11px] uppercase tracking-wider mb-1">Inundation Risk Tier</div>
-          <div className="flex items-center space-x-2">
-            <span className="w-3 h-3 rounded bg-rose-600 animate-pulse" />
-            <span className="text-slate-200">Critical (&gt;60cm)</span>
+        <div className="absolute top-4 right-4 z-20 fluid-glass rounded-2xl p-3.5 w-64 shadow-2xl border border-slate-700/60 hidden sm:block">
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-700/60">
+            <span className="font-mono text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Inundation Risk Tier</span>
+            <span className="text-[10px] text-emerald-400 font-mono">MSL Rel.</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="w-3 h-3 rounded bg-orange-500" />
-            <span className="text-slate-200">High (30-60cm)</span>
+          <div className="space-y-1.5 text-xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_#f43f5e]" />
+                <span className="text-slate-200 font-medium">Critical (&gt;60cm)</span>
+              </div>
+              <span className="font-mono text-rose-400 font-bold text-[11px]">ZONE A</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_#f59e0b]" />
+                <span className="text-slate-200 font-medium">High (30-60cm)</span>
+              </div>
+              <span className="font-mono text-amber-400 font-bold text-[11px]">ZONE B</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-400 shadow-[0_0_8px_#a855f7]" />
+                <span className="text-slate-200 font-medium">Moderate (15-30cm)</span>
+              </div>
+              <span className="font-mono text-purple-400 text-[11px] font-bold">ZONE C</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]" />
+                <span className="text-slate-200 font-medium">Low / Passable (&lt;15cm)</span>
+              </div>
+              <span className="font-mono text-emerald-400 text-[11px] font-bold">SAFE</span>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="w-3 h-3 rounded bg-yellow-500" />
-            <span className="text-slate-200">Moderate (15-30cm)</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="w-3 h-3 rounded bg-emerald-500" />
-            <span className="text-slate-200">Low / Passable (&lt;15cm)</span>
-          </div>
+        </div>
+
+        {/* Footer GIS Attribution */}
+        <div className="absolute bottom-2 right-4 z-20 text-[10px] text-slate-500 font-mono pointer-events-none">
+          GIS Hydro Model v4.2 • CartoDB DarkMatter Vector • SRTM 30m DEM
         </div>
       </div>
     </div>
