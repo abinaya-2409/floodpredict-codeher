@@ -3,6 +3,9 @@ import { CityData, WeatherForecast } from '../types';
 import { CITIES } from '../data/mockData';
 import { Language, TRANSLATIONS } from '../utils/translations';
 import { Wifi, WifiOff } from 'lucide-react';
+import { useThemeTokens } from '../theme/useThemeTokens';
+import { LogoMark } from './Logo';
+import { ThemeSwitcher } from './ThemeSwitcher';
 
 interface Props {
   selectedCity: CityData;
@@ -33,75 +36,77 @@ export const Navbar: React.FC<Props> = ({
   isOfflineSimulated,
   onToggleOffline,
 }) => {
+  const tokens = useThemeTokens();
   const t = TRANSLATIONS[language];
 
   return (
     <header className="sticky top-0 z-50 w-full px-3 sm:px-6 pt-3 pb-2 backdrop-blur-md bg-transparent">
       <div className="max-w-7xl mx-auto flex flex-col gap-2">
         {/* Top Live Telemetry Pill Strip */}
-        <div className="fluid-glass rounded-full px-4 py-1.5 flex items-center justify-between text-xs overflow-x-auto whitespace-nowrap shadow-[0_4px_24px_rgba(0,0,0,0.5)] border border-emerald-500/20">
+        <div className="fluid-glass rounded-full px-4 py-1.5 flex items-center justify-between text-xs overflow-x-auto whitespace-nowrap shadow-[0_4px_24px_rgba(0,0,0,0.5)] border border-risk-low/20">
           <div className="flex items-center gap-3">
             {/* Radar Animated Pulse & Sweep Icon */}
-            <div className="flex items-center gap-2 text-emerald-400 font-mono tracking-wider font-bold">
+            <div className="flex items-center gap-2 text-risk-low font-mono tracking-wider font-bold">
               <div className="relative w-4 h-4 flex items-center justify-center">
-                <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-risk-low" fill="none" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.3" strokeWidth="1.5" />
                   <circle cx="12" cy="12" r="5.5" stroke="currentColor" strokeOpacity="0.5" strokeWidth="1.5" />
                   <line stroke="currentColor" strokeOpacity="0.25" strokeWidth="1" x1="12" x2="12" y1="2" y2="22" />
                   <line stroke="currentColor" strokeOpacity="0.25" strokeWidth="1" x1="2" x2="22" y1="12" y2="12" />
                   <g className="animate-radar-sweep origin-center">
-                    <path d="M12 12 L21.5 8" stroke="#34d399" strokeLinecap="round" strokeWidth="2" />
+                    <path d="M12 12 L21.5 8" stroke={tokens.positive} strokeLinecap="round" strokeWidth="2" />
                     <path d="M12 12 L22 12 A10 10 0 0 0 19 6 Z" fill="url(#navRadarSectorGrad)" opacity="0.4" />
                   </g>
                   <defs>
                     <radialGradient id="navRadarSectorGrad">
-                      <stop offset="0%" stopColor="#34d399" stopOpacity="0.8" />
-                      <stop offset="100%" stopColor="#34d399" stopOpacity="0" />
+                      <stop offset="0%" stopColor={tokens.positive} stopOpacity="0.8" />
+                      <stop offset="100%" stopColor={tokens.positive} stopOpacity="0" />
                     </radialGradient>
                   </defs>
                 </svg>
-                <span className="absolute w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
-                <span className="absolute w-1 h-1 rounded-full bg-rose-500" />
+                <span className="absolute w-1.5 h-1.5 rounded-full bg-risk-critical animate-ping" />
+                <span className="absolute w-1 h-1 rounded-full bg-risk-critical" />
               </div>
               <span className="text-white">LIVE HYDRO-TELEMETRY</span>
             </div>
-            <span className="text-slate-600">•</span>
-            <span className="font-mono text-slate-200">{selectedCity.name} AWS Doppler Radar</span>
-            <span className="text-slate-600">•</span>
-            <span className="font-mono text-slate-400">
-              Rainfall: <strong className="text-cyan-400 font-bold">{weather.currentRainfallMmHr} mm/hr</strong>
+            <span className="text-subtle">•</span>
+            <span className="font-mono text-fg-soft">{selectedCity.name} AWS Doppler Radar</span>
+            <span className="text-subtle">•</span>
+            <span className="font-mono text-muted">
+              Rainfall: <strong className="text-accent font-bold">{weather.currentRainfallMmHr} mm/hr</strong>
             </span>
-            <span className="text-slate-600">•</span>
-            <span className="font-mono text-slate-400">
-              24h Outlook: <strong className="text-amber-400 font-bold">+{weather.forecast24hMm} mm</strong>
+            <span className="text-subtle">•</span>
+            <span className="font-mono text-muted">
+              24h Outlook: <strong className="text-risk-high font-bold">+{weather.forecast24hMm} mm</strong>
             </span>
-            <span className="text-slate-600">•</span>
-            <span className="font-mono text-slate-400">
-              Tide: <strong className="text-emerald-300 font-semibold">{weather.stormSurgeTideM}m MSL</strong>
+            <span className="text-subtle">•</span>
+            <span className="font-mono text-muted">
+              Tide: <strong className="text-risk-low font-semibold">{weather.stormSurgeTideM}m MSL</strong>
             </span>
-            <span className="text-slate-600">•</span>
-            <span className="font-mono text-slate-400">
-              Doppler Trend: <strong className="text-rose-400 font-bold uppercase">{weather.dopplerRadarTrend}</strong>
+            <span className="text-subtle">•</span>
+            <span className="font-mono text-muted">
+              Doppler Trend: <strong className="text-risk-critical font-bold uppercase">{weather.dopplerRadarTrend}</strong>
             </span>
-            <span className="text-slate-600">•</span>
-            <span className="font-mono text-slate-400">
-              Confidence: <strong className="text-purple-400 font-bold">87.4%</strong>
+            <span className="text-subtle">•</span>
+            <span className="font-mono text-muted">
+              Confidence: <strong className="text-accent-2 font-bold">87.4%</strong>
             </span>
           </div>
 
           <div className="flex items-center gap-2 pl-4">
+            <ThemeSwitcher />
             <button
               onClick={onToggleOffline}
-              className="inline-flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-400/40 px-3 py-0.5 rounded-full text-emerald-300 font-mono text-[11px] font-semibold shadow-[0_0_10px_rgba(16,185,129,0.2)] hover:bg-emerald-500/25 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 bg-risk-low/15 border border-risk-low/40 px-3 py-0.5 rounded-full text-risk-low font-mono text-[11px] font-semibold shadow-[0_0_10px_rgba(16,185,129,0.2)] hover:bg-risk-low/25 transition-colors cursor-pointer"
             >
               {isOfflineSimulated ? (
                 <>
-                  <WifiOff className="w-3 h-3 text-amber-400" />
-                  <span className="text-amber-300">Offline Simulation</span>
+                  <WifiOff className="w-3 h-3 text-risk-high" />
+                  <span className="text-risk-high">Offline Simulation</span>
                 </>
               ) : (
                 <>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse" />
                   <span>Telemetry Online</span>
                 </>
               )}
@@ -110,49 +115,17 @@ export const Navbar: React.FC<Props> = ({
         </div>
 
         {/* Main Navigation Fluid Island */}
-        <div className="fluid-glass rounded-[26px] px-4 sm:px-6 py-2.5 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.55)] border border-slate-700/50">
-          {/* Logo & Engine Branding: Cybernetic Multi-Layer Hydro-Shield */}
-          <div className="flex items-center gap-3.5">
-            <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500/25 via-cyan-500/20 to-slate-900 flex items-center justify-center border border-emerald-400/40 shadow-[0_0_22px_rgba(16,185,129,0.35)] group">
-              <svg className="w-7 h-7 text-emerald-400 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 32 32">
-                <path
-                  d="M16 3 L27 7 V15 C27 22.5 16 28 16 28 C16 28 5 22.5 5 15 V7 L16 3 Z"
-                  fill="url(#brandShieldGrad)"
-                  fillOpacity="0.25"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="1.75"
-                />
-                <path
-                  d="M16 9 C16 9 21.5 16 21.5 19 C21.5 22 19 24.5 16 24.5 C13 24.5 10.5 22 10.5 19 C10.5 16 16 9 16 9 Z"
-                  fill="#06b6d4"
-                  fillOpacity="0.85"
-                />
-                <path
-                  d="M12.5 20 C13.5 19.2 14.7 19.2 16 20 C17.3 20.8 18.5 20.8 19.5 20"
-                  stroke="#f0fdf4"
-                  strokeLinecap="round"
-                  strokeWidth="1.5"
-                />
-                <defs>
-                  <linearGradient id="brandShieldGrad" x1="5" y1="3" x2="27" y2="28" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#34d399" />
-                    <stop offset="100%" stopColor="#0284c7" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-slate-900 animate-ping" />
-              <div className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-slate-900" />
-            </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="text-lg sm:text-xl font-extrabold tracking-tight text-white font-sans">JalRakshak AI</span>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 font-mono text-[10px] font-bold tracking-wider shadow-[0_0_8px_rgba(16,185,129,0.25)]">
-                  S-34 ENGINE
-                </span>
-              </div>
-              <span className="text-xs text-slate-400 hidden sm:inline">{t.tagline}</span>
+        <div className="fluid-glass rounded-[26px] px-4 sm:px-6 py-2.5 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.55)] border border-line-strong/50">
+          {/* Brand: one geometric mark, no ornament. */}
+          <div className="flex items-center gap-3">
+            <LogoMark className="h-8 w-8 shrink-0 text-accent" />
+            <div className="flex flex-col leading-none">
+              <span className="font-display text-base sm:text-lg font-extrabold tracking-tight text-fg">
+                JalRakshak
+              </span>
+              <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-subtle">
+                Flood Intelligence
+              </span>
             </div>
           </div>
 
@@ -161,10 +134,10 @@ export const Navbar: React.FC<Props> = ({
             {/* Translation Button */}
             <button
               onClick={onToggleLanguage}
-              className="h-9 px-3 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition-all border border-slate-700/60 flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className="h-9 px-3 rounded-full bg-surface-2/80 hover:bg-surface-3 text-fg-soft hover:text-white text-xs font-medium transition-all border border-line-strong/60 flex items-center gap-1.5 shadow-sm cursor-pointer"
               title="Switch Language"
             >
-              <svg className="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="2" y1="12" x2="22" y2="12" />
                 <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
@@ -173,8 +146,8 @@ export const Navbar: React.FC<Props> = ({
             </button>
 
             {/* City / Ward Selector */}
-            <div className="flex items-center bg-slate-800/80 border border-slate-700/60 hover:border-cyan-500/50 rounded-full px-3.5 h-9 gap-2 text-slate-200 text-xs font-medium transition-all shadow-sm">
-              <svg className="w-4 h-4 text-cyan-400 shrink-0" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
+            <div className="flex items-center bg-surface-2/80 border border-line-strong/60 hover:border-accent/50 rounded-full px-3.5 h-9 gap-2 text-fg-soft text-xs font-medium transition-all shadow-sm">
+              <svg className="w-4 h-4 text-accent shrink-0" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M3 21h18" />
                 <path d="M5 21V7l5-4v18" />
                 <path d="M10 9l9 4v8" />
@@ -188,10 +161,10 @@ export const Navbar: React.FC<Props> = ({
                   const found = CITIES.find((c) => c.id === e.target.value);
                   if (found) onSelectCity(found);
                 }}
-                className="bg-transparent text-slate-100 font-semibold text-xs focus:outline-none cursor-pointer pr-1"
+                className="bg-transparent text-fg font-semibold text-xs focus:outline-none cursor-pointer pr-1"
               >
                 {CITIES.map((c) => (
-                  <option key={c.id} value={c.id} className="bg-slate-900 text-white">
+                  <option key={c.id} value={c.id} className="bg-surface text-white">
                     {c.name} ({c.zones.length} Wards)
                   </option>
                 ))}
@@ -201,7 +174,7 @@ export const Navbar: React.FC<Props> = ({
             {/* Concept Link */}
             <button
               onClick={onOpenExplainer}
-              className="hidden lg:flex items-center h-9 px-4 rounded-full bg-slate-800/70 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition-all border border-slate-700/60 cursor-pointer"
+              className="hidden lg:flex items-center h-9 px-4 rounded-full bg-surface-2/70 hover:bg-surface-3 text-fg-soft hover:text-white text-xs font-medium transition-all border border-line-strong/60 cursor-pointer"
             >
               Concept
             </button>
@@ -211,8 +184,8 @@ export const Navbar: React.FC<Props> = ({
               onClick={onToggleRole}
               className={`relative h-9 px-4 rounded-full font-bold text-xs tracking-wide transition-all flex items-center gap-2 border cursor-pointer shadow-lg ${
                 userRole === 'authority'
-                  ? 'bg-gradient-to-r from-rose-600 to-rose-700 hover:brightness-110 text-white border-rose-400/40 shadow-[0_0_20px_rgba(244,63,94,0.45)]'
-                  : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-110 text-white border-emerald-400/40 shadow-[0_0_20px_rgba(16,185,129,0.35)]'
+                  ? 'bg-gradient-to-r from-risk-critical to-risk-critical hover:brightness-110 text-white border-risk-critical/40 shadow-[0_0_20px_rgba(244,63,94,0.45)]'
+                  : 'bg-gradient-to-r from-risk-low to-risk-low hover:brightness-110 text-white border-risk-low/40 shadow-[0_0_20px_rgba(16,185,129,0.35)]'
               }`}
             >
               <span className="relative flex h-4 w-4 items-center justify-center">
@@ -221,7 +194,7 @@ export const Navbar: React.FC<Props> = ({
                   <circle cx="12" cy="11.5" r="2.5" fill="currentColor" />
                 </svg>
                 {userRole === 'authority' && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-yellow-300 animate-ping" />
+                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-risk-high animate-ping" />
                 )}
               </span>
               <span>{userRole === 'authority' ? 'Authority Hub' : 'Citizen Portal'}</span>
@@ -230,16 +203,16 @@ export const Navbar: React.FC<Props> = ({
         </div>
 
         {/* Fluid Pill Navigation Tabs */}
-        <nav className="flex items-center gap-1.5 px-3 py-1.5 rounded-full fluid-glass overflow-x-auto border border-slate-700/50">
+        <nav className="flex items-center gap-1.5 px-3 py-1.5 rounded-full fluid-glass overflow-x-auto border border-line-strong/50">
           <button
             onClick={() => onChangeTab('map')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'map'
-                ? 'bg-gradient-to-r from-emerald-500/25 via-teal-500/20 to-cyan-500/25 text-emerald-300 border border-emerald-400/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'
+                ? 'bg-gradient-to-r from-risk-low/25 via-risk-low/20 to-accent/25 text-risk-low border border-risk-low/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
+                : 'text-fg-soft hover:text-white hover:bg-surface-2/50 border border-transparent'
             }`}
           >
-            {activeTab === 'map' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />}
+            {activeTab === 'map' && <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse shadow-[0_0_6px_var(--color-risk-low)]" />}
             <span>Interactive Inundation Map</span>
           </button>
 
@@ -247,11 +220,11 @@ export const Navbar: React.FC<Props> = ({
             onClick={() => onChangeTab('streets')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'streets'
-                ? 'bg-gradient-to-r from-emerald-500/25 via-teal-500/20 to-cyan-500/25 text-emerald-300 border border-emerald-400/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'
+                ? 'bg-gradient-to-r from-risk-low/25 via-risk-low/20 to-accent/25 text-risk-low border border-risk-low/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
+                : 'text-fg-soft hover:text-white hover:bg-surface-2/50 border border-transparent'
             }`}
           >
-            {activeTab === 'streets' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />}
+            {activeTab === 'streets' && <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse shadow-[0_0_6px_var(--color-risk-low)]" />}
             <span>Street-Level Vulnerability</span>
           </button>
 
@@ -259,11 +232,11 @@ export const Navbar: React.FC<Props> = ({
             onClick={() => onChangeTab('whatif')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'whatif'
-                ? 'bg-gradient-to-r from-emerald-500/25 via-teal-500/20 to-cyan-500/25 text-emerald-300 border border-emerald-400/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'
+                ? 'bg-gradient-to-r from-risk-low/25 via-risk-low/20 to-accent/25 text-risk-low border border-risk-low/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
+                : 'text-fg-soft hover:text-white hover:bg-surface-2/50 border border-transparent'
             }`}
           >
-            {activeTab === 'whatif' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />}
+            {activeTab === 'whatif' && <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse shadow-[0_0_6px_var(--color-risk-low)]" />}
             <span>"What-If" Hydraulic Sandbox</span>
           </button>
 
@@ -271,11 +244,11 @@ export const Navbar: React.FC<Props> = ({
             onClick={() => onChangeTab('alerts')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'alerts'
-                ? 'bg-gradient-to-r from-emerald-500/25 via-teal-500/20 to-cyan-500/25 text-emerald-300 border border-emerald-400/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'
+                ? 'bg-gradient-to-r from-risk-low/25 via-risk-low/20 to-accent/25 text-risk-low border border-risk-low/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
+                : 'text-fg-soft hover:text-white hover:bg-surface-2/50 border border-transparent'
             }`}
           >
-            {activeTab === 'alerts' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />}
+            {activeTab === 'alerts' && <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse shadow-[0_0_6px_var(--color-risk-low)]" />}
             <span>Tiered Early Warning Hub</span>
           </button>
 
@@ -283,11 +256,11 @@ export const Navbar: React.FC<Props> = ({
             onClick={() => onChangeTab('resources')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'resources'
-                ? 'bg-gradient-to-r from-emerald-500/25 via-teal-500/20 to-cyan-500/25 text-emerald-300 border border-emerald-400/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'
+                ? 'bg-gradient-to-r from-risk-low/25 via-risk-low/20 to-accent/25 text-risk-low border border-risk-low/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
+                : 'text-fg-soft hover:text-white hover:bg-surface-2/50 border border-transparent'
             }`}
           >
-            {activeTab === 'resources' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />}
+            {activeTab === 'resources' && <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse shadow-[0_0_6px_var(--color-risk-low)]" />}
             <span>Resource Pre-Positioning</span>
           </button>
 
@@ -295,11 +268,11 @@ export const Navbar: React.FC<Props> = ({
             onClick={() => onChangeTab('fourinputs')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'fourinputs'
-                ? 'bg-gradient-to-r from-emerald-500/25 via-teal-500/20 to-cyan-500/25 text-emerald-300 border border-emerald-400/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'
+                ? 'bg-gradient-to-r from-risk-low/25 via-risk-low/20 to-accent/25 text-risk-low border border-risk-low/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
+                : 'text-fg-soft hover:text-white hover:bg-surface-2/50 border border-transparent'
             }`}
           >
-            {activeTab === 'fourinputs' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />}
+            {activeTab === 'fourinputs' && <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse shadow-[0_0_6px_var(--color-risk-low)]" />}
             <span>The 4 Input Data Streams</span>
           </button>
 
@@ -307,11 +280,11 @@ export const Navbar: React.FC<Props> = ({
             onClick={() => onChangeTab('timeline')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'timeline'
-                ? 'bg-gradient-to-r from-emerald-500/25 via-teal-500/20 to-cyan-500/25 text-emerald-300 border border-emerald-400/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'
+                ? 'bg-gradient-to-r from-risk-low/25 via-risk-low/20 to-accent/25 text-risk-low border border-risk-low/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
+                : 'text-fg-soft hover:text-white hover:bg-surface-2/50 border border-transparent'
             }`}
           >
-            {activeTab === 'timeline' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />}
+            {activeTab === 'timeline' && <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse shadow-[0_0_6px_var(--color-risk-low)]" />}
             <span>72h Timeline &amp; Risk</span>
           </button>
 
@@ -319,11 +292,11 @@ export const Navbar: React.FC<Props> = ({
             onClick={() => onChangeTab('citizen')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'citizen'
-                ? 'bg-gradient-to-r from-emerald-500/25 via-teal-500/20 to-cyan-500/25 text-emerald-300 border border-emerald-400/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'
+                ? 'bg-gradient-to-r from-risk-low/25 via-risk-low/20 to-accent/25 text-risk-low border border-risk-low/40 font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
+                : 'text-fg-soft hover:text-white hover:bg-surface-2/50 border border-transparent'
             }`}
           >
-            {activeTab === 'citizen' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />}
+            {activeTab === 'citizen' && <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse shadow-[0_0_6px_var(--color-risk-low)]" />}
             <span>Citizen Portal</span>
           </button>
         </nav>

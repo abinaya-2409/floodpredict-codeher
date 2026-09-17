@@ -61,6 +61,70 @@ export interface StreetVulnerability {
   };
 }
 
+
+/**
+ * Social vulnerability inputs for a zone.
+ *
+ * Figures are ward-level estimates derived from Census 2011 district handbooks
+ * and municipal corporation ward profiles. They are indicative, not surveyed -
+ * every consumer of this data should treat it as a planning estimate.
+ */
+export interface ZoneDemographics {
+  /** Residents per sq km. Drives exposure alongside flooded area. */
+  populationDensityPerSqKm: number;
+  /** Share of residents aged 60+. Reduced mobility during evacuation. */
+  elderly60PlusPercent: number;
+  /** Share of residents with a disability affecting mobility or sensory access. */
+  disabledPersonsPercent: number;
+  /** Share of households below the state poverty line / in notified slums. */
+  lowIncomeHouseholdPercent: number;
+  /** Share of dwellings whose only living floor is at ground level. */
+  groundFloorDwellingPercent: number;
+  /** Share of residents without a private vehicle for self-evacuation. */
+  noPrivateVehiclePercent: number;
+  /** Critical facilities inside or serving the zone. */
+  criticalFacilities: {
+    hospitals: number;
+    schools: number;
+    nearestHospitalKm: number;
+  };
+}
+
+/** One weighted contributor to the composite index. */
+export interface RiskComponent {
+  /** 0 - 100 */
+  score: number;
+  /** Weight applied in the composite. All weights sum to 1. */
+  weight: number;
+  /** Plain-language reason, shown in the UI so the index stays explainable. */
+  rationale: string;
+}
+
+/**
+ * The composite 0-100 Vulnerability Risk Index for a zone.
+ * Deliberately separate from raw hydrology: this answers "where does help
+ * matter most", not "where is the water deepest".
+ */
+export interface ZoneRiskAssessment {
+  zoneId: string;
+  zoneName: string;
+  /** Composite 0 - 100. */
+  vri: number;
+  band: RiskLevel;
+  hazard: RiskComponent;
+  exposure: RiskComponent;
+  fragility: RiskComponent;
+  copingDeficit: RiskComponent;
+  /** Minutes until critical level - kept OUT of the index, used for urgency. */
+  leadTimeToFloodMins: number;
+  /** Ranking key for dispatch and evacuation: severity weighted by urgency. */
+  priorityScore: number;
+  /** Estimated residents in the flooded footprint. */
+  populationAtRisk: number;
+  /** Estimated residents at risk who need assisted evacuation. */
+  assistedEvacuationNeeded: number;
+}
+
 export interface ZoneData {
   id: string;
   name: string;
@@ -69,6 +133,7 @@ export interface ZoneData {
   wardNumbers: number[];
   population: number;
   catchmentAreaSqKm: number;
+  demographics: ZoneDemographics;
   averageElevationM: number;
   soilPermeability: 'low' | 'medium' | 'high';
   drainageDensityRatio: number; // km of drain per sq km

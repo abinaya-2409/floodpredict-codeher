@@ -119,18 +119,18 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
   );
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl space-y-6" id="what-if-sandbox">
+    <div className="bg-surface border border-line rounded-2xl p-5 md:p-6 shadow-xl space-y-6" id="what-if-sandbox">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between pb-5 border-b border-slate-800 gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between pb-5 border-b border-line gap-4">
         <div>
-          <div className="flex items-center space-x-2 text-cyan-400 font-bold text-xs uppercase tracking-wider">
+          <div className="flex items-center space-x-2 text-accent font-bold text-xs uppercase tracking-wider">
             <Sliders className="w-4 h-4" />
             <span>Hydraulic Stress Testing Sandbox</span>
           </div>
           <h2 className="text-xl md:text-2xl font-bold text-white mt-1">
             "What-If" Scenario Simulator (Municipal Authorities Mode)
           </h2>
-          <p className="text-slate-400 text-xs md:text-sm mt-0.5">
+          <p className="text-muted text-xs md:text-sm mt-0.5">
             Test "what if this drain is blocked" or rainfall surges to cloudburst intensity, and watch the risk zone adapt in real time.
           </p>
         </div>
@@ -139,7 +139,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
         <div className="flex items-center space-x-2">
           <button
             onClick={onResetParams}
-            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-colors"
+            className="px-3 py-1.5 bg-surface-2 hover:bg-surface-3 text-fg-soft rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset Baseline</span>
@@ -149,12 +149,12 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
 
       {/* Preset Quick Buttons */}
       <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-thin">
-        <span className="text-xs text-slate-400 font-medium whitespace-nowrap mr-1">Disaster Presets:</span>
+        <span className="text-xs text-muted font-medium whitespace-nowrap mr-1">Disaster Presets:</span>
         {presets.map((p, i) => (
           <button
             key={i}
             onClick={() => onUpdateParams(p.params)}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-slate-950 border border-slate-700/80 hover:border-cyan-500/60 hover:text-cyan-300 text-slate-300 transition-all shrink-0"
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-bg border border-line-strong/80 hover:border-accent/60 hover:text-accent-soft text-fg-soft transition-all shrink-0"
           >
             {p.name}
           </button>
@@ -166,10 +166,10 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
         {/* Left Column: Sliders & Variables */}
         <div className="lg:col-span-6 space-y-5">
           {/* Rainfall Intensity Slider */}
-          <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+          <div className="p-4 bg-bg border border-line rounded-xl space-y-2">
             <div className="flex justify-between items-center text-xs">
-              <span className="font-semibold text-slate-300">Rainfall Intensity (Inflow Rate)</span>
-              <span className="font-mono font-bold text-cyan-400 text-sm">
+              <span className="font-semibold text-fg-soft">Rainfall Intensity (Inflow Rate)</span>
+              <span className="font-mono font-bold text-accent text-sm">
                 {simulationParams.rainfallIntensityMmHr} mm/hr
               </span>
             </div>
@@ -180,9 +180,9 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
               step="1"
               value={simulationParams.rainfallIntensityMmHr}
               onChange={(e) => onUpdateParams({ ...simulationParams, rainfallIntensityMmHr: Number(e.target.value) })}
-              className="w-full accent-cyan-400 cursor-pointer"
+              className="w-full accent-accent cursor-pointer"
             />
-            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+            <div className="flex justify-between text-[10px] text-subtle font-mono">
               <span>5 mm/hr (Light)</span>
               <span>45 mm/hr (Heavy)</span>
               <span>100+ mm/hr (Cloudburst)</span>
@@ -190,10 +190,10 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
           </div>
 
           {/* Storm Duration Slider */}
-          <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+          <div className="p-4 bg-bg border border-line rounded-xl space-y-2">
             <div className="flex justify-between items-center text-xs">
-              <span className="font-semibold text-slate-300">Storm Duration (Continuous Downpour)</span>
-              <span className="font-mono font-bold text-blue-400 text-sm">
+              <span className="font-semibold text-fg-soft">Storm Duration (Continuous Downpour)</span>
+              <span className="font-mono font-bold text-accent text-sm">
                 {simulationParams.durationHours} hours
               </span>
             </div>
@@ -204,9 +204,9 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
               step="0.5"
               value={simulationParams.durationHours}
               onChange={(e) => onUpdateParams({ ...simulationParams, durationHours: Number(e.target.value) })}
-              className="w-full accent-blue-400 cursor-pointer"
+              className="w-full accent-accent cursor-pointer"
             />
-            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+            <div className="flex justify-between text-[10px] text-subtle font-mono">
               <span>0.5h (Flash squall)</span>
               <span>6h (Monsoon band)</span>
               <span>18h (Stalled Cyclone)</span>
@@ -215,10 +215,10 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
 
           {/* High Tide / Storm Surge Lock */}
           {city.coastalCity && (
-            <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+            <div className="p-4 bg-bg border border-line rounded-xl space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-slate-300">Coastal Storm Surge / Tide Level</span>
-                <span className="font-mono font-bold text-indigo-400 text-sm">
+                <span className="font-semibold text-fg-soft">Coastal Storm Surge / Tide Level</span>
+                <span className="font-mono font-bold text-accent-2 text-sm">
                   {simulationParams.tideLevelM} m
                 </span>
               </div>
@@ -229,9 +229,9 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
                 step="0.1"
                 value={simulationParams.tideLevelM}
                 onChange={(e) => onUpdateParams({ ...simulationParams, tideLevelM: Number(e.target.value) })}
-                className="w-full accent-indigo-400 cursor-pointer"
+                className="w-full accent-accent-2 cursor-pointer"
               />
-              <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+              <div className="flex justify-between text-[10px] text-subtle font-mono">
                 <span>0.8m (Low Tide)</span>
                 <span>2.0m (High Tide - Canals Siphon Slower)</span>
                 <span>3.5m+ (Severe Tidal Lock)</span>
@@ -240,10 +240,10 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
           )}
 
           {/* Soil Pre-Saturation Level */}
-          <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+          <div className="p-4 bg-bg border border-line rounded-xl space-y-2">
             <div className="flex justify-between items-center text-xs">
-              <span className="font-semibold text-slate-300">Initial Soil Saturation (Catchment Ground Water Table)</span>
-              <span className="font-mono font-bold text-emerald-400 text-sm">
+              <span className="font-semibold text-fg-soft">Initial Soil Saturation (Catchment Ground Water Table)</span>
+              <span className="font-mono font-bold text-risk-low text-sm">
                 {simulationParams.soilSaturationInitial}%
               </span>
             </div>
@@ -254,9 +254,9 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
               step="5"
               value={simulationParams.soilSaturationInitial}
               onChange={(e) => onUpdateParams({ ...simulationParams, soilSaturationInitial: Number(e.target.value) })}
-              className="w-full accent-emerald-400 cursor-pointer"
+              className="w-full accent-risk-low cursor-pointer"
             />
-            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+            <div className="flex justify-between text-[10px] text-subtle font-mono">
               <span>Dry Soil (High Infiltration)</span>
               <span>Saturated (100% Surface Runoff)</span>
             </div>
@@ -266,12 +266,12 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
         {/* Right Column: Individual Drain Blockage Toggles & Impact */}
         <div className="lg:col-span-6 space-y-5">
           {/* Drain Checkpoints List */}
-          <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+          <div className="p-4 bg-bg border border-line rounded-xl">
+            <div className="flex items-center justify-between pb-3 border-b border-line mb-3">
               <span className="text-xs font-bold text-white uppercase tracking-wider">
                 Critical Stormwater Drainage Channels & Outfalls
               </span>
-              <span className="text-[10px] text-slate-400">Click to Toggle Choke / Unclog</span>
+              <span className="text-[10px] text-muted">Click to Toggle Choke / Unclog</span>
             </div>
 
             <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1 scrollbar-thin">
@@ -284,20 +284,20 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
                     key={drain.id}
                     className={`p-3 rounded-lg border transition-all flex items-center justify-between gap-2 ${
                       isBlocked
-                        ? 'bg-rose-950/30 border-rose-500/50 text-rose-200'
-                        : 'bg-slate-900 border-slate-800 text-slate-200 hover:border-slate-700'
+                        ? 'bg-risk-critical/30 border-risk-critical/50 text-risk-critical'
+                        : 'bg-surface border-line text-fg-soft hover:border-line-strong'
                     }`}
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center space-x-2">
-                        <span className={`w-2 h-2 rounded-full shrink-0 ${isBlocked ? 'bg-rose-500 animate-ping' : 'bg-emerald-500'}`} />
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${isBlocked ? 'bg-risk-critical animate-ping' : 'bg-risk-low'}`} />
                         <span className="text-xs font-bold truncate">{drain.name}</span>
                       </div>
-                      <div className="text-[11px] text-slate-400 mt-0.5 truncate">
+                      <div className="text-[11px] text-muted mt-0.5 truncate">
                         Max Capacity: {drain.maxCapacityCusecs} cusecs • Outfall: {drain.outfallCondition}
                       </div>
                       {drain.blockageReason && isBlocked && (
-                        <div className="text-[10px] text-rose-300 mt-0.5">
+                        <div className="text-[10px] text-risk-critical mt-0.5">
                           ⚠️ {drain.blockageReason}
                         </div>
                       )}
@@ -309,8 +309,8 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
                         onClick={() => handleDrainToggle(drain.id)}
                         className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
                           isBlocked
-                            ? 'bg-rose-500 text-white shadow-md shadow-rose-500/30'
-                            : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                            ? 'bg-risk-critical text-white shadow-md shadow-risk-critical/30'
+                            : 'bg-surface-2 text-fg-soft hover:bg-surface-3'
                         }`}
                       >
                         {isBlocked ? 'CHOKED (90%)' : 'CLEAR'}
@@ -322,8 +322,8 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
                         title="Toggle High-Capacity Dewatering Pump"
                         className={`p-1.5 rounded-lg border transition-all text-xs ${
                           isPumpActive
-                            ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 font-bold'
-                            : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200'
+                            ? 'bg-risk-low/20 border-risk-low text-risk-low font-bold'
+                            : 'bg-surface-2 border-line-strong text-muted hover:text-fg-soft'
                         }`}
                       >
                         ⚡ Pump
@@ -337,20 +337,20 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
 
           {/* Real-time Hydraulic Output Metrics */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl">
-              <div className="text-[11px] text-slate-400">At-Risk Population</div>
-              <div className="text-xl font-mono font-bold text-rose-400 mt-1">
-                {totalFloodedPop.toLocaleString()} <span className="text-xs text-slate-400">citizens</span>
+            <div className="p-3.5 bg-bg border border-line rounded-xl">
+              <div className="text-[11px] text-muted">At-Risk Population</div>
+              <div className="text-xl font-mono font-bold text-risk-critical mt-1">
+                {totalFloodedPop.toLocaleString()} <span className="text-xs text-muted">citizens</span>
               </div>
-              <div className="text-[10px] text-slate-500 mt-0.5">In zones exceeding 30cm flood</div>
+              <div className="text-[10px] text-subtle mt-0.5">In zones exceeding 30cm flood</div>
             </div>
 
-            <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl">
-              <div className="text-[11px] text-slate-400">City-Wide Avg Inundation</div>
-              <div className="text-xl font-mono font-bold text-cyan-400 mt-1">
-                {avgInundationDepth} <span className="text-xs text-slate-400">cm</span>
+            <div className="p-3.5 bg-bg border border-line rounded-xl">
+              <div className="text-[11px] text-muted">City-Wide Avg Inundation</div>
+              <div className="text-xl font-mono font-bold text-accent mt-1">
+                {avgInundationDepth} <span className="text-xs text-muted">cm</span>
               </div>
-              <div className="text-[10px] text-slate-500 mt-0.5">Across all urban micro-basins</div>
+              <div className="text-[10px] text-subtle mt-0.5">Across all urban micro-basins</div>
             </div>
           </div>
 
@@ -358,9 +358,9 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
           <button
             onClick={runAiDiagnosis}
             disabled={isLoadingAi}
-            className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-600/20 flex items-center justify-center space-x-2 transition-all disabled:opacity-50"
+            className="w-full py-3 bg-gradient-to-r from-accent to-accent hover:from-accent hover:to-accent text-white font-bold text-xs rounded-xl shadow-lg shadow-accent/20 flex items-center justify-center space-x-2 transition-all disabled:opacity-50"
           >
-            <Sparkles className="w-4 h-4 text-cyan-200 animate-pulse" />
+            <Sparkles className="w-4 h-4 text-accent-soft animate-pulse" />
             <span>{isLoadingAi ? 'Running Gemini Hydraulic Diagnosis...' : 'Generate AI Hydraulic Action Report'}</span>
           </button>
         </div>
@@ -368,12 +368,12 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
 
       {/* Gemini AI Diagnosis Results Panel */}
       {aiDiagnosis && (
-        <div className="p-5 bg-slate-950 border border-cyan-500/40 rounded-xl space-y-3 animate-in fade-in duration-300">
-          <div className="flex items-center space-x-2 text-cyan-400 font-bold text-sm pb-2 border-b border-slate-800">
+        <div className="p-5 bg-bg border border-accent/40 rounded-xl space-y-3 animate-in fade-in duration-300">
+          <div className="flex items-center space-x-2 text-accent font-bold text-sm pb-2 border-b border-line">
             <Cpu className="w-4 h-4" />
             <span>Gemini AI Hydraulic Assessment & Engineering Countermeasures</span>
           </div>
-          <div className="text-xs md:text-sm text-slate-300 whitespace-pre-line leading-relaxed font-sans">
+          <div className="text-xs md:text-sm text-fg-soft whitespace-pre-line leading-relaxed font-sans">
             {aiDiagnosis}
           </div>
         </div>

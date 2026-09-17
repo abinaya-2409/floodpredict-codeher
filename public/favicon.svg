@@ -1,0 +1,9 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="JalRakshak">
+  <rect width="512" height="512" rx="112" fill="#070d17"/>
+  <g transform="translate(256,256) scale(16)" stroke="#e8f2fb" stroke-width="2.4" fill="none">
+    <circle r="12.5"/>
+    <path d="M-11.8 2.4c2.6 0 2.6-2.2 5.2-2.2s2.6 2.2 5.2 2.2 2.6-2.2 5.2-2.2 2.6 2.2 5.2 2.2" stroke-linecap="round"/>
+    <path d="M-9.6 7.2c2.2 0 2.2-1.9 4.4-1.9s2.2 1.9 4.4 1.9 2.2-1.9 4.4-1.9 2.2 1.9 4.4 1.9" stroke-linecap="round" opacity="0.45"/>
+  </g>
+  <circle cx="256" cy="156" r="42" fill="#38bdf8"/>
+</svg>
