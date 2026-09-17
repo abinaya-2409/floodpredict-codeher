@@ -1,39 +1,54 @@
 import express from 'express';
-import { GoogleGenAI } from '@google/genai';
 
 export const app = express();
 app.use(express.json());
 
-// Lazy initialize Gemini client
-let aiClient: GoogleGenAI | null = null;
-function getGeminiClient(): GoogleGenAI | null {
-  if (!aiClient && process.env.GEMINI_API_KEY) {
+/**
+ * Gemini is imported lazily and defensively.
+ * A failure here must never take down the whole function at cold start -
+ * every route degrades to a clearly-labelled SAMPLE response instead.
+ */
+let aiClient: any = null;
+let aiLoadFailed = false;
+
+async function getGeminiClient(): Promise<any | null> {
+  if (aiLoadFailed || !process.env.GEMINI_API_KEY) return null;
+  if (aiClient) return aiClient;
+  try {
+    const { GoogleGenAI } = await import('@google/genai');
     aiClient = new GoogleGenAI({
       apiKey: process.env.GEMINI_API_KEY,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        },
-      },
+      httpOptions: { headers: { 'User-Agent': 'jalrakshak-ai' } },
     });
+    return aiClient;
+  } catch (err) {
+    console.error('Gemini SDK failed to load:', err);
+    aiLoadFailed = true;
+    return null;
   }
-  return aiClient;
 }
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', time: new Date().toISOString(), platform: 'JalRakshak AI' });
+  res.json({
+    status: 'ok',
+    time: new Date().toISOString(),
+    platform: 'JalRakshak AI',
+    aiConfigured: Boolean(process.env.GEMINI_API_KEY),
+  });
 });
 
 // 1. Gemini AI Hydrological Risk Analysis & Municipal Action Plan
 app.post('/api/gemini/analyze-flood', async (req, res) => {
   try {
     const { city, currentRainfallMmHr, weather, highRiskZones, blockedDrains, simulationParams } = req.body;
-    const ai = getGeminiClient();
+    const ai = await getGeminiClient();
 
     if (!ai) {
       // Fallback intelligent response if API key is not yet set
       return res.json({
+        sample: true,
+        aiAvailable: false,
         analysis: `Hydrological AI Assessment for ${city || 'Urban Basin'}:\n` +
           `• Current Inflow Pressure: ${currentRainfallMmHr || 35} mm/hr exceeding local percolation limits by 240%.\n` +
           `• Critical Bottlenecks: ${blockedDrains?.length || 2} primary canal segments operating above hydraulic discharge capacity.\n` +
@@ -81,6 +96,8 @@ Keep the response structured, clear, and actionable for municipal commissioners,
     });
 
     res.json({
+      sample: false,
+      aiAvailable: true,
       analysis: response.text || 'Analysis completed successfully.',
     });
   } catch (error: any) {
@@ -96,10 +113,12 @@ Keep the response structured, clear, and actionable for municipal commissioners,
 app.post('/api/gemini/what-if-diagnosis', async (req, res) => {
   try {
     const { cityName, rainfallMmHr, durationHrs, modifiedDrains, changedZoneDepths } = req.body;
-    const ai = getGeminiClient();
+    const ai = await getGeminiClient();
 
     if (!ai) {
       return res.json({
+        sample: true,
+        aiAvailable: false,
         diagnosis: `What-If Hydraulic Simulation Summary for ${cityName}:\n` +
           `Under ${rainfallMmHr} mm/hr rainfall sustained for ${durationHrs} hours, altering canal bottlenecks produces a critical non-linear surge in inundation depth.\n` +
           `• Removing chokes on primary canals reduces peak flood level by ~38cm in downstream lowlands.\n` +
@@ -131,6 +150,8 @@ Provide a concise hydraulic diagnosis explaining:
     });
 
     res.json({
+      sample: false,
+      aiAvailable: true,
       diagnosis: response.text || 'What-If scenario diagnosis generated.',
     });
   } catch (error: any) {
@@ -143,10 +164,12 @@ Provide a concise hydraulic diagnosis explaining:
 app.post('/api/gemini/broadcast-alert', async (req, res) => {
   try {
     const { zoneName, tier, rainfallMmHr, predictedDepthCm, language } = req.body;
-    const ai = getGeminiClient();
+    const ai = await getGeminiClient();
 
     if (!ai) {
       return res.json({
+        sample: true,
+        aiAvailable: false,
         smsEn: `[JALRAKSHAK FLOOD ${tier.toUpperCase()}] Severe rain (${rainfallMmHr}mm/hr) forecast for ${zoneName}. Est water level: ${predictedDepthCm}cm. Move vehicles to high ground & turn off main switch. Emergency: 1070 / 1913.`,
         smsLocal: `[ஜல்ரக்ஷக் வெள்ள அபாய எச்சரிக்கை - ${tier.toUpperCase()}] ${zoneName} பகுதியில் கனமழை காரணமாக ${predictedDepthCm}செ.மீ வரை நீர் தேங்க வாய்ப்பு. வாகனங்களை மேடான பகுதிக்கு மாற்றவும். அவசர உதவிக்கு: 1913.`,
         actions: ['Shift 4-wheelers to elevated parking', 'Turn off ground-level inverters', 'Move elderly to upper floors']
@@ -170,10 +193,17 @@ Provide:
     });
 
     res.json({
+      sample: false,
+      aiAvailable: true,
       alertBroadcast: response.text || 'Emergency broadcast generated.',
     });
   } catch (error: any) {
     console.error('Gemini broadcast alert error:', error);
     res.status(500).json({ error: 'Failed to generate alert broadcast', details: error?.message });
   }
+});
+
+// Unknown /api route -> explicit 404 (never a silent crash)
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found', path: req.originalUrl });
 });
