@@ -407,3 +407,56 @@
   outline: 2px solid var(--color-accent);
   outline-offset: 4px;
 }
+
+/* ===========================================================================
+   Splash screen
+   =========================================================================== */
+
+@keyframes splashMark {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.splash-mark {
+  animation: splashMark 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes splashWave {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.splash-wave {
+  animation: splashWave 2.4s ease-in-out infinite;
+}
+
+@keyframes splashDots {
+  0% {
+    content: '';
+  }
+  33% {
+    content: '.';
+  }
+  66% {
+    content: '..';
+  }
+  100% {
+    content: '...';
+  }
+}
+
+.splash-dots::after {
+  content: '...';
+  animation: splashDots 1.2s steps(1, end) infinite;
+}

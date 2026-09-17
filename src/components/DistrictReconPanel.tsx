@@ -1,5 +1,6 @@
 import React from 'react';
-import { Compass, CloudRain, Mountain, Timer, Info, X } from 'lucide-react';
+import { Compass, CloudRain, Mountain, Timer, Info, X, Home, Loader2 } from 'lucide-react';
+import { Facility, facilityLabel } from '../utils/overpass';
 import { DistrictReconnaissance } from '../utils/districtModel';
 import { RiskBadge } from './ui/Badge';
 
@@ -21,10 +22,17 @@ const RISK_VAR: Record<string, string> = {
 export function DistrictReconPanel({
   recon,
   loading,
+  facilities,
+  facilitiesLoading,
+  onFocusFacility,
   onDismiss,
 }: {
   recon: DistrictReconnaissance | null;
   loading: boolean;
+  /** Shelter-capable buildings from OSM - available for any Indian district. */
+  facilities: Facility[];
+  facilitiesLoading: boolean;
+  onFocusFacility: (f: Facility) => void;
   onDismiss: () => void;
 }) {
   if (!recon && !loading) return null;
@@ -116,6 +124,48 @@ export function DistrictReconPanel({
             {recon.elevations.length} terrain samples
           </p>
 
+          {/* Relief camps, nationwide. The modelled cities ship curated
+              shelters; everywhere else uses the schools, community halls and
+              hospitals that districts actually requisition, straight from OSM. */}
+          <section className="mt-3 border-t border-line pt-3" aria-label="Nearest relief camp candidates">
+            <h4 className="mb-2 flex items-center gap-1.5 text-micro font-bold uppercase tracking-wider text-muted">
+              <Home className="h-3 w-3 text-accent" aria-hidden="true" />
+              Nearest relief camp candidates
+              {facilitiesLoading && (
+                <Loader2 className="h-3 w-3 animate-spin text-accent" aria-hidden="true" />
+              )}
+            </h4>
+
+            {!facilitiesLoading && facilities.length === 0 && (
+              <p className="text-micro text-subtle">
+                No mapped schools, halls or hospitals found here in OpenStreetMap.
+              </p>
+            )}
+
+            <ul className="space-y-1">
+              {facilities.slice(0, 5).map((f) => (
+                <li key={f.id}>
+                  <button
+                    onClick={() => onFocusFacility(f)}
+                    className="flex w-full items-center gap-2 rounded-control px-1.5 py-1 text-left transition-colors hover:bg-surface-2 cursor-pointer"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-mini font-semibold text-fg">
+                        {f.name}
+                      </span>
+                      <span className="block text-micro text-subtle">
+                        {facilityLabel(f.kind)} &middot; ~{f.estimatedCapacity} capacity (est.)
+                      </span>
+                    </span>
+                    <span className="shrink-0 font-mono text-micro text-muted">
+                      {f.distanceKm}km
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+
           <p className="mt-3 flex items-start gap-1.5 rounded-control border border-warning/30 bg-warning/10 p-2 text-micro leading-relaxed text-fg-soft">
             <Info className="mt-px h-3 w-3 shrink-0 text-warning" aria-hidden="true" />
             <span>{recon.caveat}</span>
@@ -131,7 +181,7 @@ export function DistrictReconPanel({
             >
               Open-Meteo
             </a>
-            . Boundary:{' '}
+. Facilities and boundary:{' '}
             <a
               href="https://www.openstreetmap.org/copyright"
               target="_blank"

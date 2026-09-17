@@ -133,6 +133,7 @@ src/
     openMeteo.ts     Keyless live elevation and rainfall
     districtModel.ts Reconnaissance scoring for unmodelled districts
     geocode.ts       Nominatim place search and on-demand boundaries
+    overpass.ts      Shelter-capable facilities for any Indian district
   data/mockData.ts    Ward, drain, shelter and demographic fixtures
 tools/
   audit.mjs           Walks every city against every tab, reports what renders
@@ -173,6 +174,7 @@ All of it keyless, and fetched on demand rather than vendored:
 | [Open-Meteo](https://open-meteo.com/) | Live rainfall forecast, terrain elevation | CC-BY 4.0, free for non-commercial use |
 | [Nominatim / OpenStreetMap](https://www.openstreetmap.org/copyright) | Place search, district boundaries | ODbL |
 | [Esri ArcGIS Online](https://www.esri.com/) | Basemap, satellite and topographic tiles | Free with attribution |
+| [Overpass / OpenStreetMap](https://wiki.openstreetmap.org/wiki/Overpass_API) | Relief camp candidates (schools, halls, hospitals) nationwide | ODbL |
 
 Nominatim asks for at most one request per second; every lookup here is
 debounced and cached for the session.

@@ -6,7 +6,7 @@
       <stop offset="100%" stop-color="#04080f"/>
     </linearGradient>
     <linearGradient id="water" x1="0" y1="430" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.30"/>
+      <stop offset="0%" stop-color="#4f9cf9" stop-opacity="0.30"/>
       <stop offset="100%" stop-color="#a78bfa" stop-opacity="0.14"/>
     </linearGradient>
   </defs>
@@ -14,7 +14,7 @@
   <rect width="1200" height="630" fill="url(#sky)"/>
 
   <!-- contour lines -->
-  <g stroke="#38bdf8" stroke-opacity="0.16" fill="none" stroke-width="1.5">
+  <g stroke="#4f9cf9" stroke-opacity="0.16" fill="none" stroke-width="1.5">
     <path d="M0 250 C 240 190, 420 330, 640 268 S 980 200, 1200 262"/>
     <path d="M0 318 C 260 258, 430 396, 660 332 S 1000 268, 1200 328"/>
     <path d="M0 386 C 220 330, 450 462, 680 398 S 1010 336, 1200 394"/>
@@ -24,18 +24,21 @@
   <path d="M0 470 C 200 436, 340 506, 560 474 S 940 428, 1200 468 L1200 630 L0 630 Z" fill="url(#water)"/>
 
   <!-- mark -->
-  <g transform="translate(96,150) scale(3.1)" stroke="#e8f2fb" stroke-width="2.4" fill="none">
-    <circle cx="16" cy="16" r="12.5"/>
-    <path d="M4.2 18.4c2.6 0 2.6-2.2 5.2-2.2s2.6 2.2 5.2 2.2 2.6-2.2 5.2-2.2 2.6 2.2 5.2 2.2" stroke-linecap="round"/>
-    <path d="M6.4 23.2c2.2 0 2.2-1.9 4.4-1.9s2.2 1.9 4.4 1.9 2.2-1.9 4.4-1.9 2.2 1.9 4.4 1.9" stroke-linecap="round" opacity="0.45"/>
-    <circle cx="16" cy="9.8" r="2.6" fill="#38bdf8" stroke="none"/>
+  <g transform="translate(96,150) scale(3.1)" fill="none">
+    <clipPath id="sh"><path d="M16 2.6 27 6.4v8.2c0 7.1-6.3 12.3-11 14.8-4.7-2.5-11-7.7-11-14.8V6.4z"/></clipPath>
+    <g clip-path="url(#sh)">
+      <path d="M1 18.6c2.7 0 2.7-2.2 5.4-2.2s2.7 2.2 5.4 2.2 2.7-2.2 5.4-2.2 2.7 2.2 5.4 2.2 2.7-2.2 5.4-2.2V32H1z" fill="#4f9cf9" fill-opacity="0.3"/>
+      <path d="M1 18.6c2.7 0 2.7-2.2 5.4-2.2s2.7 2.2 5.4 2.2 2.7-2.2 5.4-2.2 2.7 2.2 5.4 2.2 2.7-2.2 5.4-2.2" stroke="#4f9cf9" stroke-width="1.9" stroke-linecap="round"/>
+    </g>
+    <path d="M16 2.6 27 6.4v8.2c0 7.1-6.3 12.3-11 14.8-4.7-2.5-11-7.7-11-14.8V6.4z" stroke="#eaf1fa" stroke-width="2.2" stroke-linejoin="round"/>
+    <circle cx="16" cy="11.2" r="2.3" fill="#4f9cf9"/>
   </g>
 
   <text x="96" y="352" font-family="Plus Jakarta Sans, Inter, sans-serif" font-size="76" font-weight="800" fill="#eef4fb" letter-spacing="-2">JalRakshak</text>
   <text x="98" y="404" font-family="Inter, sans-serif" font-size="25" font-weight="600" fill="#8aa0bb" letter-spacing="0.5">Urban Flood Intelligence</text>
 
   <g font-family="JetBrains Mono, monospace" font-size="19" font-weight="600">
-    <rect x="96" y="440" width="268" height="42" rx="21" fill="#38bdf8" fill-opacity="0.12" stroke="#38bdf8" stroke-opacity="0.35"/>
+    <rect x="96" y="440" width="268" height="42" rx="21" fill="#4f9cf9" fill-opacity="0.12" stroke="#4f9cf9" stroke-opacity="0.35"/>
     <text x="120" y="467" fill="#7dd3fc">0-100 vulnerability index</text>
     <rect x="384" y="440" width="250" height="42" rx="21" fill="#a78bfa" fill-opacity="0.12" stroke="#a78bfa" stroke-opacity="0.3"/>
     <text x="408" y="467" fill="#c4b5fd">street-level forecast</text>

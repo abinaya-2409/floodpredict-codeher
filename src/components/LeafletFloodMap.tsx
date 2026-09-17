@@ -6,6 +6,7 @@ import { Sliders, Layers, Search, MapPin, AlertTriangle, ShieldCheck, Navigation
 import { PlaceResult, fetchBoundary, searchPlaces } from '../utils/geocode';
 import { fetchElevations, fetchRainfall } from '../utils/openMeteo';
 import { DistrictReconnaissance, assessDistrict, sampleGrid } from '../utils/districtModel';
+import { Facility, fetchFacilities } from '../utils/overpass';
 import { DistrictReconPanel } from './DistrictReconPanel';
 import {
   availableBasemaps,
@@ -58,6 +59,9 @@ export const LeafletFloodMap: React.FC<Props> = ({
   const boundaryRef = useRef<L.Polygon | null>(null);
   const [recon, setRecon] = useState<DistrictReconnaissance | null>(null);
   const [reconLoading, setReconLoading] = useState(false);
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [facilitiesLoading, setFacilitiesLoading] = useState(false);
+  const facilityLayerRef = useRef<L.LayerGroup | null>(null);
   /**
    * Marker labels are only legible once there is room for them. Below this
    * zoom every marker collapses to a dot, which is what stops shelters and
@@ -74,6 +78,8 @@ export const LeafletFloodMap: React.FC<Props> = ({
     { key: 'critical', label: '75+', color: tokens.risk.critical },
   ];
   const LABEL_ZOOM = 12;
+  /** Resource pills are secondary to ward labels, so they hold back further. */
+  const RESOURCE_LABEL_ZOOM = 13.5;
   const baseLayerRef = useRef<L.TileLayer | null>(null);
   const labelLayerRef = useRef<L.TileLayer | null>(null);
   const basemaps = availableBasemaps();
@@ -465,7 +471,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
           iconAnchor: showLabel ? [35, 10] : [5, 5],
         });
 
-        const shelterMarker = L.marker(shelterCoords, { icon: shelterIcon });
+        const shelterMarker = L.marker(shelterCoords, { icon: shelterIcon, zIndexOffset: 200 });
         shelterMarker.bindPopup(`
           <div style="font-size: 12px; color: white;">
             <div style="font-weight: bold; color: ${tokens.positive}; font-size: 13px;">${shelter.name}</div>
@@ -486,7 +492,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
     // 6. Render Resource Pre-positioning points
     if (showResources) {
       resources.forEach((res) => {
-        const showLabel = zoomLevel >= LABEL_ZOOM;
+        const showLabel = zoomLevel >= RESOURCE_LABEL_ZOOM;
         const resColor = res.priority === 'CRITICAL' ? tokens.accent2 : tokens.accent;
         const resLabel =
           res.type === 'dewatering_pump'
@@ -512,7 +518,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
           iconAnchor: showLabel ? [37, 8] : [4, 4],
         });
 
-        const resMarker = L.marker(res.coordinates, { icon: resIcon });
+        const resMarker = L.marker(res.coordinates, { icon: resIcon, zIndexOffset: 0 });
         resMarker.bindPopup(`
           <div style="font-size: 11px; color: white;">
             <div style="font-weight: bold; color: #c084fc;">${res.name}</div>
@@ -612,11 +618,33 @@ export const LeafletFloodMap: React.FC<Props> = ({
     setRecon(null);
     try {
       const grid = sampleGrid(place.bbox!, 3);
-      const [elevations, rainfall, boundary] = await Promise.all([
+      setFacilitiesLoading(true);
+      const [elevations, rainfall, boundary, camps] = await Promise.all([
         fetchElevations(grid),
         fetchRainfall(place.lat, place.lon),
         fetchBoundary(place.id, `${place.name}, ${place.context}`).catch(() => null),
+        // Relief camp candidates exist for every Indian district, not just
+        // the eight we model by hand.
+        fetchFacilities(place.bbox!, [place.lat, place.lon], 40).catch(() => [] as Facility[]),
       ]);
+      setFacilities(camps);
+      setFacilitiesLoading(false);
+
+      facilityLayerRef.current?.remove();
+      facilityLayerRef.current = L.layerGroup(
+        camps.slice(0, 25).map((f) =>
+          L.circleMarker([f.lat, f.lon], {
+            radius: 5,
+            color: tokens.positive,
+            weight: 2,
+            fillColor: tokens.positive,
+            fillOpacity: 0.45,
+          }).bindPopup(
+            `<strong style="color:${tokens.fg}">${f.name}</strong><br/>` +
+              `<span style="color:${tokens.muted}">Relief camp candidate &middot; ${f.distanceKm}km</span>`
+          )
+        )
+      ).addTo(map);
 
       setRecon(
         assessDistrict({
@@ -654,6 +682,13 @@ export const LeafletFloodMap: React.FC<Props> = ({
     boundaryRef.current = null;
     searchMarkerRef.current?.remove();
     searchMarkerRef.current = null;
+    facilityLayerRef.current?.remove();
+    facilityLayerRef.current = null;
+    setFacilities([]);
+  };
+
+  const focusFacility = (f: Facility) => {
+    mapInstanceRef.current?.flyTo([f.lat, f.lon], 16, { duration: 0.9 });
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -903,7 +938,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
             Thresholds are the ones calculateZoneHydrology actually uses - the
             previous legend claimed "Critical >60cm" and omitted Severe
             entirely, so it disagreed with the model it was labelling. */}
-        <div className="absolute top-3 right-3 z-[500] hidden md:block">
+        <div className="absolute bottom-8 right-3 z-[500] hidden lg:block">
           <div className="glass rounded-card px-3 py-2.5 shadow-xl border border-line-strong/40">
             <div className="mb-1.5 flex items-baseline gap-2">
               <span className="font-mono text-nano uppercase tracking-[0.14em] text-muted">
@@ -952,6 +987,9 @@ export const LeafletFloodMap: React.FC<Props> = ({
             <DistrictReconPanel
               recon={recon}
               loading={reconLoading}
+              facilities={facilities}
+              facilitiesLoading={facilitiesLoading}
+              onFocusFacility={focusFacility}
               onDismiss={dismissRecon}
             />
           </div>
