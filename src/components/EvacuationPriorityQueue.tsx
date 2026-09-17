@@ -26,7 +26,7 @@ export function EvacuationPriorityQueue({
   onSelectZone: (zoneId: string) => void;
 }) {
   return (
-    <section className="glass rounded-2xl p-5" aria-labelledby="evac-queue-heading">
+    <section className="glass rounded-card p-5" aria-labelledby="evac-queue-heading">
       <header className="mb-4">
         <h3
           id="evac-queue-heading"
@@ -51,14 +51,14 @@ export function EvacuationPriorityQueue({
                 onClick={() => onSelectZone(a.zoneId)}
                 aria-current={isSelected ? 'true' : undefined}
                 className={[
-                  'flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors',
+                  'flex w-full items-center gap-3 rounded-card border px-3 py-2.5 text-left transition-colors',
                   isSelected
                     ? 'border-accent bg-accent/10'
                     : 'border-line bg-surface-2/50 hover:border-line-strong hover:bg-surface-3/60',
                 ].join(' ')}
               >
                 <span
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg font-mono text-xs font-bold"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-control font-mono text-xs font-bold"
                   style={{
                     color,
                     backgroundColor: `color-mix(in oklab, ${color} 18%, transparent)`,

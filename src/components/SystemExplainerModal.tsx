@@ -12,12 +12,12 @@ export const SystemExplainerModal: React.FC<Props> = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg/80 backdrop-blur-md animate-in fade-in duration-200">
       <div 
-        className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-surface border border-accent/30 rounded-2xl shadow-2xl shadow-accent-deep/50 p-6 md:p-8 text-fg-soft"
+        className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-surface border border-accent/30 rounded-card shadow-2xl shadow-accent-deep/50 p-6 md:p-8 text-fg-soft"
         id="system-explainer-modal"
       >
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl text-muted hover:text-fg hover:bg-surface-2 transition-colors"
+          className="absolute top-5 right-5 p-2 rounded-card text-muted hover:text-fg hover:bg-surface-2 transition-colors"
           aria-label="Close modal"
         >
           <X className="w-5 h-5" />
@@ -25,7 +25,7 @@ export const SystemExplainerModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
         {/* Title Header */}
         <div className="flex items-center space-x-3 mb-6">
-          <div className="p-3 bg-accent/10 border border-accent/30 rounded-xl text-accent">
+          <div className="p-3 bg-accent/10 border border-accent/30 rounded-card text-accent">
             <Cpu className="w-6 h-6" />
           </div>
           <div>
@@ -35,7 +35,7 @@ export const SystemExplainerModal: React.FC<Props> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Plain Language Summary */}
-        <div className="p-4 bg-surface-2/80 border border-line-strong/80 rounded-xl mb-6">
+        <div className="p-4 bg-surface-2/80 border border-line-strong/80 rounded-card mb-6">
           <p className="text-fg-soft text-sm md:text-base leading-relaxed">
             <strong className="text-fg">In plain terms:</strong> Instead of waiting for 911/1070 calls when roads are already underwater (reactive), 
             JalRakshak AI combines upcoming weather forecasts, terrain elevations, drain blockage levels, and past flood records to predict 
@@ -51,7 +51,7 @@ export const SystemExplainerModal: React.FC<Props> = ({ isOpen, onClose }) => {
             The 4 Critical Meteorological & Hydraulic Inputs
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 bg-bg/60 border border-line rounded-xl hover:border-accent/40 transition-colors">
+            <div className="p-4 bg-bg/60 border border-line rounded-card hover:border-accent/40 transition-colors">
               <div className="flex items-center space-x-2 text-accent font-semibold text-sm mb-1">
                 <CloudRain className="w-4 h-4 text-accent" />
                 <span>1. Rainfall Data & Intensity</span>
@@ -61,7 +61,7 @@ export const SystemExplainerModal: React.FC<Props> = ({ isOpen, onClose }) => {
               </p>
             </div>
 
-            <div className="p-4 bg-bg/60 border border-line rounded-xl hover:border-accent/40 transition-colors">
+            <div className="p-4 bg-bg/60 border border-line rounded-card hover:border-accent/40 transition-colors">
               <div className="flex items-center space-x-2 text-accent font-semibold text-sm mb-1">
                 <Waves className="w-4 h-4 text-accent" />
                 <span>2. Drainage Network & Blockages</span>
@@ -71,7 +71,7 @@ export const SystemExplainerModal: React.FC<Props> = ({ isOpen, onClose }) => {
               </p>
             </div>
 
-            <div className="p-4 bg-bg/60 border border-line rounded-xl hover:border-accent/40 transition-colors">
+            <div className="p-4 bg-bg/60 border border-line rounded-card hover:border-accent/40 transition-colors">
               <div className="flex items-center space-x-2 text-accent-2 font-semibold text-sm mb-1">
                 <ShieldAlert className="w-4 h-4 text-accent-2" />
                 <span>3. High-Resolution Weather Forecasts</span>
@@ -81,7 +81,7 @@ export const SystemExplainerModal: React.FC<Props> = ({ isOpen, onClose }) => {
               </p>
             </div>
 
-            <div className="p-4 bg-bg/60 border border-line rounded-xl hover:border-accent/40 transition-colors">
+            <div className="p-4 bg-bg/60 border border-line rounded-card hover:border-accent/40 transition-colors">
               <div className="flex items-center space-x-2 text-risk-low font-semibold text-sm mb-1">
                 <History className="w-4 h-4 text-risk-low" />
                 <span>4. Historical Flood Benchmarks</span>
@@ -94,7 +94,7 @@ export const SystemExplainerModal: React.FC<Props> = ({ isOpen, onClose }) => {
         </div>
 
         {/* What separates this winning build */}
-        <div className="p-5 bg-gradient-to-br from-accent-deep/40 to-surface border border-accent/40 rounded-xl mb-6">
+        <div className="p-5 bg-gradient-to-br from-accent-deep/40 to-surface border border-accent/40 rounded-card mb-6">
           <div className="flex items-center space-x-2 text-accent font-semibold text-sm mb-2">
             <CheckCircle2 className="w-4 h-4" />
             <span>Why This Is Actionable (Beyond a Basic Heatmap)</span>
@@ -119,7 +119,7 @@ export const SystemExplainerModal: React.FC<Props> = ({ isOpen, onClose }) => {
         <div className="flex justify-end">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 bg-accent hover:bg-accent text-on-accent font-bold text-sm rounded-xl transition-all shadow-lg shadow-accent/20"
+            className="px-5 py-2.5 bg-accent hover:bg-accent text-on-accent font-bold text-sm rounded-card transition-all shadow-lg shadow-accent/20"
           >
             Explore Live Flood Predictor
           </button>

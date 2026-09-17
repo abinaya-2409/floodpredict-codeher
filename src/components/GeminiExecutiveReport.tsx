@@ -71,14 +71,14 @@ export const GeminiExecutiveReport: React.FC<Props> = ({
 
   return (
     <div
-      className="fluid-glass rounded-[28px] p-5 shadow-2xl flex flex-col gap-4 border border-accent-2/25 relative overflow-hidden"
+      className="fluid-glass rounded-panel p-5 shadow-2xl flex flex-col gap-4 border border-accent-2/25 relative overflow-hidden"
       id="gemini-executive-report"
     >
       {/* Placeholder output must never be mistakable for real analysis. */}
       {report && isSample && (
         <div
           role="status"
-          className="relative z-10 flex items-start gap-2 rounded-xl border border-risk-high/40 bg-risk-high/10 px-3 py-2"
+          className="relative z-10 flex items-start gap-2 rounded-card border border-risk-high/40 bg-risk-high/10 px-3 py-2"
         >
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-risk-high" aria-hidden="true" />
           <div className="text-[11px] leading-snug">
@@ -98,7 +98,7 @@ export const GeminiExecutiveReport: React.FC<Props> = ({
 
       {/* Card Header with Glowing Multi-Point Neural AI Starburst */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-accent-2 via-accent-2 to-accent flex items-center justify-center text-fg shadow-[0_0_18px_currentColor] border border-accent-2/40 shrink-0">
+        <div className="w-10 h-10 rounded-card bg-gradient-to-br from-accent-2 via-accent-2 to-accent flex items-center justify-center text-fg shadow-[0_0_18px_currentColor] border border-accent-2/40 shrink-0">
           <svg className="w-5 h-5 text-fg animate-pulse" fill="none" viewBox="0 0 24 24">
             <path
               d="M12 2L14.2 8.5L21 9.8L16 14.5L17.5 21.2L12 18L6.5 21.2L8 14.5L3 9.8L9.8 8.5L12 2Z"
@@ -141,7 +141,7 @@ export const GeminiExecutiveReport: React.FC<Props> = ({
       </button>
 
       {/* Dynamic Output Stage */}
-      <div className="bg-bg/80 border border-line-strong/60 rounded-2xl p-4 flex flex-col justify-center min-h-[190px]">
+      <div className="bg-bg/80 border border-line-strong/60 rounded-card p-4 flex flex-col justify-center min-h-[190px]">
         {report ? (
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between border-b border-line-strong/60 pb-2">

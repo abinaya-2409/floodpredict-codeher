@@ -48,6 +48,16 @@ glass panels.
 Every colour resolves through a semantic token defined once in
 [`src/index.css`](src/index.css) - no component references a raw palette
 value, so restyling the interface header-to-footer is an edit to one block.
+
+The palette enforces one rule: **the five severity colours are data only.**
+They never appear as a button, a border or a brand flourish. Interaction is
+carried by a single azure accent at a hue the severity ramp never enters, and
+system state (telemetry online, connection lost) uses its own status colours.
+Without that separation a green "safe" ward and a green "online" chip mean
+the same thing to the eye, which is what made the earlier build hard to read.
+
+Radii follow three steps - `rounded-panel`, `rounded-card`, `rounded-control` -
+replacing an ad-hoc mix of five.
 Libraries that cannot read CSS (Leaflet, Recharts) are bridged through
 [`src/theme/useThemeTokens.ts`](src/theme/useThemeTokens.ts).
 

@@ -12,52 +12,81 @@
    =========================================================================== */
 
 @theme {
-  /* Surfaces, from the page ground upward */
-  --color-bg: #070d17;
-  --color-bg-deep: #04080f;
-  --color-surface: #0d1524;
-  --color-surface-2: #131e30;
-  --color-surface-3: #1b293f;
+  /* -------------------------------------------------------------------------
+     NEUTRALS
+     Cool navy, pulled slightly blue so the panels sit naturally on the live
+     sky behind them rather than looking like grey cards pasted on top.
+     ---------------------------------------------------------------------- */
+  --color-bg: #080f1c;
+  --color-bg-deep: #050a14;
+  --color-surface: #0e1728;
+  --color-surface-2: #152135;
+  --color-surface-3: #1e2c44;
 
-  /* Lines */
-  --color-line: #1e2c42;
-  --color-line-strong: #2b3d58;
+  --color-line: #223149;
+  --color-line-strong: #32455f;
 
-  /* Type */
-  --color-fg: #eef4fb;
-  --color-fg-soft: #c3d2e4;
-  --color-muted: #8aa0bb;
-  --color-subtle: #5d738f;
+  --color-fg: #eaf1fa;
+  --color-fg-soft: #bccbdd;
+  --color-muted: #8397b0;
+  --color-subtle: #5f7590;
 
-  /* Brand accents */
-  --color-accent: #38bdf8;
-  --color-accent-soft: #7dd3fc;
-  --color-accent-deep: #0284c7;
-  --color-accent-2: #a78bfa;
-  --color-on-accent: #04121f;
+  /* -------------------------------------------------------------------------
+     BRAND
+     A single azure accent carries every interactive affordance: links,
+     focus, selected state, primary action. It sits at hue ~213, which is
+     the one region the severity ramp never enters, so "you can click this"
+     is never confusable with "this area is at risk".
+     ---------------------------------------------------------------------- */
+  --color-accent: #4f9cf9;
+  --color-accent-soft: #8cbdfd;
+  --color-accent-deep: #1e6fd9;
+  --color-accent-2: #8b7cf6;
+  --color-on-accent: #04101f;
 
-  /* Severity ramp. Hue advances teal -> yellow -> orange -> red -> magenta,
-     the ordering meteorological agencies use, with "beyond red" magenta for
-     the worst band. Hue and lightness both move, so the sequence still reads
-     as ordered under deuteranopia and protanopia. */
-  --color-risk-low: #2dd4bf;
-  --color-risk-moderate: #fcd34d;
-  --color-risk-high: #fb923c;
-  --color-risk-severe: #ef4444;
+  /* -------------------------------------------------------------------------
+     SEVERITY - DATA ONLY
+     These five belong to flood severity and nothing else. They are never a
+     button, a border, or a brand flourish; if one appears, it means the map
+     is telling you something. That rule is what makes the map readable.
+
+     Hue advances 160 -> 50 -> 27 -> 350 -> 295 with lightness falling across
+     the run, so the sequence stays ordered under deuteranopia and protanopia.
+     ---------------------------------------------------------------------- */
+  --color-risk-low: #2dd4a7;
+  --color-risk-moderate: #f5d020;
+  --color-risk-high: #fb8c3c;
+  --color-risk-severe: #f2415f;
   --color-risk-critical: #c026d3;
 
-  /* Status */
-  --color-positive: #34d399;
+  /* -------------------------------------------------------------------------
+     STATUS - SYSTEM STATE, NOT FLOOD STATE
+     Deliberately distinct from the severity ramp: a green "telemetry online"
+     chip must not read as "this ward is safe".
+     ---------------------------------------------------------------------- */
+  --color-positive: #4ade80;
   --color-warning: #fbbf24;
-  --color-danger: #fb7185;
+  --color-danger: #f87171;
 
   /* Glass / elevation */
-  --glass-bg: linear-gradient(160deg, rgb(19 30 48 / 0.72) 0%, rgb(9 15 26 / 0.82) 100%);
-  --glass-border: rgb(56 189 248 / 0.14);
-  --glass-blur: 22px;
-  --glass-shadow: 0 18px 44px -14px rgb(2 8 20 / 0.72), inset 0 1px 0 0 rgb(255 255 255 / 0.04);
+  --glass-bg: linear-gradient(158deg, rgb(21 33 53 / 0.78) 0%, rgb(10 17 30 / 0.86) 100%);
+  --glass-border: rgb(120 165 220 / 0.16);
+  --glass-blur: 20px;
+  --glass-shadow:
+    0 18px 44px -14px rgb(2 6 16 / 0.7),
+    inset 0 1px 0 0 rgb(255 255 255 / 0.05);
 
-  /* Kept as a single knob for ambient animation tempo. */
+  /* -------------------------------------------------------------------------
+     RADIUS SCALE
+     The interface previously mixed rounded-xl, 2xl, 3xl, [26px] and [32px]
+     with no system. Three steps is enough.
+     ---------------------------------------------------------------------- */
+  /* Tailwind generates rounded-panel / rounded-card / rounded-control. */
+  --radius-panel: 1.15rem;
+  --radius-card: 0.75rem;
+  --radius-control: 0.5rem;
+
+  /* Single knob for ambient animation tempo. */
   --motion-scale: 1;
 
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;

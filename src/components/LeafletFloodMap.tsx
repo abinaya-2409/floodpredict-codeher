@@ -670,7 +670,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
   };
 
   return (
-    <div className="fluid-glass rounded-[32px] overflow-hidden relative shadow-[0_24px_50px_rgba(0,0,0,0.65)] border border-accent/25 flex flex-col" id="leaflet-flood-map-wrapper">
+    <div className="fluid-glass rounded-panel overflow-hidden relative shadow-[0_24px_50px_rgba(0,0,0,0.65)] border border-accent/25 flex flex-col" id="leaflet-flood-map-wrapper">
       {/* Top Map Control Bar */}
       <div className="p-3 sm:p-4 bg-bg/70 border-b border-line/80 flex flex-col lg:flex-row lg:items-start justify-between gap-3">
         {/* Search Input */}
@@ -700,7 +700,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
             <ul
               role="listbox"
               aria-label="Search results"
-              className="absolute left-0 right-0 top-11 z-[1200] max-h-72 overflow-y-auto rounded-2xl border border-line bg-surface/95 p-1 shadow-2xl backdrop-blur"
+              className="absolute left-0 right-0 top-11 z-[1200] max-h-72 overflow-y-auto rounded-card border border-line bg-surface/95 p-1 shadow-2xl backdrop-blur"
             >
               {placeResults.length === 0 && !isSearching && (
                 <li className="px-3 py-2.5 text-[11px] text-subtle">
@@ -713,7 +713,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
                     type="button"
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => flyToPlace(place)}
-                    className="flex w-full items-start gap-2.5 rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-surface-3"
+                    className="flex w-full items-start gap-2.5 rounded-card px-2.5 py-2 text-left transition-colors hover:bg-surface-3"
                   >
                     <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" aria-hidden="true" />
                     <span className="min-w-0 flex-1">
@@ -839,18 +839,18 @@ export const LeafletFloodMap: React.FC<Props> = ({
         />
 
         {/* Real-time Scenario Slider (Floating Hydro Wave Slider) */}
-        <div className="absolute bottom-9 left-3 right-3 md:right-auto md:w-[24rem] z-[500] glass rounded-xl p-3.5 shadow-xl border border-line-strong/40 space-y-2">
+        <div className="absolute bottom-9 left-3 right-3 md:right-auto md:w-[24rem] z-[500] glass rounded-card p-3.5 shadow-xl border border-line-strong/40 space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-risk-low/15 border border-risk-low/35 flex items-center justify-center text-risk-low">
+              <div className="w-7 h-7 rounded-card bg-accent/12 border border-accent/30 flex items-center justify-center text-accent">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M2 12c3-4 6-4 9 0s6 4 9 0M2 17c3-4 6-4 9 0s6 4 9 0" />
                 </svg>
               </div>
               <span className="text-xs font-bold text-fg uppercase tracking-wider">Rainfall scenario</span>
             </div>
-            <div className="bg-surface/80 border border-risk-low/30 px-3 py-1 rounded-full flex items-baseline gap-1 shadow-inner">
-              <span className="text-lg text-risk-low font-bold font-mono">
+            <div className="bg-surface/80 border border-accent/30 px-3 py-1 rounded-full flex items-baseline gap-1 shadow-inner">
+              <span className="text-lg text-accent font-bold font-mono">
                 {simulationParams.rainfallIntensityMmHr}
               </span>
               <span className="text-[11px] text-muted">mm/hr</span>
@@ -880,7 +880,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
             previous legend claimed "Critical >60cm" and omitted Severe
             entirely, so it disagreed with the model it was labelling. */}
         <div className="absolute top-3 right-3 z-[500] hidden md:block">
-          <div className="glass rounded-xl px-3 py-2.5 shadow-xl border border-line-strong/40">
+          <div className="glass rounded-card px-3 py-2.5 shadow-xl border border-line-strong/40">
             <div className="mb-1.5 flex items-baseline gap-2">
               <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted">
                 Predicted depth

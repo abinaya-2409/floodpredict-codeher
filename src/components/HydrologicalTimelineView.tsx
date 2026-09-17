@@ -24,7 +24,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
       {/* Offline Mode Banner & Model Confidence Header */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Model Confidence Card */}
-        <div className="p-5 bg-surface border border-line rounded-2xl shadow-xl space-y-3">
+        <div className="p-5 bg-surface border border-line rounded-card shadow-xl space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 text-accent font-bold text-xs uppercase tracking-wider">
               <Cpu className="w-4 h-4" />
@@ -40,7 +40,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
           </p>
 
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="p-2.5 bg-bg rounded-xl border border-line flex items-center space-x-2">
+            <div className="p-2.5 bg-bg rounded-card border border-line flex items-center space-x-2">
               <Radio className="w-4 h-4 text-accent shrink-0" />
               <div>
                 <div className="font-bold text-fg">14 AWS Stations</div>
@@ -48,7 +48,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className="p-2.5 bg-bg rounded-xl border border-line flex items-center space-x-2">
+            <div className="p-2.5 bg-bg rounded-card border border-line flex items-center space-x-2">
               <Activity className="w-4 h-4 text-accent shrink-0" />
               <div>
                 <div className="font-bold text-fg">Doppler S-Band</div>
@@ -56,7 +56,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className="p-2.5 bg-bg rounded-xl border border-line flex items-center space-x-2">
+            <div className="p-2.5 bg-bg rounded-card border border-line flex items-center space-x-2">
               <Database className="w-4 h-4 text-accent-2 shrink-0" />
               <div>
                 <div className="font-bold text-fg">CartoDEM 10m</div>
@@ -64,7 +64,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className="p-2.5 bg-bg rounded-xl border border-line flex items-center space-x-2">
+            <div className="p-2.5 bg-bg rounded-card border border-line flex items-center space-x-2">
               <HardDrive className="w-4 h-4 text-risk-high shrink-0" />
               <div>
                 <div className="font-bold text-fg">2015/23 Ground Truth</div>
@@ -75,7 +75,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
         </div>
 
         {/* Offline Cache Resilience Tester */}
-        <div className="p-5 bg-surface border border-line rounded-2xl shadow-xl space-y-3 flex flex-col justify-between">
+        <div className="p-5 bg-surface border border-line rounded-card shadow-xl space-y-3 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2 text-accent font-bold text-xs uppercase tracking-wider">
@@ -84,7 +84,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
               </div>
               <button
                 onClick={onToggleOffline}
-                className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all ${
+                className={`px-3 py-1 rounded-card text-xs font-bold flex items-center space-x-1.5 transition-all ${
                   isOfflineSimulated
                     ? 'bg-risk-high text-on-accent shadow-md shadow-risk-high/30'
                     : 'bg-surface-2 hover:bg-surface-3 text-fg-soft border border-line-strong'
@@ -100,7 +100,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
             </p>
           </div>
 
-          <div className={`p-3 rounded-xl border text-xs flex items-center space-x-2.5 ${
+          <div className={`p-3 rounded-card border text-xs flex items-center space-x-2.5 ${
             isOfflineSimulated
               ? 'bg-risk-high/40 border-risk-high/50 text-risk-high'
               : 'bg-bg border-line text-muted'
@@ -121,7 +121,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
       </div>
 
       {/* Recharts Timeline Graphs */}
-      <div className="bg-surface border border-line rounded-2xl p-5 md:p-6 shadow-xl space-y-6">
+      <div className="bg-surface border border-line rounded-card p-5 md:p-6 shadow-xl space-y-6">
         <div>
           <div className="flex items-center space-x-2 text-accent font-bold text-xs uppercase tracking-wider">
             <Activity className="w-4 h-4" />

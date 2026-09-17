@@ -42,12 +42,12 @@ export const Navbar: React.FC<Props> = ({
     <header className="sticky top-0 z-50 w-full px-3 sm:px-6 pt-3 pb-2 backdrop-blur-md bg-transparent">
       <div className="max-w-7xl mx-auto flex flex-col gap-2">
         {/* Top Live Telemetry Pill Strip */}
-        <div className="fluid-glass rounded-full px-4 py-1.5 flex items-center justify-between text-xs overflow-x-auto whitespace-nowrap shadow-[0_4px_24px_rgba(0,0,0,0.5)] border border-risk-low/20">
+        <div className="fluid-glass rounded-full px-4 py-1.5 flex items-center justify-between text-xs overflow-x-auto whitespace-nowrap shadow-[0_4px_24px_rgba(0,0,0,0.5)] border border-line">
           <div className="flex items-center gap-3">
             {/* Radar Animated Pulse & Sweep Icon */}
-            <div className="flex items-center gap-2 text-risk-low font-mono tracking-wider font-bold">
+            <div className="flex items-center gap-2 text-positive font-mono tracking-wider font-bold">
               <div className="relative w-4 h-4 flex items-center justify-center">
-                <svg className="w-4 h-4 text-risk-low" fill="none" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-positive" fill="none" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.3" strokeWidth="1.5" />
                   <circle cx="12" cy="12" r="5.5" stroke="currentColor" strokeOpacity="0.5" strokeWidth="1.5" />
                   <line stroke="currentColor" strokeOpacity="0.25" strokeWidth="1" x1="12" x2="12" y1="2" y2="22" />
@@ -80,7 +80,7 @@ export const Navbar: React.FC<Props> = ({
             </span>
             <span className="text-subtle">•</span>
             <span className="font-mono text-muted">
-              Tide: <strong className="text-risk-low font-semibold">{weather.stormSurgeTideM}m MSL</strong>
+              Tide: <strong className="text-accent-soft font-semibold">{weather.stormSurgeTideM}m MSL</strong>
             </span>
             <span className="text-subtle">•</span>
             <span className="font-mono text-muted">
@@ -95,7 +95,7 @@ export const Navbar: React.FC<Props> = ({
           <div className="flex items-center gap-2 pl-4">
             <button
               onClick={onToggleOffline}
-              className="inline-flex items-center gap-1.5 bg-risk-low/15 border border-risk-low/40 px-3 py-0.5 rounded-full text-risk-low font-mono text-[11px] font-semibold shadow-[0_0_10px_currentColor] hover:bg-risk-low/25 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 bg-positive/12 border border-positive/35 px-3 py-0.5 rounded-full text-positive font-mono text-[11px] font-semibold shadow-[0_0_10px_currentColor] hover:bg-positive/20 transition-colors cursor-pointer"
             >
               {isOfflineSimulated ? (
                 <>
@@ -104,7 +104,7 @@ export const Navbar: React.FC<Props> = ({
                 </>
               ) : (
                 <>
-                  <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-positive animate-pulse" />
                   <span>Telemetry Online</span>
                 </>
               )}
@@ -113,7 +113,7 @@ export const Navbar: React.FC<Props> = ({
         </div>
 
         {/* Main Navigation Fluid Island */}
-        <div className="fluid-glass rounded-[26px] px-4 sm:px-6 py-2.5 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.55)] border border-line-strong/50">
+        <div className="fluid-glass rounded-panel px-4 sm:px-6 py-2.5 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.55)] border border-line-strong/50">
           {/* Brand: one geometric mark, no ornament. */}
           <div className="flex items-center gap-3">
             <LogoMark className="h-8 w-8 shrink-0 text-accent" />
@@ -183,7 +183,7 @@ export const Navbar: React.FC<Props> = ({
               className={`relative h-9 px-4 rounded-full font-bold text-xs tracking-wide transition-all flex items-center gap-2 border cursor-pointer shadow-lg ${
                 userRole === 'authority'
                   ? 'bg-gradient-to-r from-risk-critical to-risk-critical hover:brightness-110 text-fg border-risk-critical/40 shadow-[0_0_20px_currentColor]'
-                  : 'bg-gradient-to-r from-risk-low to-risk-low hover:brightness-110 text-fg border-risk-low/40 shadow-[0_0_20px_currentColor]'
+                  : 'bg-gradient-to-r from-accent to-accent-deep hover:brightness-110 text-on-accent border-accent/50 shadow-[0_0_20px_currentColor]'
               }`}
             >
               <span className="relative flex h-4 w-4 items-center justify-center">
@@ -206,11 +206,11 @@ export const Navbar: React.FC<Props> = ({
             onClick={() => onChangeTab('map')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'map'
-                ? 'bg-gradient-to-r from-risk-low/25 via-risk-low/20 to-accent/25 text-risk-low border border-risk-low/40 font-bold shadow-[0_0_16px_currentColor]'
+                ? 'bg-gradient-to-r from-accent/25 via-accent/15 to-accent/20 text-accent border border-accent/45 font-bold shadow-[0_0_16px_currentColor]'
                 : 'text-fg-soft hover:text-fg hover:bg-surface-2/50 border border-transparent'
             }`}
           >
-            {activeTab === 'map' && <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse shadow-[0_0_6px_var(--color-risk-low)]" />}
+            {activeTab === 'map' && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--color-accent)]" />}
             <span>Interactive Inundation Map</span>
           </button>
 
@@ -218,11 +218,11 @@ export const Navbar: React.FC<Props> = ({
             onClick={() => onChangeTab('streets')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'streets'
-                ? 'bg-gradient-to-r from-risk-low/25 via-risk-low/20 to-accent/25 text-risk-low border border-risk-low/40 font-bold shadow-[0_0_16px_currentColor]'
+                ? 'bg-gradient-to-r from-accent/25 via-accent/15 to-accent/20 text-accent border border-accent/45 font-bold shadow-[0_0_16px_currentColor]'
                 : 'text-fg-soft hover:text-fg hover:bg-surface-2/50 border border-transparent'
             }`}
           >
-            {activeTab === 'streets' && <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse shadow-[0_0_6px_var(--color-risk-low)]" />}
+            {activeTab === 'streets' && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--color-accent)]" />}
             <span>Street-Level Vulnerability</span>
           </button>
 
@@ -230,11 +230,11 @@ export const Navbar: React.FC<Props> = ({
             onClick={() => onChangeTab('whatif')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'whatif'
-                ? 'bg-gradient-to-r from-risk-low/25 via-risk-low/20 to-accent/25 text-risk-low border border-risk-low/40 font-bold shadow-[0_0_16px_currentColor]'
+                ? 'bg-gradient-to-r from-accent/25 via-accent/15 to-accent/20 text-accent border border-accent/45 font-bold shadow-[0_0_16px_currentColor]'
                 : 'text-fg-soft hover:text-fg hover:bg-surface-2/50 border border-transparent'
             }`}
           >
-            {activeTab === 'whatif' && <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse shadow-[0_0_6px_var(--color-risk-low)]" />}
+            {activeTab === 'whatif' && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--color-accent)]" />}
             <span>"What-If" Hydraulic Sandbox</span>
           </button>
 
@@ -242,11 +242,11 @@ export const Navbar: React.FC<Props> = ({
             onClick={() => onChangeTab('alerts')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'alerts'
-                ? 'bg-gradient-to-r from-risk-low/25 via-risk-low/20 to-accent/25 text-risk-low border border-risk-low/40 font-bold shadow-[0_0_16px_currentColor]'
+                ? 'bg-gradient-to-r from-accent/25 via-accent/15 to-accent/20 text-accent border border-accent/45 font-bold shadow-[0_0_16px_currentColor]'
                 : 'text-fg-soft hover:text-fg hover:bg-surface-2/50 border border-transparent'
             }`}
           >
-            {activeTab === 'alerts' && <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse shadow-[0_0_6px_var(--color-risk-low)]" />}
+            {activeTab === 'alerts' && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--color-accent)]" />}
             <span>Tiered Early Warning Hub</span>
           </button>
 
@@ -254,11 +254,11 @@ export const Navbar: React.FC<Props> = ({
             onClick={() => onChangeTab('resources')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'resources'
-                ? 'bg-gradient-to-r from-risk-low/25 via-risk-low/20 to-accent/25 text-risk-low border border-risk-low/40 font-bold shadow-[0_0_16px_currentColor]'
+                ? 'bg-gradient-to-r from-accent/25 via-accent/15 to-accent/20 text-accent border border-accent/45 font-bold shadow-[0_0_16px_currentColor]'
                 : 'text-fg-soft hover:text-fg hover:bg-surface-2/50 border border-transparent'
             }`}
           >
-            {activeTab === 'resources' && <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse shadow-[0_0_6px_var(--color-risk-low)]" />}
+            {activeTab === 'resources' && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--color-accent)]" />}
             <span>Resource Pre-Positioning</span>
           </button>
 
@@ -266,11 +266,11 @@ export const Navbar: React.FC<Props> = ({
             onClick={() => onChangeTab('fourinputs')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'fourinputs'
-                ? 'bg-gradient-to-r from-risk-low/25 via-risk-low/20 to-accent/25 text-risk-low border border-risk-low/40 font-bold shadow-[0_0_16px_currentColor]'
+                ? 'bg-gradient-to-r from-accent/25 via-accent/15 to-accent/20 text-accent border border-accent/45 font-bold shadow-[0_0_16px_currentColor]'
                 : 'text-fg-soft hover:text-fg hover:bg-surface-2/50 border border-transparent'
             }`}
           >
-            {activeTab === 'fourinputs' && <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse shadow-[0_0_6px_var(--color-risk-low)]" />}
+            {activeTab === 'fourinputs' && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--color-accent)]" />}
             <span>The 4 Input Data Streams</span>
           </button>
 
@@ -278,11 +278,11 @@ export const Navbar: React.FC<Props> = ({
             onClick={() => onChangeTab('timeline')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'timeline'
-                ? 'bg-gradient-to-r from-risk-low/25 via-risk-low/20 to-accent/25 text-risk-low border border-risk-low/40 font-bold shadow-[0_0_16px_currentColor]'
+                ? 'bg-gradient-to-r from-accent/25 via-accent/15 to-accent/20 text-accent border border-accent/45 font-bold shadow-[0_0_16px_currentColor]'
                 : 'text-fg-soft hover:text-fg hover:bg-surface-2/50 border border-transparent'
             }`}
           >
-            {activeTab === 'timeline' && <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse shadow-[0_0_6px_var(--color-risk-low)]" />}
+            {activeTab === 'timeline' && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--color-accent)]" />}
             <span>72h Timeline &amp; Risk</span>
           </button>
 
@@ -290,11 +290,11 @@ export const Navbar: React.FC<Props> = ({
             onClick={() => onChangeTab('citizen')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
               activeTab === 'citizen'
-                ? 'bg-gradient-to-r from-risk-low/25 via-risk-low/20 to-accent/25 text-risk-low border border-risk-low/40 font-bold shadow-[0_0_16px_currentColor]'
+                ? 'bg-gradient-to-r from-accent/25 via-accent/15 to-accent/20 text-accent border border-accent/45 font-bold shadow-[0_0_16px_currentColor]'
                 : 'text-fg-soft hover:text-fg hover:bg-surface-2/50 border border-transparent'
             }`}
           >
-            {activeTab === 'citizen' && <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse shadow-[0_0_6px_var(--color-risk-low)]" />}
+            {activeTab === 'citizen' && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--color-accent)]" />}
             <span>Citizen Portal</span>
           </button>
         </nav>

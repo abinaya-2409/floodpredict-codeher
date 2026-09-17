@@ -50,7 +50,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
   return (
     <div className="space-y-6" id="resource-prepositioning-hub">
       {/* City-Wide Summary Dashboard Header */}
-      <div className="p-5 md:p-6 bg-surface border border-line rounded-2xl shadow-xl space-y-4">
+      <div className="p-5 md:p-6 bg-surface border border-line rounded-card shadow-xl space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-line gap-3">
           <div>
             <div className="flex items-center space-x-2 text-accent font-bold text-xs uppercase tracking-wider">
@@ -66,7 +66,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
           </div>
 
           <div className="flex items-center space-x-2">
-            <span className="px-3 py-1.5 rounded-xl bg-accent/20 text-accent-soft border border-accent/30 text-xs font-mono font-bold">
+            <span className="px-3 py-1.5 rounded-card bg-accent/20 text-accent-soft border border-accent/30 text-xs font-mono font-bold">
               {dispatchedList.length} of {resources.length} Squads Active
             </span>
           </div>
@@ -74,7 +74,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
 
         {/* Tactical Metric Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="p-3.5 bg-bg border border-line rounded-xl">
+          <div className="p-3.5 bg-bg border border-line rounded-card">
             <div className="text-[11px] text-muted">Total Population at Risk</div>
             <div className="text-xl font-mono font-bold text-risk-critical mt-1">
               {totalImpactedPop.toLocaleString()} <span className="text-xs text-muted">citizens</span>
@@ -82,7 +82,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
             <div className="text-[10px] text-subtle mt-0.5">In &gt;30cm inundation zones</div>
           </div>
 
-          <div className="p-3.5 bg-bg border border-line rounded-xl">
+          <div className="p-3.5 bg-bg border border-line rounded-card">
             <div className="text-[11px] text-muted">Dewatering Pumps Deployed</div>
             <div className="text-xl font-mono font-bold text-accent mt-1">
               {totalDewateringPumpsNeeded} <span className="text-xs text-muted">Pumps (100 HP)</span>
@@ -90,7 +90,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
             <div className="text-[10px] text-subtle mt-0.5">Siphoning 12,000 LPS</div>
           </div>
 
-          <div className="p-3.5 bg-bg border border-line rounded-xl">
+          <div className="p-3.5 bg-bg border border-line rounded-card">
             <div className="text-[11px] text-muted">NDRF / SDRF Dinghy Squads</div>
             <div className="text-xl font-mono font-bold text-risk-high mt-1">
               {totalRescueBoatsNeeded} <span className="text-xs text-muted">Boat Units</span>
@@ -98,7 +98,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
             <div className="text-[10px] text-subtle mt-0.5">Pre-staged at low bridges</div>
           </div>
 
-          <div className="p-3.5 bg-bg border border-line rounded-xl">
+          <div className="p-3.5 bg-bg border border-line rounded-card">
             <div className="text-[11px] text-muted">Critical Catchments</div>
             <div className="text-xl font-mono font-bold text-accent-2 mt-1">
               {criticalZones.length} of {zones.length} <span className="text-xs text-muted">Wards</span>
@@ -109,7 +109,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
       </div>
 
       {/* Resource Inventory & Tactical Deployment Cards */}
-      <div className="bg-surface border border-line rounded-2xl p-5 md:p-6 shadow-xl space-y-4">
+      <div className="bg-surface border border-line rounded-card p-5 md:p-6 shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-line gap-3">
           <div className="flex items-center space-x-2">
             <span className="text-xs font-bold text-fg uppercase tracking-wider">
@@ -118,10 +118,10 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
           </div>
 
           {/* Filter Pills */}
-          <div className="flex items-center space-x-1 bg-bg p-1 rounded-xl border border-line text-xs">
+          <div className="flex items-center space-x-1 bg-bg p-1 rounded-card border border-line text-xs">
             <button
               onClick={() => setFilterType('all')}
-              className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+              className={`px-2.5 py-1 rounded-control font-medium transition-all ${
                 filterType === 'all' ? 'bg-accent text-on-accent font-bold' : 'text-muted hover:text-fg-soft'
               }`}
             >
@@ -129,7 +129,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
             </button>
             <button
               onClick={() => setFilterType('dewatering_pump')}
-              className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+              className={`px-2.5 py-1 rounded-control font-medium transition-all ${
                 filterType === 'dewatering_pump' ? 'bg-accent text-on-accent font-bold' : 'text-muted hover:text-fg-soft'
               }`}
             >
@@ -137,7 +137,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
             </button>
             <button
               onClick={() => setFilterType('ndrf_boat_unit')}
-              className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+              className={`px-2.5 py-1 rounded-control font-medium transition-all ${
                 filterType === 'ndrf_boat_unit' ? 'bg-accent text-on-accent font-bold' : 'text-muted hover:text-fg-soft'
               }`}
             >
@@ -145,7 +145,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
             </button>
             <button
               onClick={() => setFilterType('mobile_power_generator')}
-              className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+              className={`px-2.5 py-1 rounded-control font-medium transition-all ${
                 filterType === 'mobile_power_generator' ? 'bg-accent text-on-accent font-bold' : 'text-muted hover:text-fg-soft'
               }`}
             >
@@ -153,7 +153,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
             </button>
             <button
               onClick={() => setFilterType('food_relief_truck')}
-              className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+              className={`px-2.5 py-1 rounded-control font-medium transition-all ${
                 filterType === 'food_relief_truck' ? 'bg-accent text-on-accent font-bold' : 'text-muted hover:text-fg-soft'
               }`}
             >
@@ -170,7 +170,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
             return (
               <div
                 key={res.id}
-                className={`p-4 rounded-xl border transition-all space-y-3 ${
+                className={`p-4 rounded-card border transition-all space-y-3 ${
                   isDispatched
                     ? 'bg-bg border-risk-low/50 ring-1 ring-risk-low/20'
                     : 'bg-bg/80 border-line hover:border-line-strong'
@@ -178,7 +178,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center space-x-2">
-                    <div className={`p-2 rounded-lg ${
+                    <div className={`p-2 rounded-control ${
                       res.type === 'dewatering_pump' ? 'bg-accent/20 text-accent-soft' :
                       res.type === 'ndrf_boat_unit' ? 'bg-risk-high/20 text-risk-high' :
                       res.type === 'sdrf_rescue_team' ? 'bg-risk-critical/20 text-risk-critical' :
@@ -205,7 +205,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
                   </span>
                 </div>
 
-                <p className="text-xs text-fg-soft leading-relaxed bg-surface/60 p-2.5 rounded-lg border border-line">
+                <p className="text-xs text-fg-soft leading-relaxed bg-surface/60 p-2.5 rounded-control border border-line">
                   <strong className="text-fg-soft">Hydraulic Trigger:</strong> {res.reason}
                 </p>
 
@@ -216,7 +216,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
 
                   <button
                     onClick={() => handleToggleDispatch(res.id)}
-                    className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center space-x-1.5 transition-all ${
+                    className={`px-3 py-1.5 rounded-card font-bold text-xs flex items-center space-x-1.5 transition-all ${
                       isDispatched
                         ? 'bg-risk-low text-on-accent shadow-md shadow-risk-low/20 font-bold'
                         : 'bg-surface-2 hover:bg-surface-3 text-fg-soft border border-line-strong'

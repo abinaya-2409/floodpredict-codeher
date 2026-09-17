@@ -20,11 +20,13 @@ interface VantaEffect {
 
 /** CLOUDS2 defaults, as published. */
 const SKY = {
-  backgroundColor: 0x000000,
-  skyColor: 0x5ca6ca,
-  cloudColor: 0x334157,
-  lightColor: 0xffffff,
-  speed: 1,
+  backgroundColor: 0x050a14,
+  // Pulled toward the interface's navy so the panels read as sitting in the
+  // scene rather than pasted onto a postcard.
+  skyColor: 0x3f7fb5,
+  cloudColor: 0x233349,
+  lightColor: 0xcfe3f5,
+  speed: 0.9,
 };
 
 export function VantaBackground() {

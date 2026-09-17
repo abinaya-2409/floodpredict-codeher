@@ -143,7 +143,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
   };
 
   return (
-    <div className="bg-surface border border-line rounded-2xl p-5 md:p-6 shadow-xl space-y-6" id="tiered-alert-center">
+    <div className="bg-surface border border-line rounded-card p-5 md:p-6 shadow-xl space-y-6" id="tiered-alert-center">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-5 border-b border-line gap-4">
         <div>
@@ -162,7 +162,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
         {/* Siren Test Button */}
         <button
           onClick={playSirenSimulation}
-          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center space-x-2 border transition-all ${
+          className={`px-4 py-2 rounded-card text-xs font-bold flex items-center space-x-2 border transition-all ${
             audioSirenPlaying
               ? 'bg-risk-critical text-fg border-risk-critical animate-bounce'
               : 'bg-surface-2 hover:bg-surface-3 text-fg-soft border-line-strong'
@@ -178,7 +178,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
         {/* Tier 1: Watch */}
         <div
           onClick={() => setSelectedTier('watch')}
-          className={`p-4 rounded-xl border cursor-pointer transition-all ${
+          className={`p-4 rounded-card border cursor-pointer transition-all ${
             selectedTier === 'watch'
               ? 'bg-risk-high/40 border-risk-high ring-2 ring-risk-high/20 shadow-lg shadow-risk-high/50'
               : 'bg-bg border-line hover:border-risk-high/40'
@@ -199,7 +199,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
         {/* Tier 2: Warning */}
         <div
           onClick={() => setSelectedTier('warning')}
-          className={`p-4 rounded-xl border cursor-pointer transition-all ${
+          className={`p-4 rounded-card border cursor-pointer transition-all ${
             selectedTier === 'warning'
               ? 'bg-risk-severe/40 border-risk-severe ring-2 ring-risk-severe/20 shadow-lg shadow-risk-severe/50'
               : 'bg-bg border-line hover:border-risk-severe/40'
@@ -220,7 +220,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
         {/* Tier 3: Evacuation */}
         <div
           onClick={() => setSelectedTier('evacuate')}
-          className={`p-4 rounded-xl border cursor-pointer transition-all ${
+          className={`p-4 rounded-card border cursor-pointer transition-all ${
             selectedTier === 'evacuate'
               ? 'bg-risk-critical/40 border-risk-critical ring-2 ring-risk-critical/20 shadow-lg shadow-risk-critical/50'
               : 'bg-bg border-line hover:border-risk-critical/40'
@@ -242,7 +242,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
       {/* Broadcast Dispatch Controller */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Dispatch Controls */}
-        <div className="lg:col-span-6 bg-bg border border-line rounded-xl p-5 space-y-4">
+        <div className="lg:col-span-6 bg-bg border border-line rounded-card p-5 space-y-4">
           <div className="flex items-center space-x-2 text-xs font-bold text-fg uppercase tracking-wider pb-2 border-b border-line">
             <Send className="w-4 h-4 text-accent" />
             <span>Targeted Geo-Fenced Dispatch Console</span>
@@ -254,7 +254,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
             <select
               value={selectedTargetZone}
               onChange={(e) => setSelectedTargetZone(e.target.value)}
-              className="w-full bg-surface border border-line-strong rounded-xl px-3 py-2 text-xs text-fg-soft focus:outline-none focus:border-accent"
+              className="w-full bg-surface border border-line-strong rounded-card px-3 py-2 text-xs text-fg-soft focus:outline-none focus:border-accent"
             >
               <option value="all">Entire City Metro Basin (All Wards)</option>
               {zones.map((z) => (
@@ -272,7 +272,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
               <select
                 value={selectedLanguage}
                 onChange={(e) => setSelectedLanguage(e.target.value as any)}
-                className="w-full bg-surface border border-line-strong rounded-xl px-3 py-2 text-xs text-fg-soft focus:outline-none focus:border-accent"
+                className="w-full bg-surface border border-line-strong rounded-card px-3 py-2 text-xs text-fg-soft focus:outline-none focus:border-accent"
               >
                 <option value="ta">Tamil (தமிழ் - சென்னை)</option>
                 <option value="en">English (Official)</option>
@@ -287,7 +287,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
               <select
                 value={channel}
                 onChange={(e) => setChannel(e.target.value as any)}
-                className="w-full bg-surface border border-line-strong rounded-xl px-3 py-2 text-xs text-fg-soft focus:outline-none focus:border-accent"
+                className="w-full bg-surface border border-line-strong rounded-card px-3 py-2 text-xs text-fg-soft focus:outline-none focus:border-accent"
               >
                 <option value="Cell Broadcast">Cell Broadcast (CAP/NDMA)</option>
                 <option value="SMS">Targeted SMS Gateway</option>
@@ -300,7 +300,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
           {/* Message Preview Box */}
           <div>
             <label className="text-xs font-medium text-muted block mb-1">Synthesized Broadcast Payload</label>
-            <div className="p-3 bg-surface border border-line rounded-xl text-xs text-fg-soft leading-relaxed font-sans">
+            <div className="p-3 bg-surface border border-line rounded-card text-xs text-fg-soft leading-relaxed font-sans">
               {generateMessage()}
             </div>
           </div>
@@ -309,7 +309,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
           <button
             onClick={handleDispatchAlert}
             disabled={isBroadcasting}
-            className={`w-full py-3 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 transition-all shadow-lg ${
+            className={`w-full py-3 rounded-card font-bold text-xs flex items-center justify-center space-x-2 transition-all shadow-lg ${
               selectedTier === 'evacuate'
                 ? 'bg-risk-critical hover:bg-risk-critical text-fg shadow-risk-critical/30'
                 : selectedTier === 'warning'
@@ -325,7 +325,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
         {/* Right Column: Citizen Smartphone Mock Preview & Logs */}
         <div className="lg:col-span-6 space-y-4">
           {/* Smartphone Notification Preview */}
-          <div className="p-4 bg-bg border border-line rounded-xl">
+          <div className="p-4 bg-bg border border-line rounded-card">
             <div className="text-xs font-bold text-muted mb-3 flex items-center justify-between">
               <span className="flex items-center space-x-1.5">
                 <Smartphone className="w-4 h-4 text-accent" />
@@ -335,10 +335,10 @@ export const TieredAlertSystem: React.FC<Props> = ({
             </div>
 
             {/* Notification Card */}
-            <div className="p-3.5 bg-surface/90 border border-line-strong/80 rounded-xl shadow-lg space-y-2">
+            <div className="p-3.5 bg-surface/90 border border-line-strong/80 rounded-card shadow-lg space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center space-x-2">
-                  <span className="p-1 rounded-md bg-accent/20 text-accent">
+                  <span className="p-1 rounded-control bg-accent/20 text-accent">
                     <AlertTriangle className="w-3.5 h-3.5 text-risk-critical" />
                   </span>
                   <span className="font-bold text-fg text-xs">DISASTER MANAGEMENT AUTHORITY</span>
@@ -356,14 +356,14 @@ export const TieredAlertSystem: React.FC<Props> = ({
           </div>
 
           {/* Broadcast Activity Log */}
-          <div className="p-4 bg-bg border border-line rounded-xl">
+          <div className="p-4 bg-bg border border-line rounded-card">
             <div className="text-xs font-bold text-fg mb-2 flex items-center justify-between">
               <span>Recent Emergency Broadcast Dispatch Logs</span>
               <span className="text-[10px] text-subtle font-mono">{broadcastLogs.length} transmissions</span>
             </div>
             <div className="space-y-2 max-h-48 overflow-y-auto pr-1 scrollbar-thin">
               {broadcastLogs.map((log) => (
-                <div key={log.id} className="p-2.5 rounded-lg bg-surface border border-line text-xs">
+                <div key={log.id} className="p-2.5 rounded-control bg-surface border border-line text-xs">
                   <div className="flex items-center justify-between">
                     <span className={`px-2 py-0.2 rounded text-[10px] font-bold uppercase ${
                       log.tier === 'evacuate' ? 'bg-risk-critical/20 text-risk-critical' : 'bg-risk-severe/20 text-risk-severe'

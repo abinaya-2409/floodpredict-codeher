@@ -56,7 +56,7 @@ export const CitizenPortal: React.FC<Props> = ({
   return (
     <div className="space-y-6" id="citizen-safety-portal">
       {/* Top Banner: Location Quick Check */}
-      <div className="p-5 md:p-6 bg-surface border border-line rounded-2xl shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-5 md:p-6 bg-surface border border-line rounded-card shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2 text-accent font-bold text-xs uppercase tracking-wider">
             <ShieldCheck className="w-4 h-4" />
@@ -76,7 +76,7 @@ export const CitizenPortal: React.FC<Props> = ({
           <select
             value={selectedUserZone}
             onChange={(e) => setSelectedUserZone(e.target.value)}
-            className="w-full bg-bg border border-line-strong rounded-xl px-3 py-2 text-xs text-fg font-semibold focus:outline-none focus:border-accent"
+            className="w-full bg-bg border border-line-strong rounded-card px-3 py-2 text-xs text-fg font-semibold focus:outline-none focus:border-accent"
           >
             {zones.map((z) => (
               <option key={z.id} value={z.id}>
@@ -89,14 +89,14 @@ export const CitizenPortal: React.FC<Props> = ({
 
       {/* Immediate Status for Selected Zone */}
       {currentZone && (
-        <div className={`p-5 rounded-2xl border ${
+        <div className={`p-5 rounded-card border ${
           currentZone.alertTier === 'evacuate' ? 'bg-risk-critical/40 border-risk-critical/50' :
           currentZone.alertTier === 'warning' ? 'bg-risk-severe/40 border-risk-severe/50' :
           currentZone.alertTier === 'watch' ? 'bg-risk-high/40 border-risk-high/50' : 'bg-surface border-line'
         }`}>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-start space-x-3">
-              <div className={`p-2.5 rounded-xl mt-0.5 ${
+              <div className={`p-2.5 rounded-card mt-0.5 ${
                 currentZone.alertTier === 'evacuate' ? 'bg-risk-critical text-fg' :
                 currentZone.alertTier === 'warning' ? 'bg-risk-severe text-fg' : 'bg-risk-high text-on-accent'
               }`}>
@@ -122,7 +122,7 @@ export const CitizenPortal: React.FC<Props> = ({
             <div className="flex items-center space-x-2 shrink-0">
               <a
                 href="tel:1913"
-                className="px-4 py-2 bg-risk-critical hover:bg-risk-critical text-fg rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors shadow-lg shadow-risk-critical/30"
+                className="px-4 py-2 bg-risk-critical hover:bg-risk-critical text-fg rounded-card text-xs font-bold flex items-center space-x-1.5 transition-colors shadow-lg shadow-risk-critical/30"
               >
                 <Phone className="w-4 h-4" />
                 <span>Call Emergency (1913 / 1070)</span>
@@ -135,7 +135,7 @@ export const CitizenPortal: React.FC<Props> = ({
       {/* Two Column Layout: Nearest Shelters & Crowdsource Report */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Nearest Verified Dry Shelters */}
-        <div className="lg:col-span-7 bg-surface border border-line rounded-2xl p-5 space-y-4">
+        <div className="lg:col-span-7 bg-surface border border-line rounded-card p-5 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-line">
             <div className="flex items-center space-x-2 text-accent font-bold text-xs uppercase tracking-wider">
               <Building className="w-4 h-4" />
@@ -146,7 +146,7 @@ export const CitizenPortal: React.FC<Props> = ({
 
           <div className="space-y-3">
             {nearestShelters.map((shelter) => (
-              <div key={shelter.id} className="p-4 bg-bg border border-line rounded-xl space-y-2">
+              <div key={shelter.id} className="p-4 bg-bg border border-line rounded-card space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <h4 className="text-sm font-bold text-fg">{shelter.name}</h4>
@@ -190,7 +190,7 @@ export const CitizenPortal: React.FC<Props> = ({
         </div>
 
         {/* Right Column: Crowdsource Waterlogging Beacon */}
-        <div className="lg:col-span-5 bg-surface border border-line rounded-2xl p-5 space-y-4">
+        <div className="lg:col-span-5 bg-surface border border-line rounded-card p-5 space-y-4">
           <div className="flex items-center space-x-2 text-accent font-bold text-xs uppercase tracking-wider pb-3 border-b border-line">
             <Plus className="w-4 h-4" />
             <span>Crowdsource Street Waterlogging Beacon</span>
@@ -205,7 +205,7 @@ export const CitizenPortal: React.FC<Props> = ({
                 placeholder="e.g. 5th Main Road, Vijaya Nagar"
                 value={reportStreet}
                 onChange={(e) => setReportStreet(e.target.value)}
-                className="w-full bg-bg border border-line-strong rounded-xl px-3 py-2 text-fg-soft placeholder-subtle focus:outline-none focus:border-accent"
+                className="w-full bg-bg border border-line-strong rounded-card px-3 py-2 text-fg-soft placeholder-subtle focus:outline-none focus:border-accent"
               />
             </div>
 
@@ -218,7 +218,7 @@ export const CitizenPortal: React.FC<Props> = ({
                   max="200"
                   value={reportDepth}
                   onChange={(e) => setReportDepth(Number(e.target.value))}
-                  className="w-full bg-bg border border-line-strong rounded-xl px-3 py-2 text-fg-soft focus:outline-none focus:border-accent font-mono"
+                  className="w-full bg-bg border border-line-strong rounded-card px-3 py-2 text-fg-soft focus:outline-none focus:border-accent font-mono"
                 />
               </div>
 
@@ -227,7 +227,7 @@ export const CitizenPortal: React.FC<Props> = ({
                 <select
                   value={reportPassable ? 'yes' : 'no'}
                   onChange={(e) => setReportPassable(e.target.value === 'yes')}
-                  className="w-full bg-bg border border-line-strong rounded-xl px-3 py-2 text-fg-soft focus:outline-none focus:border-accent"
+                  className="w-full bg-bg border border-line-strong rounded-card px-3 py-2 text-fg-soft focus:outline-none focus:border-accent"
                 >
                   <option value="no">No - Cars Stalling</option>
                   <option value="yes">Yes - Slow Movement</option>
@@ -264,20 +264,20 @@ export const CitizenPortal: React.FC<Props> = ({
                 placeholder="Water rising rapidly, drains overflowing, need assistance..."
                 value={reportDesc}
                 onChange={(e) => setReportDesc(e.target.value)}
-                className="w-full bg-bg border border-line-strong rounded-xl px-3 py-2 text-fg-soft placeholder-subtle focus:outline-none focus:border-accent"
+                className="w-full bg-bg border border-line-strong rounded-card px-3 py-2 text-fg-soft placeholder-subtle focus:outline-none focus:border-accent"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-2.5 bg-accent hover:bg-accent text-on-accent font-bold rounded-xl flex items-center justify-center space-x-2 transition-all shadow-md shadow-accent/20"
+              className="w-full py-2.5 bg-accent hover:bg-accent text-on-accent font-bold rounded-card flex items-center justify-center space-x-2 transition-all shadow-md shadow-accent/20"
             >
               <Send className="w-3.5 h-3.5" />
               <span>Submit Live Beacon to Authority Hub</span>
             </button>
 
             {reportSubmitted && (
-              <div className="p-2.5 bg-risk-low/60 border border-risk-low/50 rounded-xl text-risk-low text-xs flex items-center space-x-2">
+              <div className="p-2.5 bg-risk-low/60 border border-risk-low/50 rounded-card text-risk-low text-xs flex items-center space-x-2">
                 <CheckCircle2 className="w-4 h-4 text-risk-low" />
                 <span>Beacon sent! Dispatched to municipal flood control room.</span>
               </div>
@@ -289,7 +289,7 @@ export const CitizenPortal: React.FC<Props> = ({
             <div className="text-xs font-bold text-fg-soft mb-2">Live Community Waterlogging Feed</div>
             <div className="space-y-2 max-h-40 overflow-y-auto pr-1 scrollbar-thin">
               {citizenReports.map((r) => (
-                <div key={r.id} className="p-2.5 rounded-lg bg-bg border border-line text-xs">
+                <div key={r.id} className="p-2.5 rounded-control bg-bg border border-line text-xs">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-fg truncate">{r.streetName}</span>
                     <span className="font-mono text-accent-soft font-bold">{r.waterDepthCm} cm</span>
