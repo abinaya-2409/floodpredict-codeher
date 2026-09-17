@@ -71,7 +71,7 @@ export const GeminiExecutiveReport: React.FC<Props> = ({
 
   return (
     <div
-      className="fluid-glass rounded-panel p-5 shadow-2xl flex flex-col gap-4 border border-accent-2/25 relative overflow-hidden"
+      className="glass rounded-panel p-5 shadow-2xl flex flex-col gap-4 border border-accent-2/25 relative overflow-hidden"
       id="gemini-executive-report"
     >
       {/* Placeholder output must never be mistakable for real analysis. */}
@@ -98,7 +98,7 @@ export const GeminiExecutiveReport: React.FC<Props> = ({
 
       {/* Card Header with Glowing Multi-Point Neural AI Starburst */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-card bg-gradient-to-br from-accent-2 via-accent-2 to-accent flex items-center justify-center text-fg shadow-[0_0_18px_currentColor] border border-accent-2/40 shrink-0">
+        <div className="w-10 h-10 rounded-card bg-gradient-to-br from-accent-2 via-accent-2 to-accent flex items-center justify-center text-fg border border-accent-2/40 shrink-0">
           <svg className="w-5 h-5 text-fg animate-pulse" fill="none" viewBox="0 0 24 24">
             <path
               d="M12 2L14.2 8.5L21 9.8L16 14.5L17.5 21.2L12 18L6.5 21.2L8 14.5L3 9.8L9.8 8.5L12 2Z"
@@ -119,7 +119,7 @@ export const GeminiExecutiveReport: React.FC<Props> = ({
       <button
         onClick={generateReport}
         disabled={isLoading}
-        className="w-full h-11 px-5 rounded-full bg-gradient-to-r from-accent-2 via-accent-2 to-accent hover:brightness-115 active:scale-[0.98] text-fg text-xs tracking-wide flex items-center justify-center gap-2 shadow-[0_0_24px_currentColor] border border-accent-2/30 transition-all font-bold group cursor-pointer disabled:opacity-50"
+        className="w-full h-11 px-5 rounded-full bg-gradient-to-r from-accent-2 via-accent-2 to-accent hover:brightness-115 active:scale-[0.98] text-fg text-xs tracking-wide flex items-center justify-center gap-2 border border-accent-2/30 transition-colors font-bold group cursor-pointer disabled:opacity-50"
         id="btn-generate-briefing"
       >
         {isLoading ? (
@@ -161,7 +161,7 @@ export const GeminiExecutiveReport: React.FC<Props> = ({
             <div className="flex items-center gap-2 pt-2 border-t border-line-strong/60">
               <button
                 onClick={() => alert(`Broadcasting evacuation directives to all cell towers in ${city.name}`)}
-                className="flex-1 py-2 px-3 bg-gradient-to-r from-risk-critical to-risk-critical hover:brightness-110 text-fg rounded-full text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-[0_0_14px_currentColor] font-bold cursor-pointer"
+                className="flex-1 py-2 px-3 bg-gradient-to-r from-risk-critical to-risk-critical hover:brightness-110 text-fg rounded-full text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 font-bold cursor-pointer"
               >
                 <svg className="w-3.5 h-3.5 text-fg" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <line x1="22" x2="11" y1="2" y2="13" />

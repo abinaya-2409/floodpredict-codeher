@@ -166,10 +166,10 @@ export default function App() {
       {/* Ambient Fluid Hydrodynamics Background SVG & Blurs with Multi-Accent Nodes */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {/* Fluid Glowing Liquid Orbs (Multi-Accent: Emerald, Violet, Cyan, Amber) */}
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-risk-low/10 blur-[140px] animate-hydro-pulse" />
+        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-accent/10 blur-[140px] animate-hydro-pulse" />
         <div className="absolute top-1/3 -right-40 w-[700px] h-[700px] rounded-full bg-accent-2/10 blur-[160px] animate-hydro-pulse" style={{ animationDelay: '2s' }} />
         <div className="absolute -bottom-40 left-1/3 w-[650px] h-[650px] rounded-full bg-accent/10 blur-[150px] animate-hydro-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-risk-critical/5 blur-[170px]" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-accent-2/5 blur-[170px]" />
         
         {/* Organic Wave Contour Topography Overlay */}
         <svg className="absolute inset-0 w-full h-full opacity-25 animate-fluid-flow" preserveAspectRatio="none" viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg">
@@ -227,13 +227,13 @@ export default function App() {
         {/* Top KPI Telemetry Banner with Multi-Accent Nodes */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {/* Metric 1: Critical Inundation Zones (Neon Coral / Rose Accent) */}
-          <div className="fluid-glass fluid-glass-interactive rounded-panel p-5 relative overflow-hidden group border border-risk-critical/25 hover:border-risk-critical/50 shadow-[0_12px_32px_rgba(244,63,94,0.12)]">
-            <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-risk-critical/15 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
+          <div className="glass glass-interactive rounded-panel p-5 relative overflow-hidden group border border-risk-critical/25 hover:border-risk-critical/50 shadow-[0_12px_32px_rgba(244,63,94,0.12)]">
+            <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-accent-2/15 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
             <div className="flex items-center justify-between">
               <span className="font-mono text-mini text-risk-critical/80 uppercase tracking-wider font-semibold">
                 Critical Inundation Zones
               </span>
-              <div className="w-10 h-10 rounded-card bg-risk-critical/20 border border-risk-critical/40 flex items-center justify-center text-risk-critical shadow-[0_0_16px_currentColor]">
+              <div className="w-10 h-10 rounded-card bg-risk-critical/20 border border-risk-critical/40 flex items-center justify-center text-risk-critical">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                   <line x1="12" x2="12" y1="9" y2="13" />
@@ -249,7 +249,7 @@ export default function App() {
             </div>
             <div className="mt-3 flex items-center gap-2 pt-2 border-t border-risk-critical/20">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-risk-high opacity-75" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-2 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-risk-high" />
               </span>
               <span className="text-mini text-risk-high font-medium">
@@ -259,13 +259,13 @@ export default function App() {
           </div>
 
           {/* Metric 2: Shortest Lead-Time (Tactical Amber / Gold Accent) */}
-          <div className="fluid-glass fluid-glass-interactive rounded-panel p-5 relative overflow-hidden group border border-risk-high/25 hover:border-risk-high/50 shadow-[0_12px_32px_rgba(245,158,11,0.12)]">
-            <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-risk-high/15 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
+          <div className="glass glass-interactive rounded-panel p-5 relative overflow-hidden group border border-risk-high/25 hover:border-risk-high/50 shadow-[0_12px_32px_rgba(245,158,11,0.12)]">
+            <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-accent-2/15 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
             <div className="flex items-center justify-between">
               <span className="font-mono text-mini text-risk-high/80 uppercase tracking-wider font-semibold">
                 Shortest Flood Lead-Time
               </span>
-              <div className="w-10 h-10 rounded-card bg-risk-high/20 border border-risk-high/40 flex items-center justify-center text-risk-high shadow-[0_0_16px_currentColor]">
+              <div className="w-10 h-10 rounded-card bg-risk-high/20 border border-risk-high/40 flex items-center justify-center text-risk-high">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                   <circle cx="12" cy="13" r="8" />
                   <path d="M12 9v4l2.5 2.5" />
@@ -292,13 +292,13 @@ export default function App() {
           </div>
 
           {/* Metric 3: At-Risk Citizens (Electric Violet / Purple Accent) */}
-          <div className="fluid-glass fluid-glass-interactive rounded-panel p-5 relative overflow-hidden group border border-accent-2/25 hover:border-accent-2/50 shadow-[0_12px_32px_rgba(139,92,246,0.12)]">
+          <div className="glass glass-interactive rounded-panel p-5 relative overflow-hidden group border border-accent-2/25 hover:border-accent-2/50 shadow-[0_12px_32px_rgba(139,92,246,0.12)]">
             <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-accent-2/20 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
             <div className="flex items-center justify-between">
               <span className="font-mono text-mini text-accent-2/80 uppercase tracking-wider font-semibold">
                 At-Risk Citizens
               </span>
-              <div className="w-10 h-10 rounded-card bg-accent-2/20 border border-accent-2/40 flex items-center justify-center text-accent-2 shadow-[0_0_16px_currentColor]">
+              <div className="w-10 h-10 rounded-card bg-accent-2/20 border border-accent-2/40 flex items-center justify-center text-accent-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                   <circle cx="9" cy="7" r="4" />
@@ -321,13 +321,13 @@ export default function App() {
           </div>
 
           {/* Metric 4: Choked Drainage Canals (Bright Electric Turquoise / Cyan Accent) */}
-          <div className="fluid-glass fluid-glass-interactive rounded-panel p-5 relative overflow-hidden group border border-accent/25 hover:border-accent/50 shadow-[0_12px_32px_rgba(6,182,212,0.12)]">
+          <div className="glass glass-interactive rounded-panel p-5 relative overflow-hidden group border border-accent/25 hover:border-accent/50 shadow-[0_12px_32px_rgba(6,182,212,0.12)]">
             <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-accent/20 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
             <div className="flex items-center justify-between">
               <span className="font-mono text-mini text-accent-soft/80 uppercase tracking-wider font-semibold">
                 Choked Drainage Canals
               </span>
-              <div className="w-10 h-10 rounded-card bg-accent/20 border border-accent/40 flex items-center justify-center text-accent-soft shadow-[0_0_16px_currentColor]">
+              <div className="w-10 h-10 rounded-card bg-accent/20 border border-accent/40 flex items-center justify-center text-accent-soft">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M4 4v16" />
                   <path d="M20 4v16" />
@@ -380,13 +380,13 @@ export default function App() {
             </div>
 
             {/* Map Mode Toggle Capsule with Bespoke Vector Icons */}
-            <div className="fluid-glass rounded-panel p-3 flex flex-wrap items-center justify-between gap-3 border border-line-strong/60">
+            <div className="glass rounded-panel p-3 flex flex-wrap items-center justify-between gap-3 border border-line-strong/60">
               <div className="flex items-center p-1 rounded-full bg-bg/80 border border-line-strong/60 shadow-inner">
                 <button
                   onClick={() => setMapRenderMode('leaflet')}
-                  className={`h-8 px-4 rounded-full text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                  className={`h-8 px-4 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer ${
                     mapRenderMode === 'leaflet'
-                      ? 'bg-gradient-to-r from-risk-low to-risk-low text-fg font-bold shadow-[0_0_14px_currentColor]'
+                      ? 'bg-gradient-to-r from-risk-low to-risk-low text-fg font-bold'
                       : 'text-muted hover:text-fg'
                   }`}
                 >
@@ -401,9 +401,9 @@ export default function App() {
 
                 <button
                   onClick={() => setMapRenderMode('schematic')}
-                  className={`h-8 px-4 rounded-full text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                  className={`h-8 px-4 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer ${
                     mapRenderMode === 'schematic'
-                      ? 'bg-gradient-to-r from-risk-low to-risk-low text-fg font-bold shadow-[0_0_14px_currentColor]'
+                      ? 'bg-gradient-to-r from-risk-low to-risk-low text-fg font-bold'
                       : 'text-muted hover:text-fg'
                   }`}
                 >
@@ -453,7 +453,7 @@ export default function App() {
               <div className="lg:col-span-4 flex flex-col gap-5">
                 {/* TOP CARD: SELECTED CATCHMENT FOCUS */}
                 {selectedZone && (
-                  <div className="fluid-glass rounded-panel p-5 shadow-2xl flex flex-col gap-4 border border-accent/25 relative overflow-hidden">
+                  <div className="glass rounded-panel p-5 shadow-2xl flex flex-col gap-4 border border-accent/25 relative overflow-hidden">
                     <div className="flex items-start justify-between">
                       <div className="flex flex-col">
                         <span className="font-mono text-micro text-muted uppercase tracking-wider font-semibold">
@@ -517,7 +517,7 @@ export default function App() {
                           <div
                             key={st.streetId}
                             onClick={() => setActiveTab('streets')}
-                            className="flex items-center justify-between p-2.5 rounded-card bg-bg/80 border border-line-strong/60 hover:border-accent/50 transition-all cursor-pointer"
+                            className="flex items-center justify-between p-2.5 rounded-card bg-bg/80 border border-line-strong/60 hover:border-accent/50 transition-colors cursor-pointer"
                           >
                             <div className="flex items-center gap-2.5 min-w-0 pr-2">
                               {/* Coloured by the street's computed risk, not by
@@ -556,7 +556,7 @@ export default function App() {
                     {/* Inspect Action Pill */}
                     <button
                       onClick={() => setActiveTab('streets')}
-                      className="w-full py-2 px-4 rounded-full bg-surface-2/80 hover:bg-surface-3 text-accent border border-accent/30 hover:border-accent text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
+                      className="w-full py-2 px-4 rounded-full bg-surface-2/80 hover:bg-surface-3 text-accent border border-accent/30 hover:border-accent text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
                     >
                       <span>Inspect Micro-Thresholds &amp; Resident Directives</span>
                       <ArrowUpRight className="w-3.5 h-3.5" />
@@ -656,7 +656,7 @@ export default function App() {
 
       {/* FLUID HYDRODYNAMIC FOOTER */}
       <footer className="w-full relative z-10 py-6 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto fluid-glass rounded-full px-6 py-3 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-muted border border-risk-low/20">
+        <div className="max-w-7xl mx-auto glass rounded-full px-6 py-3 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-muted border border-risk-low/20">
           <div className="flex items-center gap-2">
             <span className="text-risk-low font-semibold flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-risk-low animate-pulse" />

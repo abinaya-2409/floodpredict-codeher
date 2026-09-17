@@ -52,7 +52,7 @@ export const HydrologicalMap: React.FC<Props> = ({
   };
 
   return (
-    <div className="fluid-glass rounded-panel overflow-hidden relative shadow-[0_24px_50px_rgba(0,0,0,0.65)] border border-accent/25 flex flex-col h-full" id="hydrological-map-card">
+    <div className="glass rounded-panel overflow-hidden relative shadow-[0_24px_50px_rgba(0,0,0,0.65)] border border-accent/25 flex flex-col h-full" id="hydrological-map-card">
       {/* Map Control Toolbar */}
       <div className="p-4 bg-bg/70 border-b border-line/80 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center space-x-3">
@@ -69,7 +69,7 @@ export const HydrologicalMap: React.FC<Props> = ({
         <div className="flex items-center space-x-2 text-xs">
           <button
             onClick={() => setShowRadarOverlay(!showRadarOverlay)}
-            className={`px-2.5 py-1 rounded-control border transition-all flex items-center space-x-1.5 ${
+            className={`px-2.5 py-1 rounded-control border transition-colors flex items-center space-x-1.5 ${
               showRadarOverlay ? 'bg-accent/20 border-accent/60 text-accent-soft' : 'bg-surface-2/60 border-line-strong text-muted'
             }`}
           >
@@ -79,7 +79,7 @@ export const HydrologicalMap: React.FC<Props> = ({
           
           <button
             onClick={() => setShowDrainageLines(!showDrainageLines)}
-            className={`px-2.5 py-1 rounded-control border transition-all flex items-center space-x-1.5 ${
+            className={`px-2.5 py-1 rounded-control border transition-colors flex items-center space-x-1.5 ${
               showDrainageLines ? 'bg-accent/20 border-accent/60 text-accent-soft' : 'bg-surface-2/60 border-line-strong text-muted'
             }`}
           >
@@ -89,7 +89,7 @@ export const HydrologicalMap: React.FC<Props> = ({
 
           <button
             onClick={() => setShowPumps(!showPumps)}
-            className={`px-2.5 py-1 rounded-control border transition-all flex items-center space-x-1.5 ${
+            className={`px-2.5 py-1 rounded-control border transition-colors flex items-center space-x-1.5 ${
               showPumps ? 'bg-risk-low/20 border-risk-low/60 text-risk-low' : 'bg-surface-2/60 border-line-strong text-muted'
             }`}
           >

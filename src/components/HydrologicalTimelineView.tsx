@@ -84,7 +84,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
               </div>
               <button
                 onClick={onToggleOffline}
-                className={`px-3 py-1 rounded-card text-xs font-bold flex items-center space-x-1.5 transition-all ${
+                className={`px-3 py-1 rounded-card text-xs font-bold flex items-center space-x-1.5 transition-colors ${
                   isOfflineSimulated
                     ? 'bg-risk-high text-on-accent shadow-md shadow-risk-high/30'
                     : 'bg-surface-2 hover:bg-surface-3 text-fg-soft border border-line-strong'
@@ -105,7 +105,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
               ? 'bg-risk-high/40 border-risk-high/50 text-risk-high'
               : 'bg-bg border-line text-muted'
           }`}>
-            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isOfflineSimulated ? 'bg-risk-high animate-ping' : 'bg-risk-low'}`} />
+            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isOfflineSimulated ? 'bg-risk-high animate-ping' : 'bg-accent'}`} />
             <div>
               <strong className="text-fg">
                 {isOfflineSimulated ? 'OFFLINE CACHE ACTIVE (Cached 8 mins ago)' : 'ONLINE STREAM CONNECTED'}

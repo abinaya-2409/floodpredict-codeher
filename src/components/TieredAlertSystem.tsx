@@ -162,7 +162,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
         {/* Siren Test Button */}
         <button
           onClick={playSirenSimulation}
-          className={`px-4 py-2 rounded-card text-xs font-bold flex items-center space-x-2 border transition-all ${
+          className={`px-4 py-2 rounded-card text-xs font-bold flex items-center space-x-2 border transition-colors ${
             audioSirenPlaying
               ? 'bg-risk-critical text-fg border-risk-critical animate-bounce'
               : 'bg-surface-2 hover:bg-surface-3 text-fg-soft border-line-strong'
@@ -178,7 +178,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
         {/* Tier 1: Watch */}
         <div
           onClick={() => setSelectedTier('watch')}
-          className={`p-4 rounded-card border cursor-pointer transition-all ${
+          className={`p-4 rounded-card border cursor-pointer transition-colors ${
             selectedTier === 'watch'
               ? 'bg-risk-high/40 border-risk-high ring-2 ring-risk-high/20 shadow-lg shadow-risk-high/50'
               : 'bg-bg border-line hover:border-risk-high/40'
@@ -199,7 +199,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
         {/* Tier 2: Warning */}
         <div
           onClick={() => setSelectedTier('warning')}
-          className={`p-4 rounded-card border cursor-pointer transition-all ${
+          className={`p-4 rounded-card border cursor-pointer transition-colors ${
             selectedTier === 'warning'
               ? 'bg-risk-severe/40 border-risk-severe ring-2 ring-risk-severe/20 shadow-lg shadow-risk-severe/50'
               : 'bg-bg border-line hover:border-risk-severe/40'
@@ -220,7 +220,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
         {/* Tier 3: Evacuation */}
         <div
           onClick={() => setSelectedTier('evacuate')}
-          className={`p-4 rounded-card border cursor-pointer transition-all ${
+          className={`p-4 rounded-card border cursor-pointer transition-colors ${
             selectedTier === 'evacuate'
               ? 'bg-risk-critical/40 border-risk-critical ring-2 ring-risk-critical/20 shadow-lg shadow-risk-critical/50'
               : 'bg-bg border-line hover:border-risk-critical/40'
@@ -309,11 +309,11 @@ export const TieredAlertSystem: React.FC<Props> = ({
           <button
             onClick={handleDispatchAlert}
             disabled={isBroadcasting}
-            className={`w-full py-3 rounded-card font-bold text-xs flex items-center justify-center space-x-2 transition-all shadow-lg ${
+            className={`w-full py-3 rounded-card font-bold text-xs flex items-center justify-center space-x-2 transition-colors shadow-lg ${
               selectedTier === 'evacuate'
-                ? 'bg-risk-critical hover:bg-risk-critical text-fg shadow-risk-critical/30'
+                ? 'bg-risk-critical hover:brightness-110 text-on-accent'
                 : selectedTier === 'warning'
-                ? 'bg-risk-severe hover:bg-risk-severe text-fg shadow-risk-severe/30'
+                ? 'bg-risk-severe hover:brightness-110 text-on-accent'
                 : 'bg-accent hover:bg-accent text-on-accent font-bold shadow-accent/30'
             }`}
           >

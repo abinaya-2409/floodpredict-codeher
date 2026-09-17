@@ -196,25 +196,14 @@
   box-shadow: var(--glass-shadow);
 }
 
-/* Retained so older markup keeps rendering during the migration. */
-.fluid-glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-}
-
-.glass-interactive,
-.fluid-glass-interactive {
+.glass-interactive {
   transition:
     transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
     border-color 0.35s ease,
     box-shadow 0.35s ease;
 }
 
-.glass-interactive:hover,
-.fluid-glass-interactive:hover {
+.glass-interactive:hover {
   transform: translateY(-2px);
   border-color: color-mix(in oklab, var(--color-accent) 40%, transparent);
 }

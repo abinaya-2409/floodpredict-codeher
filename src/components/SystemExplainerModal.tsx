@@ -119,7 +119,7 @@ export const SystemExplainerModal: React.FC<Props> = ({ isOpen, onClose }) => {
         <div className="flex justify-end">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 bg-accent hover:bg-accent text-on-accent font-bold text-sm rounded-card transition-all shadow-lg shadow-accent/20"
+            className="px-5 py-2.5 bg-accent hover:bg-accent text-on-accent font-bold text-sm rounded-card transition-colors shadow-lg shadow-accent/20"
           >
             Explore Live Flood Predictor
           </button>

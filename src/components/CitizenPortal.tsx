@@ -122,7 +122,7 @@ export const CitizenPortal: React.FC<Props> = ({
             <div className="flex items-center space-x-2 shrink-0">
               <a
                 href="tel:1913"
-                className="px-4 py-2 bg-risk-critical hover:bg-risk-critical text-fg rounded-card text-xs font-bold flex items-center space-x-1.5 transition-colors shadow-lg shadow-risk-critical/30"
+                className="px-4 py-2 bg-danger hover:brightness-110 text-on-accent rounded-control text-xs font-bold flex items-center gap-1.5 transition-[filter] cursor-pointer"
               >
                 <Phone className="w-4 h-4" />
                 <span>Call Emergency (1913 / 1070)</span>
@@ -270,7 +270,7 @@ export const CitizenPortal: React.FC<Props> = ({
 
             <button
               type="submit"
-              className="w-full py-2.5 bg-accent hover:bg-accent text-on-accent font-bold rounded-card flex items-center justify-center space-x-2 transition-all shadow-md shadow-accent/20"
+              className="w-full py-2.5 bg-accent hover:bg-accent text-on-accent font-bold rounded-card flex items-center justify-center space-x-2 transition-colors shadow-md shadow-accent/20"
             >
               <Send className="w-3.5 h-3.5" />
               <span>Submit Live Beacon to Authority Hub</span>

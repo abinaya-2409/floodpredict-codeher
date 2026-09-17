@@ -670,7 +670,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
   };
 
   return (
-    <div className="fluid-glass rounded-panel overflow-hidden relative shadow-[0_24px_50px_rgba(0,0,0,0.65)] border border-accent/25 flex flex-col" id="leaflet-flood-map-wrapper">
+    <div className="glass rounded-panel overflow-hidden relative shadow-[0_24px_50px_rgba(0,0,0,0.65)] border border-accent/25 flex flex-col" id="leaflet-flood-map-wrapper">
       {/* Top Map Control Bar */}
       <div className="p-3 sm:p-4 bg-bg/70 border-b border-line/80 flex flex-col lg:flex-row lg:items-start justify-between gap-3">
         {/* Search Input */}
@@ -687,7 +687,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
             }}
             onFocus={() => setSearchOpen(true)}
             onBlur={() => window.setTimeout(() => setSearchOpen(false), 160)}
-            className="w-full h-9 bg-surface/80 text-fg pl-10 pr-9 rounded-full text-xs placeholder:text-subtle border border-line-strong/60 focus:outline-none focus:border-accent/70 focus:ring-1 focus:ring-accent/40 transition-all"
+            className="w-full h-9 bg-surface/80 text-fg pl-10 pr-9 rounded-full text-xs placeholder:text-subtle border border-line-strong/60 focus:outline-none focus:border-accent/70 focus:ring-1 focus:ring-accent/40 transition-colors"
           />
           {isSearching && (
             <Loader2
@@ -740,9 +740,9 @@ export const LeafletFloodMap: React.FC<Props> = ({
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <button
             onClick={() => setShow2015Historical(!show2015Historical)}
-            className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer shadow-sm ${
+            className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer shadow-sm ${
               show2015Historical
-                ? 'bg-risk-high/25 border-risk-high text-risk-high font-bold shadow-[0_0_12px_currentColor]'
+                ? 'bg-risk-high/25 border-risk-high text-risk-high font-bold'
                 : 'bg-surface-2/60 hover:bg-surface-3/80 text-risk-high/80 border-risk-high/40 hover:text-fg'
             }`}
           >
@@ -755,9 +755,9 @@ export const LeafletFloodMap: React.FC<Props> = ({
 
           <button
             onClick={() => setShow2023Historical(!show2023Historical)}
-            className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer shadow-sm ${
+            className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer shadow-sm ${
               show2023Historical
-                ? 'bg-risk-critical/25 border-risk-critical text-risk-critical font-bold shadow-[0_0_12px_currentColor]'
+                ? 'bg-risk-critical/25 border-risk-critical text-risk-critical font-bold'
                 : 'bg-surface-2/60 hover:bg-surface-3/80 text-risk-critical/80 border-risk-critical/40 hover:text-fg'
             }`}
           >
@@ -771,9 +771,9 @@ export const LeafletFloodMap: React.FC<Props> = ({
 
           <button
             onClick={() => setShowEvacRoutes(!showEvacRoutes)}
-            className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer shadow-sm ${
+            className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer shadow-sm ${
               showEvacRoutes
-                ? 'bg-risk-low/25 border-risk-low text-risk-low font-bold shadow-[0_0_12px_currentColor]'
+                ? 'bg-risk-low/25 border-risk-low text-risk-low font-bold'
                 : 'bg-surface-2/60 hover:bg-surface-3/80 text-risk-low/80 border-risk-low/40 hover:text-fg'
             }`}
           >
@@ -819,9 +819,9 @@ export const LeafletFloodMap: React.FC<Props> = ({
 
           <button
             onClick={() => setShowShelters(!showShelters)}
-            className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer shadow-sm ${
+            className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer shadow-sm ${
               showShelters
-                ? 'bg-accent/25 border-accent text-accent-soft font-bold shadow-[0_0_12px_currentColor]'
+                ? 'bg-accent/25 border-accent text-accent-soft font-bold'
                 : 'bg-surface-2/60 hover:bg-surface-3/80 text-accent-soft/80 border-accent/40 hover:text-fg'
             }`}
           >

@@ -3,6 +3,14 @@ import { CityData, ZoneData, ResourcePrepositioning, SimulationParams } from '..
 import { RESOURCE_PREPOSITIONS } from '../data/mockData';
 import { ShieldAlert, Zap, Truck, Users, Send, CheckCircle2, AlertTriangle, LifeBuoy, MapPin, Sparkles, TrendingUp } from 'lucide-react';
 
+const ASSET_FILTERS: { id: string; label: string }[] = [
+  { id: 'all', label: 'All assets' },
+  { id: 'dewatering_pump', label: 'Pumps' },
+  { id: 'ndrf_boat_unit', label: 'Boats' },
+  { id: 'mobile_power_generator', label: 'Power' },
+  { id: 'food_relief_truck', label: 'Rations' },
+];
+
 interface Props {
   city: CityData;
   zones: ZoneData[];
@@ -117,48 +125,31 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
             </span>
           </div>
 
-          {/* Filter Pills */}
-          <div className="flex items-center space-x-1 bg-bg p-1 rounded-card border border-line text-xs">
-            <button
-              onClick={() => setFilterType('all')}
-              className={`px-2.5 py-1 rounded-control font-medium transition-all ${
-                filterType === 'all' ? 'bg-accent text-on-accent font-bold' : 'text-muted hover:text-fg-soft'
-              }`}
-            >
-              All Assets
-            </button>
-            <button
-              onClick={() => setFilterType('dewatering_pump')}
-              className={`px-2.5 py-1 rounded-control font-medium transition-all ${
-                filterType === 'dewatering_pump' ? 'bg-accent text-on-accent font-bold' : 'text-muted hover:text-fg-soft'
-              }`}
-            >
-              Pumps
-            </button>
-            <button
-              onClick={() => setFilterType('ndrf_boat_unit')}
-              className={`px-2.5 py-1 rounded-control font-medium transition-all ${
-                filterType === 'ndrf_boat_unit' ? 'bg-accent text-on-accent font-bold' : 'text-muted hover:text-fg-soft'
-              }`}
-            >
-              Boats
-            </button>
-            <button
-              onClick={() => setFilterType('mobile_power_generator')}
-              className={`px-2.5 py-1 rounded-control font-medium transition-all ${
-                filterType === 'mobile_power_generator' ? 'bg-accent text-on-accent font-bold' : 'text-muted hover:text-fg-soft'
-              }`}
-            >
-              Power
-            </button>
-            <button
-              onClick={() => setFilterType('food_relief_truck')}
-              className={`px-2.5 py-1 rounded-control font-medium transition-all ${
-                filterType === 'food_relief_truck' ? 'bg-accent text-on-accent font-bold' : 'text-muted hover:text-fg-soft'
-              }`}
-            >
-              Rations
-            </button>
+          {/* Asset filter. Five duplicated buttons collapsed to one map, with
+              radiogroup semantics so the active filter is announced. */}
+          <div
+            role="radiogroup"
+            aria-label="Filter by asset type"
+            className="flex items-center gap-1 rounded-card border border-line bg-bg p-1 text-xs"
+          >
+            {ASSET_FILTERS.map((f) => {
+              const active = filterType === f.id;
+              return (
+                <button
+                  key={f.id}
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => setFilterType(f.id)}
+                  className={`rounded-control px-2.5 py-1 font-medium transition-colors cursor-pointer ${
+                    active
+                      ? 'bg-accent font-bold text-on-accent'
+                      : 'text-muted hover:bg-surface-2 hover:text-fg-soft'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -170,7 +161,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
             return (
               <div
                 key={res.id}
-                className={`p-4 rounded-card border transition-all space-y-3 ${
+                className={`p-4 rounded-card border transition-colors space-y-3 ${
                   isDispatched
                     ? 'bg-bg border-risk-low/50 ring-1 ring-risk-low/20'
                     : 'bg-bg/80 border-line hover:border-line-strong'
@@ -216,7 +207,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
 
                   <button
                     onClick={() => handleToggleDispatch(res.id)}
-                    className={`px-3 py-1.5 rounded-card font-bold text-xs flex items-center space-x-1.5 transition-all ${
+                    className={`px-3 py-1.5 rounded-card font-bold text-xs flex items-center space-x-1.5 transition-colors ${
                       isDispatched
                         ? 'bg-risk-low text-on-accent shadow-md shadow-risk-low/20 font-bold'
                         : 'bg-surface-2 hover:bg-surface-3 text-fg-soft border border-line-strong'

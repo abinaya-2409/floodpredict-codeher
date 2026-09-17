@@ -6,6 +6,18 @@ import { Wifi, WifiOff } from 'lucide-react';
 import { useThemeTokens } from '../theme/useThemeTokens';
 import { LogoMark } from './Logo';
 
+/** Section tabs, in the order they appear. */
+const TABS: { id: string; label: string }[] = [
+  { id: 'map', label: 'Inundation Map' },
+  { id: 'streets', label: 'Street Vulnerability' },
+  { id: 'whatif', label: 'What-If Sandbox' },
+  { id: 'alerts', label: 'Early Warning' },
+  { id: 'resources', label: 'Resource Dispatch' },
+  { id: 'fourinputs', label: 'Data Streams' },
+  { id: 'timeline', label: '72h Timeline' },
+  { id: 'citizen', label: 'Citizen Portal' },
+];
+
 interface Props {
   selectedCity: CityData;
   onSelectCity: (city: CityData) => void;
@@ -42,7 +54,7 @@ export const Navbar: React.FC<Props> = ({
     <header className="sticky top-0 z-50 w-full px-3 sm:px-6 pt-3 pb-2 backdrop-blur-md bg-transparent">
       <div className="max-w-7xl mx-auto flex flex-col gap-2">
         {/* Top Live Telemetry Pill Strip */}
-        <div className="fluid-glass rounded-full px-4 py-1.5 flex items-center justify-between text-xs overflow-x-auto whitespace-nowrap shadow-[0_4px_24px_rgba(0,0,0,0.5)] border border-line">
+        <div className="glass rounded-full px-4 py-1.5 flex items-center justify-between text-xs overflow-x-auto whitespace-nowrap shadow-[0_4px_24px_rgba(0,0,0,0.5)] border border-line">
           <div className="flex items-center gap-3">
             {/* Radar Animated Pulse & Sweep Icon */}
             <div className="flex items-center gap-2 text-positive font-mono tracking-wider font-bold">
@@ -63,8 +75,8 @@ export const Navbar: React.FC<Props> = ({
                     </radialGradient>
                   </defs>
                 </svg>
-                <span className="absolute w-1.5 h-1.5 rounded-full bg-risk-critical animate-ping" />
-                <span className="absolute w-1 h-1 rounded-full bg-risk-critical" />
+                <span className="absolute w-1.5 h-1.5 rounded-full bg-accent-2 animate-ping" />
+                <span className="absolute w-1 h-1 rounded-full bg-accent-2" />
               </div>
               <span className="text-fg">LIVE HYDRO-TELEMETRY</span>
             </div>
@@ -95,7 +107,7 @@ export const Navbar: React.FC<Props> = ({
           <div className="flex items-center gap-2 pl-4">
             <button
               onClick={onToggleOffline}
-              className="inline-flex items-center gap-1.5 bg-positive/12 border border-positive/35 px-3 py-0.5 rounded-full text-positive font-mono text-mini font-semibold shadow-[0_0_10px_currentColor] hover:bg-positive/20 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 bg-positive/12 border border-positive/35 px-3 py-0.5 rounded-full text-positive font-mono text-mini font-semibold hover:bg-positive/20 transition-colors cursor-pointer"
             >
               {isOfflineSimulated ? (
                 <>
@@ -113,7 +125,7 @@ export const Navbar: React.FC<Props> = ({
         </div>
 
         {/* Main Navigation Fluid Island */}
-        <div className="fluid-glass rounded-panel px-4 sm:px-6 py-2.5 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.55)] border border-line-strong/50">
+        <div className="glass rounded-panel px-4 sm:px-6 py-2.5 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.55)] border border-line-strong/50">
           {/* Brand: one geometric mark, no ornament. */}
           <div className="flex items-center gap-3">
             <LogoMark className="h-8 w-8 shrink-0 text-accent" />
@@ -132,7 +144,7 @@ export const Navbar: React.FC<Props> = ({
             {/* Translation Button */}
             <button
               onClick={onToggleLanguage}
-              className="h-9 px-3 rounded-full bg-surface-2/80 hover:bg-surface-3 text-fg-soft hover:text-fg text-xs font-medium transition-all border border-line-strong/60 flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line bg-surface-2 px-3.5 text-xs font-semibold text-fg-soft transition-colors hover:border-line-strong hover:bg-surface-3 hover:text-fg cursor-pointer"
               title="Switch Language"
             >
               <svg className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
@@ -144,7 +156,7 @@ export const Navbar: React.FC<Props> = ({
             </button>
 
             {/* City / Ward Selector */}
-            <div className="flex items-center bg-surface-2/80 border border-line-strong/60 hover:border-accent/50 rounded-full px-3.5 h-9 gap-2 text-fg-soft text-xs font-medium transition-all shadow-sm">
+            <div className="flex items-center bg-surface-2/80 border border-line-strong/60 hover:border-accent/50 rounded-full px-3.5 h-9 gap-2 text-fg-soft text-xs font-medium transition-colors shadow-sm">
               <svg className="w-4 h-4 text-accent shrink-0" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M3 21h18" />
                 <path d="M5 21V7l5-4v18" />
@@ -172,7 +184,7 @@ export const Navbar: React.FC<Props> = ({
             {/* Concept Link */}
             <button
               onClick={onOpenExplainer}
-              className="hidden lg:flex items-center h-9 px-4 rounded-full bg-surface-2/70 hover:bg-surface-3 text-fg-soft hover:text-fg text-xs font-medium transition-all border border-line-strong/60 cursor-pointer"
+              className="hidden lg:flex items-center h-9 px-4 rounded-full bg-surface-2/70 hover:bg-surface-3 text-fg-soft hover:text-fg text-xs font-medium transition-colors border border-line-strong/60 cursor-pointer"
             >
               Concept
             </button>
@@ -180,10 +192,10 @@ export const Navbar: React.FC<Props> = ({
             {/* Authority Hub CTA */}
             <button
               onClick={onToggleRole}
-              className={`relative h-9 px-4 rounded-full font-bold text-xs tracking-wide transition-all flex items-center gap-2 border cursor-pointer shadow-lg ${
+              className={`relative h-9 px-4 rounded-full font-bold text-xs tracking-wide transition-colors flex items-center gap-2 border cursor-pointer shadow-lg ${
                 userRole === 'authority'
-                  ? 'bg-gradient-to-r from-risk-critical to-risk-critical hover:brightness-110 text-fg border-risk-critical/40 shadow-[0_0_20px_currentColor]'
-                  : 'bg-gradient-to-r from-accent to-accent-deep hover:brightness-110 text-on-accent border-accent/50 shadow-[0_0_20px_currentColor]'
+                  ? 'bg-gradient-to-r from-risk-critical to-risk-critical hover:brightness-110 text-fg border-risk-critical/40'
+                  : 'bg-gradient-to-r from-accent to-accent-deep hover:brightness-110 text-on-accent border-accent/50'
               }`}
             >
               <span className="relative flex h-4 w-4 items-center justify-center">
@@ -192,7 +204,7 @@ export const Navbar: React.FC<Props> = ({
                   <circle cx="12" cy="11.5" r="2.5" fill="currentColor" />
                 </svg>
                 {userRole === 'authority' && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-risk-high animate-ping" />
+                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-accent-2 animate-ping" />
                 )}
               </span>
               <span>{userRole === 'authority' ? 'Authority Hub' : 'Citizen Portal'}</span>
@@ -200,103 +212,42 @@ export const Navbar: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Fluid Pill Navigation Tabs */}
-        <nav className="flex items-center gap-1.5 px-3 py-1.5 rounded-full fluid-glass overflow-x-auto border border-line-strong/50">
-          <button
-            onClick={() => onChangeTab('map')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
-              activeTab === 'map'
-                ? 'bg-gradient-to-r from-accent/25 via-accent/15 to-accent/20 text-accent border border-accent/45 font-bold shadow-[0_0_16px_currentColor]'
-                : 'text-fg-soft hover:text-fg hover:bg-surface-2/50 border border-transparent'
-            }`}
-          >
-            {activeTab === 'map' && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--color-accent)]" />}
-            <span>Interactive Inundation Map</span>
-          </button>
-
-          <button
-            onClick={() => onChangeTab('streets')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
-              activeTab === 'streets'
-                ? 'bg-gradient-to-r from-accent/25 via-accent/15 to-accent/20 text-accent border border-accent/45 font-bold shadow-[0_0_16px_currentColor]'
-                : 'text-fg-soft hover:text-fg hover:bg-surface-2/50 border border-transparent'
-            }`}
-          >
-            {activeTab === 'streets' && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--color-accent)]" />}
-            <span>Street-Level Vulnerability</span>
-          </button>
-
-          <button
-            onClick={() => onChangeTab('whatif')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
-              activeTab === 'whatif'
-                ? 'bg-gradient-to-r from-accent/25 via-accent/15 to-accent/20 text-accent border border-accent/45 font-bold shadow-[0_0_16px_currentColor]'
-                : 'text-fg-soft hover:text-fg hover:bg-surface-2/50 border border-transparent'
-            }`}
-          >
-            {activeTab === 'whatif' && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--color-accent)]" />}
-            <span>"What-If" Hydraulic Sandbox</span>
-          </button>
-
-          <button
-            onClick={() => onChangeTab('alerts')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
-              activeTab === 'alerts'
-                ? 'bg-gradient-to-r from-accent/25 via-accent/15 to-accent/20 text-accent border border-accent/45 font-bold shadow-[0_0_16px_currentColor]'
-                : 'text-fg-soft hover:text-fg hover:bg-surface-2/50 border border-transparent'
-            }`}
-          >
-            {activeTab === 'alerts' && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--color-accent)]" />}
-            <span>Tiered Early Warning Hub</span>
-          </button>
-
-          <button
-            onClick={() => onChangeTab('resources')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
-              activeTab === 'resources'
-                ? 'bg-gradient-to-r from-accent/25 via-accent/15 to-accent/20 text-accent border border-accent/45 font-bold shadow-[0_0_16px_currentColor]'
-                : 'text-fg-soft hover:text-fg hover:bg-surface-2/50 border border-transparent'
-            }`}
-          >
-            {activeTab === 'resources' && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--color-accent)]" />}
-            <span>Resource Pre-Positioning</span>
-          </button>
-
-          <button
-            onClick={() => onChangeTab('fourinputs')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
-              activeTab === 'fourinputs'
-                ? 'bg-gradient-to-r from-accent/25 via-accent/15 to-accent/20 text-accent border border-accent/45 font-bold shadow-[0_0_16px_currentColor]'
-                : 'text-fg-soft hover:text-fg hover:bg-surface-2/50 border border-transparent'
-            }`}
-          >
-            {activeTab === 'fourinputs' && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--color-accent)]" />}
-            <span>The 4 Input Data Streams</span>
-          </button>
-
-          <button
-            onClick={() => onChangeTab('timeline')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
-              activeTab === 'timeline'
-                ? 'bg-gradient-to-r from-accent/25 via-accent/15 to-accent/20 text-accent border border-accent/45 font-bold shadow-[0_0_16px_currentColor]'
-                : 'text-fg-soft hover:text-fg hover:bg-surface-2/50 border border-transparent'
-            }`}
-          >
-            {activeTab === 'timeline' && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--color-accent)]" />}
-            <span>72h Timeline &amp; Risk</span>
-          </button>
-
-          <button
-            onClick={() => onChangeTab('citizen')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
-              activeTab === 'citizen'
-                ? 'bg-gradient-to-r from-accent/25 via-accent/15 to-accent/20 text-accent border border-accent/45 font-bold shadow-[0_0_16px_currentColor]'
-                : 'text-fg-soft hover:text-fg hover:bg-surface-2/50 border border-transparent'
-            }`}
-          >
-            {activeTab === 'citizen' && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--color-accent)]" />}
-            <span>Citizen Portal</span>
-          </button>
+        {/* Section tabs.
+            Eight near-identical buttons collapsed to one map over TABS, with
+            real tablist semantics - previously these were plain buttons, so a
+            screen reader announced no relationship between them and no
+            indication of which section was current. */}
+        <nav
+          role="tablist"
+          aria-label="Dashboard sections"
+          className="flex items-center gap-1.5 overflow-x-auto rounded-full glass px-3 py-1.5 border border-line-strong/50"
+        >
+          {TABS.map((tab) => {
+            const selected = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                role="tab"
+                aria-selected={selected}
+                onClick={() => onChangeTab(tab.id)}
+                className={[
+                  'flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-1.5',
+                  'text-xs font-semibold transition-colors cursor-pointer',
+                  selected
+                    ? 'border-accent/45 bg-accent/18 text-accent font-bold'
+                    : 'border-transparent text-fg-soft hover:bg-surface-2/60 hover:text-fg',
+                ].join(' ')}
+              >
+                {selected && (
+                  <span
+                    className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse"
+                    aria-hidden="true"
+                  />
+                )}
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </nav>
       </div>
     </header>

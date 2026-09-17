@@ -154,7 +154,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
           <button
             key={i}
             onClick={() => onUpdateParams(p.params)}
-            className="px-3 py-1.5 rounded-control text-xs font-semibold whitespace-nowrap bg-bg border border-line-strong/80 hover:border-accent/60 hover:text-accent-soft text-fg-soft transition-all shrink-0"
+            className="px-3 py-1.5 rounded-control text-xs font-semibold whitespace-nowrap bg-bg border border-line-strong/80 hover:border-accent/60 hover:text-accent-soft text-fg-soft transition-colors shrink-0"
           >
             {p.name}
           </button>
@@ -282,7 +282,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
                 return (
                   <div
                     key={drain.id}
-                    className={`p-3 rounded-control border transition-all flex items-center justify-between gap-2 ${
+                    className={`p-3 rounded-control border transition-colors flex items-center justify-between gap-2 ${
                       isBlocked
                         ? 'bg-risk-critical/30 border-risk-critical/50 text-risk-critical'
                         : 'bg-surface border-line text-fg-soft hover:border-line-strong'
@@ -290,7 +290,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center space-x-2">
-                        <span className={`w-2 h-2 rounded-full shrink-0 ${isBlocked ? 'bg-risk-critical animate-ping' : 'bg-risk-low'}`} />
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${isBlocked ? 'bg-risk-critical animate-ping' : 'bg-accent'}`} />
                         <span className="text-xs font-bold truncate">{drain.name}</span>
                       </div>
                       <div className="text-mini text-muted mt-0.5 truncate">
@@ -307,7 +307,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
                       {/* Block / Clear Toggle */}
                       <button
                         onClick={() => handleDrainToggle(drain.id)}
-                        className={`px-2.5 py-1 rounded-control text-xs font-bold transition-all ${
+                        className={`px-2.5 py-1 rounded-control text-xs font-bold transition-colors ${
                           isBlocked
                             ? 'bg-risk-critical text-fg shadow-md shadow-risk-critical/30'
                             : 'bg-surface-2 text-fg-soft hover:bg-surface-3'
@@ -320,7 +320,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
                       <button
                         onClick={() => handlePumpToggle(drain.id)}
                         title="Toggle High-Capacity Dewatering Pump"
-                        className={`p-1.5 rounded-control border transition-all text-xs ${
+                        className={`p-1.5 rounded-control border transition-colors text-xs ${
                           isPumpActive
                             ? 'bg-risk-low/20 border-risk-low text-risk-low font-bold'
                             : 'bg-surface-2 border-line-strong text-muted hover:text-fg-soft'
@@ -358,7 +358,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
           <button
             onClick={runAiDiagnosis}
             disabled={isLoadingAi}
-            className="w-full py-3 bg-gradient-to-r from-accent to-accent hover:from-accent hover:to-accent text-fg font-bold text-xs rounded-card shadow-lg shadow-accent/20 flex items-center justify-center space-x-2 transition-all disabled:opacity-50"
+            className="w-full py-3 bg-gradient-to-r from-accent to-accent hover:from-accent hover:to-accent text-fg font-bold text-xs rounded-card shadow-lg shadow-accent/20 flex items-center justify-center space-x-2 transition-colors disabled:opacity-50"
           >
             <Sparkles className="w-4 h-4 text-accent-soft animate-pulse" />
             <span>{isLoadingAi ? 'Running Gemini Hydraulic Diagnosis...' : 'Generate AI Hydraulic Action Report'}</span>

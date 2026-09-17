@@ -37,7 +37,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
         <div className="flex items-center space-x-1.5 bg-bg p-1 rounded-card border border-line">
           <button
             onClick={() => setActiveTab('rainfall')}
-            className={`px-3 py-1.5 rounded-control text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-control text-xs font-semibold flex items-center space-x-1.5 transition-colors ${
               activeTab === 'rainfall' ? 'bg-accent text-on-accent font-bold shadow' : 'text-muted hover:text-fg-soft'
             }`}
           >
@@ -47,7 +47,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
 
           <button
             onClick={() => setActiveTab('drainage')}
-            className={`px-3 py-1.5 rounded-control text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-control text-xs font-semibold flex items-center space-x-1.5 transition-colors ${
               activeTab === 'drainage' ? 'bg-accent text-on-accent font-bold shadow' : 'text-muted hover:text-fg-soft'
             }`}
           >
@@ -57,7 +57,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
 
           <button
             onClick={() => setActiveTab('forecast')}
-            className={`px-3 py-1.5 rounded-control text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-control text-xs font-semibold flex items-center space-x-1.5 transition-colors ${
               activeTab === 'forecast' ? 'bg-accent text-on-accent font-bold shadow' : 'text-muted hover:text-fg-soft'
             }`}
           >
@@ -67,7 +67,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
 
           <button
             onClick={() => setActiveTab('historical')}
-            className={`px-3 py-1.5 rounded-control text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-control text-xs font-semibold flex items-center space-x-1.5 transition-colors ${
               activeTab === 'historical' ? 'bg-accent text-on-accent font-bold shadow' : 'text-muted hover:text-fg-soft'
             }`}
           >
