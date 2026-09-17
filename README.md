@@ -74,8 +74,9 @@ Copy `.env.example` to `.env`. Every variable is optional:
 - `GEMINI_API_KEY` — enables the AI analysis routes. Without it, those routes
   return a response explicitly flagged `{"sample": true, "aiAvailable": false}`
   so placeholder text can never be mistaken for real analysis.
-- `VITE_MAPTILER_KEY` — optional. Upgrades the map to MapTiler terrain;
-  without it the map uses CARTO's keyless basemap.
+- `VITE_MAPTILER_KEY` — optional, and genuinely optional. The map ships four
+  **keyless** basemaps (CARTO Command and Streets, Esri Satellite,
+  OpenTopoMap Elevation); a MapTiler key only appends a fifth terrain option.
 
 ---
 

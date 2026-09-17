@@ -99,23 +99,87 @@ export function useThemeTokens(): ThemeTokens {
 }
 
 /**
- * Basemap tiles. CARTO's dark basemap is free and keyless, and sits correctly
- * under the interface. A MapTiler key, when present, upgrades it to terrain.
+ * Basemaps.
+ *
+ * All of these are keyless: no signup, no card, no quota dashboard. For a
+ * flood application the choice is not cosmetic - satellite shows what is
+ * actually built on the floodplain, and the topographic layer shows the
+ * contours that decide where water collects.
+ *
+ * A MapTiler key, when present, adds a terrain option on top of these.
  */
-export function basemap(): { url: string; attribution: string } {
-  const maptilerKey = (import.meta as { env?: Record<string, string> }).env?.VITE_MAPTILER_KEY;
+export interface Basemap {
+  id: string;
+  label: string;
+  description: string;
+  url: string;
+  attribution: string;
+  maxZoom: number;
+  /** Satellite imagery carries no place names; overlay them separately. */
+  labelOverlay?: string;
+}
 
-  if (maptilerKey) {
-    return {
-      url: `https://api.maptiler.com/maps/topo-v2/{z}/{x}/{y}.png?key=${maptilerKey}`,
-      attribution:
-        '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    };
-  }
+const OSM_ATTR =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
-  return {
+const CARTO_LABELS =
+  'https://{s}.basemaps.cartocdn.com/rastertiles/dark_only_labels/{z}/{x}/{y}{r}.png';
+
+export const BASEMAPS: Basemap[] = [
+  {
+    id: 'dark',
+    label: 'Command',
+    description: 'Muted dark basemap - keeps risk colours dominant',
     url: 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png',
+    attribution: `${OSM_ATTR} &copy; <a href="https://carto.com/attributions">CARTO</a>`,
+    maxZoom: 19,
+  },
+  {
+    id: 'satellite',
+    label: 'Satellite',
+    description: 'Real imagery - shows what is actually built on the floodplain',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  };
+      'Imagery &copy; <a href="https://www.esri.com/">Esri</a>, Maxar, Earthstar Geographics',
+    maxZoom: 18,
+    labelOverlay: CARTO_LABELS,
+  },
+  {
+    id: 'terrain',
+    label: 'Elevation',
+    description: 'Contour lines and hillshading - where water collects',
+    url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    attribution: `${OSM_ATTR}, <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)`,
+    maxZoom: 17,
+  },
+  {
+    id: 'streets',
+    label: 'Streets',
+    description: 'Legible street names for ground coordination',
+    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    attribution: `${OSM_ATTR} &copy; <a href="https://carto.com/attributions">CARTO</a>`,
+    maxZoom: 19,
+  },
+];
+
+/** MapTiler terrain is appended only when a key is configured. */
+export function availableBasemaps(): Basemap[] {
+  const key = (import.meta as { env?: Record<string, string> }).env?.VITE_MAPTILER_KEY;
+  if (!key) return BASEMAPS;
+  return [
+    ...BASEMAPS,
+    {
+      id: 'maptiler-topo',
+      label: 'Terrain HD',
+      description: 'MapTiler topographic relief',
+      url: `https://api.maptiler.com/maps/topo-v2/{z}/{x}/{y}.png?key=${key}`,
+      attribution:
+        '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> ' + OSM_ATTR,
+      maxZoom: 20,
+    },
+  ];
+}
+
+export function basemapById(id: string): Basemap {
+  return availableBasemaps().find((b) => b.id === id) ?? BASEMAPS[0];
 }

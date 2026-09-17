@@ -3,7 +3,7 @@ import L from 'leaflet';
 import { CityData, ZoneData, SimulationParams, ReliefShelter } from '../types';
 import { RESOURCE_PREPOSITIONS, CHENNAI_HISTORICAL_OVERLAYS } from '../data/mockData';
 import { Sliders, Layers, Search, MapPin, AlertTriangle, ShieldCheck, Navigation, Eye, EyeOff, RotateCcw } from 'lucide-react';
-import { basemap, useThemeTokens } from '../theme/useThemeTokens';
+import { availableBasemaps, basemapById, useThemeTokens } from '../theme/useThemeTokens';
 
 interface Props {
   city: CityData;
@@ -39,6 +39,10 @@ export const LeafletFloodMap: React.FC<Props> = ({
   const [showResources, setShowResources] = useState(true);
   const [showEvacRoutes, setShowEvacRoutes] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [basemapId, setBasemapId] = useState('dark');
+  const baseLayerRef = useRef<L.TileLayer | null>(null);
+  const labelLayerRef = useRef<L.TileLayer | null>(null);
+  const basemaps = availableBasemaps();
 
   // Risk colours are read from the active theme so the map never falls out of
   // step with the rest of the interface.
@@ -171,10 +175,10 @@ export const LeafletFloodMap: React.FC<Props> = ({
         zoomControl: true,
       });
 
-      const tiles = basemap();
-      L.tileLayer(tiles.url, {
+      const tiles = basemapById(basemapId);
+      baseLayerRef.current = L.tileLayer(tiles.url, {
         attribution: tiles.attribution,
-        maxZoom: 19,
+        maxZoom: tiles.maxZoom,
       }).addTo(map);
 
       const layerGroup = L.layerGroup().addTo(map);
@@ -188,6 +192,32 @@ export const LeafletFloodMap: React.FC<Props> = ({
       // Keep map instance alive across re-renders
     };
   }, [city.id]);
+
+  // Swap the basemap on selection. Satellite imagery has no place names, so a
+  // labels-only overlay rides on top of it; every other basemap already
+  // carries its own labels.
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const tiles = basemapById(basemapId);
+
+    baseLayerRef.current?.remove();
+    baseLayerRef.current = L.tileLayer(tiles.url, {
+      attribution: tiles.attribution,
+      maxZoom: tiles.maxZoom,
+    }).addTo(map);
+    baseLayerRef.current.bringToBack();
+
+    labelLayerRef.current?.remove();
+    labelLayerRef.current = null;
+    if (tiles.labelOverlay) {
+      labelLayerRef.current = L.tileLayer(tiles.labelOverlay, {
+        maxZoom: tiles.maxZoom,
+        pane: 'shadowPane',
+      }).addTo(map);
+    }
+  }, [basemapId]);
 
 
   // Update Layers on Map whenever simulation or toggles change
@@ -563,6 +593,37 @@ export const LeafletFloodMap: React.FC<Props> = ({
             </svg>
             <span>Evacuation Routes</span>
           </button>
+
+          {/* Basemap selector. Every option here is keyless - no signup,
+              no quota. Satellite and elevation are not decoration: one shows
+              what is built on the floodplain, the other shows where water
+              collects. */}
+          <div
+            role="radiogroup"
+            aria-label="Base map"
+            className="flex items-center gap-0.5 rounded-full border border-line bg-surface-2/70 p-0.5"
+          >
+            {basemaps.map((b) => {
+              const active = basemapId === b.id;
+              return (
+                <button
+                  key={b.id}
+                  role="radio"
+                  aria-checked={active}
+                  aria-label={`${b.label} base map. ${b.description}`}
+                  title={b.description}
+                  onClick={() => setBasemapId(b.id)}
+                  className={`h-7 rounded-full px-2.5 text-[11px] font-semibold transition-colors whitespace-nowrap cursor-pointer ${
+                    active
+                      ? 'bg-accent text-on-accent'
+                      : 'text-muted hover:bg-surface-3 hover:text-fg'
+                  }`}
+                >
+                  {b.label}
+                </button>
+              );
+            })}
+          </div>
 
           <button
             onClick={() => setShowShelters(!showShelters)}
