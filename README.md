@@ -75,8 +75,13 @@ Copy `.env.example` to `.env`. Every variable is optional:
   return a response explicitly flagged `{"sample": true, "aiAvailable": false}`
   so placeholder text can never be mistaken for real analysis.
 - `VITE_MAPTILER_KEY` — optional, and genuinely optional. The map ships four
-  **keyless** basemaps (CARTO Command and Streets, Esri Satellite,
-  OpenTopoMap Elevation); a MapTiler key only appends a fifth terrain option.
+  **keyless** Esri basemaps (Command, Satellite, Elevation, Streets) plus
+  India-wide place search via Nominatim; a MapTiler key only appends a fifth
+  terrain option.
+
+  Note: CARTO's raster basemaps now stamp "API KEY REQUIRED" across every
+  unauthenticated tile, so they are not usable keyless despite returning
+  HTTP 200.
 
 ---
 

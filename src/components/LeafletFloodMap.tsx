@@ -2,8 +2,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { CityData, ZoneData, SimulationParams, ReliefShelter } from '../types';
 import { RESOURCE_PREPOSITIONS, CHENNAI_HISTORICAL_OVERLAYS } from '../data/mockData';
-import { Sliders, Layers, Search, MapPin, AlertTriangle, ShieldCheck, Navigation, Eye, EyeOff, RotateCcw } from 'lucide-react';
-import { availableBasemaps, basemapById, useThemeTokens } from '../theme/useThemeTokens';
+import { Sliders, Layers, Search, MapPin, AlertTriangle, ShieldCheck, Navigation, Eye, EyeOff, RotateCcw, Loader2 } from 'lucide-react';
+import { PlaceResult, searchPlaces } from '../utils/geocode';
+import {
+  availableBasemaps,
+  basemapById,
+  INDIA_BOUNDS,
+  useThemeTokens,
+} from '../theme/useThemeTokens';
 
 interface Props {
   city: CityData;
@@ -40,9 +46,37 @@ export const LeafletFloodMap: React.FC<Props> = ({
   const [showEvacRoutes, setShowEvacRoutes] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [basemapId, setBasemapId] = useState('dark');
+  const [placeResults, setPlaceResults] = useState<PlaceResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchMarkerRef = useRef<L.Marker | null>(null);
+  /**
+   * Marker labels are only legible once there is room for them. Below this
+   * zoom every marker collapses to a dot, which is what stops shelters and
+   * resource units piling into an unreadable stack when zoomed out.
+   */
+  const [zoomLevel, setZoomLevel] = useState(12);
+  const LABEL_ZOOM = 12;
   const baseLayerRef = useRef<L.TileLayer | null>(null);
   const labelLayerRef = useRef<L.TileLayer | null>(null);
   const basemaps = availableBasemaps();
+
+  /**
+   * Tile options tuned for perceived latency.
+   *
+   * keepBuffer preloads a ring of off-screen tiles so panning reveals cached
+   * imagery instead of grey gaps. updateWhenZooming stops Leaflet firing a
+   * request storm mid-pinch. maxNativeZoom lets the map keep zooming past the
+   * provider's deepest tile by upscaling, so zoom never dead-ends on blank.
+   */
+  const tileOptions = (maxZoom: number, maxNativeZoom: number) => ({
+    maxZoom,
+    maxNativeZoom,
+    keepBuffer: 4,
+    updateWhenZooming: false,
+    updateWhenIdle: false,
+    crossOrigin: true as const,
+  });
 
   // Risk colours are read from the active theme so the map never falls out of
   // step with the rest of the interface.
@@ -173,13 +207,25 @@ export const LeafletFloodMap: React.FC<Props> = ({
         center: [city.lat, city.lng],
         zoom: 12,
         zoomControl: true,
+        // Every Indian district stays reachable; the viewport cannot drift
+        // into open ocean and lose the user.
+        maxBounds: INDIA_BOUNDS,
+        maxBoundsViscosity: 0.6,
+        minZoom: 4,
+        maxZoom: 20,
+        // Smoother wheel zoom than Leaflet's stepped default.
+        zoomSnap: 0.5,
+        wheelPxPerZoomLevel: 110,
+        preferCanvas: true,
       });
 
       const tiles = basemapById(basemapId);
       baseLayerRef.current = L.tileLayer(tiles.url, {
         attribution: tiles.attribution,
-        maxZoom: tiles.maxZoom,
+        ...tileOptions(tiles.maxZoom, tiles.maxNativeZoom),
       }).addTo(map);
+
+      map.on('zoomend', () => setZoomLevel(map.getZoom()));
 
       const layerGroup = L.layerGroup().addTo(map);
       layerGroupRef.current = layerGroup;
@@ -205,15 +251,16 @@ export const LeafletFloodMap: React.FC<Props> = ({
     baseLayerRef.current?.remove();
     baseLayerRef.current = L.tileLayer(tiles.url, {
       attribution: tiles.attribution,
-      maxZoom: tiles.maxZoom,
+      ...tileOptions(tiles.maxZoom, tiles.maxNativeZoom),
     }).addTo(map);
     baseLayerRef.current.bringToBack();
+    map.setMaxZoom(tiles.maxZoom);
 
     labelLayerRef.current?.remove();
     labelLayerRef.current = null;
     if (tiles.labelOverlay) {
       labelLayerRef.current = L.tileLayer(tiles.labelOverlay, {
-        maxZoom: tiles.maxZoom,
+        ...tileOptions(tiles.maxZoom, tiles.maxNativeZoom),
         pane: 'shadowPane',
       }).addTo(map);
     }
@@ -418,28 +465,24 @@ export const LeafletFloodMap: React.FC<Props> = ({
           city.lng + (shelter.id === 'sh-1' ? 0.01 : shelter.id === 'sh-2' ? -0.01 : -0.05),
         ];
 
+        const showLabel = zoomLevel >= LABEL_ZOOM;
         const shelterIcon = L.divIcon({
           className: 'custom-shelter-icon',
-          html: `
-            <div style="
-              background: #059669;
-              border: 2px solid white;
-              color: white;
-              padding: 2px 6px;
-              border-radius: 9999px;
-              font-size: 10px;
-              font-weight: bold;
-              white-space: nowrap;
-              box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-              display: flex;
-              align-items: center;
-              gap: 3px;
-            ">
-              <span>🏠</span>
-              <span>${shelter.name.split(' ')[0]}</span>
-            </div>
-          `,
-          iconSize: [70, 20],
+          html: showLabel
+            ? `<div style="
+                background: ${tokens.positive}; border: 2px solid ${tokens.bgDeep};
+                color: ${tokens.bgDeep}; padding: 2px 7px; border-radius: 9999px;
+                font-size: 10px; font-weight: 700; white-space: nowrap;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.45);
+                display: flex; align-items: center; gap: 3px;
+              "><span>&#127968;</span><span>${shelter.name.split(' ')[0]}</span></div>`
+            : `<div style="
+                width: 10px; height: 10px; border-radius: 9999px;
+                background: ${tokens.positive}; border: 2px solid ${tokens.bgDeep};
+                box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+              "></div>`,
+          iconSize: showLabel ? [70, 20] : [10, 10],
+          iconAnchor: showLabel ? [35, 10] : [5, 5],
         });
 
         const shelterMarker = L.marker(shelterCoords, { icon: shelterIcon });
@@ -463,24 +506,30 @@ export const LeafletFloodMap: React.FC<Props> = ({
     // 6. Render Resource Pre-positioning points
     if (showResources) {
       RESOURCE_PREPOSITIONS.filter(r => zones.some(z => z.id === r.zoneId)).forEach((res) => {
+        const showLabel = zoomLevel >= LABEL_ZOOM;
+        const resColor = res.priority === 'CRITICAL' ? tokens.accent2 : tokens.accent;
+        const resLabel =
+          res.type === 'dewatering_pump'
+            ? 'Pump'
+            : res.type === 'ndrf_boat_unit'
+              ? 'NDRF Boat'
+              : 'SDRF Squad';
         const resIcon = L.divIcon({
           className: 'custom-resource-icon',
-          html: `
-            <div style="
-              background: ${res.priority === 'CRITICAL' ? '#9333ea' : '#3b82f6'};
-              border: 1px solid white;
-              color: white;
-              padding: 2px 5px;
-              border-radius: 4px;
-              font-size: 9px;
-              font-weight: bold;
-              white-space: nowrap;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.6);
-            ">
-              ⚡ ${res.type === 'dewatering_pump' ? 'Pump Unit' : res.type === 'ndrf_boat_unit' ? 'NDRF Boat' : 'SDRF Squad'} (${res.recommendedUnits})
-            </div>
-          `,
-          iconSize: [60, 16],
+          html: showLabel
+            ? `<div style="
+                background: ${resColor}; border: 1px solid ${tokens.bgDeep};
+                color: ${tokens.bgDeep}; padding: 2px 6px; border-radius: 5px;
+                font-size: 9px; font-weight: 700; white-space: nowrap;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+              ">${resLabel} (${res.recommendedUnits})</div>`
+            : `<div style="
+                width: 8px; height: 8px; border-radius: 2px;
+                background: ${resColor}; border: 1px solid ${tokens.bgDeep};
+                box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+              "></div>`,
+          iconSize: showLabel ? [74, 16] : [8, 8],
+          iconAnchor: showLabel ? [37, 8] : [4, 4],
         });
 
         const resMarker = L.marker(res.coordinates, { icon: resIcon });
@@ -510,6 +559,66 @@ export const LeafletFloodMap: React.FC<Props> = ({
   , tokens]);
 
   // Handle Search Input & Pan Map
+  /**
+   * Debounced place lookup.
+   *
+   * Modelled wards match instantly and rank first; anything else in India
+   * comes from Nominatim, so the map behaves like a general-purpose map
+   * rather than being limited to the three cities we model.
+   */
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (q.length < 3) {
+      setPlaceResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setIsSearching(true);
+
+    // Nominatim asks for at most one request per second; this stays well under.
+    const timer = window.setTimeout(async () => {
+      try {
+        const results = await searchPlaces(q, controller.signal);
+        setPlaceResults(results);
+      } catch (err) {
+        if ((err as Error)?.name !== 'AbortError') {
+          console.warn('Place search unavailable:', err);
+          setPlaceResults([]);
+        }
+      } finally {
+        setIsSearching(false);
+      }
+    }, 450);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [searchQuery]);
+
+  const flyToPlace = (place: PlaceResult) => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    map.flyTo([place.lat, place.lon], place.zoom, { duration: 1.1 });
+
+    searchMarkerRef.current?.remove();
+    searchMarkerRef.current = L.marker([place.lat, place.lon], {
+      title: place.name,
+    })
+      .addTo(map)
+      .bindPopup(
+        `<strong style="color:${tokens.accent}">${place.name}</strong><br/>` +
+          `<span style="color:${tokens.muted}">${place.context}</span>`
+      )
+      .openPopup();
+
+    setSearchOpen(false);
+    setSearchQuery(place.name);
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim() || !mapInstanceRef.current) return;
@@ -523,9 +632,13 @@ export const LeafletFloodMap: React.FC<Props> = ({
       onSelectZone(matchedZone);
       const coords = ZONE_COORDINATES[matchedZone.id];
       if (coords) {
-        mapInstanceRef.current.setView(coords.center, 14, { animate: true });
+        mapInstanceRef.current.flyTo(coords.center, 14, { duration: 1.0 });
       }
+      setSearchOpen(false);
+      return;
     }
+
+    if (placeResults.length > 0) flyToPlace(placeResults[0]);
   };
 
   return (
@@ -533,15 +646,66 @@ export const LeafletFloodMap: React.FC<Props> = ({
       {/* Top Map Control Bar */}
       <div className="p-3 sm:p-4 bg-bg/70 border-b border-line/80 flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Search Input */}
-        <form onSubmit={handleSearch} className="relative w-full md:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-accent/80" />
+        <form onSubmit={handleSearch} className="relative w-full md:w-80" role="search">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-accent/80" aria-hidden="true" />
           <input
             type="text"
-            placeholder="Search address (e.g. Velachery 100ft Rd)..."
+            aria-label="Search any district, town or street in India"
+            placeholder="Search anywhere in India..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-9 bg-surface/80 text-fg pl-10 pr-4 rounded-full text-xs placeholder:text-subtle border border-line-strong/60 focus:outline-none focus:border-accent/70 focus:ring-1 focus:ring-accent/40 transition-all"
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setSearchOpen(true);
+            }}
+            onFocus={() => setSearchOpen(true)}
+            onBlur={() => window.setTimeout(() => setSearchOpen(false), 160)}
+            className="w-full h-9 bg-surface/80 text-fg pl-10 pr-9 rounded-full text-xs placeholder:text-subtle border border-line-strong/60 focus:outline-none focus:border-accent/70 focus:ring-1 focus:ring-accent/40 transition-all"
           />
+          {isSearching && (
+            <Loader2
+              className="w-3.5 h-3.5 absolute right-3.5 top-1/2 -translate-y-1/2 text-accent animate-spin"
+              aria-hidden="true"
+            />
+          )}
+
+          {searchOpen && searchQuery.trim().length >= 3 && (
+            <ul
+              role="listbox"
+              aria-label="Search results"
+              className="absolute left-0 right-0 top-11 z-[1200] max-h-72 overflow-y-auto rounded-2xl border border-line bg-surface/95 p-1 shadow-2xl backdrop-blur"
+            >
+              {placeResults.length === 0 && !isSearching && (
+                <li className="px-3 py-2.5 text-[11px] text-subtle">
+                  No place found in India for that search.
+                </li>
+              )}
+              {placeResults.map((place) => (
+                <li key={place.id} role="option" aria-selected={false}>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => flyToPlace(place)}
+                    className="flex w-full items-start gap-2.5 rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-surface-3"
+                  >
+                    <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" aria-hidden="true" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-xs font-semibold text-fg">
+                        {place.name}
+                      </span>
+                      {place.context && (
+                        <span className="block truncate text-[10px] text-subtle">
+                          {place.context}
+                        </span>
+                      )}
+                    </span>
+                    <span className="shrink-0 rounded-full bg-surface-3 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted">
+                      {place.kind}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </form>
 
         {/* Layer Filter Toggles */}
@@ -644,7 +808,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
         <div ref={mapContainerRef} className="w-full h-full z-10" />
 
         {/* Real-time Scenario Slider (Floating Hydro Wave Slider) */}
-        <div className="absolute bottom-4 left-4 right-4 md:right-auto md:w-md z-20 fluid-glass rounded-3xl p-4 shadow-2xl border border-risk-low/25 space-y-2">
+        <div className="absolute bottom-10 left-4 right-4 md:right-auto md:w-[26rem] z-[500] glass rounded-2xl p-4 shadow-2xl border border-line-strong/50 space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-xl bg-risk-low/15 border border-risk-low/35 flex items-center justify-center text-risk-low">
@@ -681,7 +845,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
         </div>
 
         {/* Legend Overlay */}
-        <div className="absolute top-4 right-4 z-20 fluid-glass rounded-2xl p-3.5 w-64 shadow-2xl border border-line-strong/60 hidden sm:block">
+        <div className="absolute top-4 right-4 z-[500] glass rounded-2xl p-3.5 w-60 shadow-2xl border border-line-strong/50 hidden md:block">
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-line-strong/60">
             <span className="font-mono text-[10px] text-muted uppercase tracking-wider font-semibold">Inundation Risk Tier</span>
             <span className="text-[10px] text-risk-low font-mono">MSL Rel.</span>
@@ -718,9 +882,10 @@ export const LeafletFloodMap: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Footer GIS Attribution */}
-        <div className="absolute bottom-2 right-4 z-20 text-[10px] text-subtle font-mono pointer-events-none">
-          GIS Hydro Model v4.2 • CartoDB DarkMatter Vector • SRTM 30m DEM
+        {/* Model provenance. Kept bottom-left so it never sits under
+            Leaflet's own attribution control in the bottom-right. */}
+        <div className="absolute bottom-1.5 left-3 z-[400] text-[10px] text-subtle font-mono pointer-events-none">
+          GIS Hydro Model v4.2 &bull; SRTM 30m DEM
         </div>
       </div>
     </div>

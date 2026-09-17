@@ -101,12 +101,13 @@ export function useThemeTokens(): ThemeTokens {
 /**
  * Basemaps.
  *
- * All of these are keyless: no signup, no card, no quota dashboard. For a
- * flood application the choice is not cosmetic - satellite shows what is
- * actually built on the floodplain, and the topographic layer shows the
- * contours that decide where water collects.
+ * All Esri ArcGIS Online services: genuinely keyless, served from a CDN, and
+ * clean. CARTO was the obvious choice until it started stamping
+ * "API KEY REQUIRED" across every unauthenticated tile - an HTTP 200 that is
+ * not a usable tile. OpenTopoMap is keyless and unwatermarked but measured
+ * ~1080ms per tile against Esri's ~300ms, which is too slow to pan through.
  *
- * A MapTiler key, when present, adds a terrain option on top of these.
+ * A MapTiler key, when present, appends a fifth option. Nothing requires it.
  */
 export interface Basemap {
   id: string;
@@ -114,51 +115,58 @@ export interface Basemap {
   description: string;
   url: string;
   attribution: string;
+  /** Deepest zoom the UI offers. Leaflet upscales past maxNativeZoom. */
   maxZoom: number;
-  /** Satellite imagery carries no place names; overlay them separately. */
+  /** Deepest zoom this provider actually serves tiles for. */
+  maxNativeZoom: number;
+  /** Place names as a separate layer, for bases that ship without them. */
   labelOverlay?: string;
 }
 
-const OSM_ATTR =
+const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services';
+const ESRI_ATTR =
+  'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, HERE, Garmin, ' +
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-
-const CARTO_LABELS =
-  'https://{s}.basemaps.cartocdn.com/rastertiles/dark_only_labels/{z}/{x}/{y}{r}.png';
 
 export const BASEMAPS: Basemap[] = [
   {
     id: 'dark',
     label: 'Command',
-    description: 'Muted dark basemap - keeps risk colours dominant',
-    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png',
-    attribution: `${OSM_ATTR} &copy; <a href="https://carto.com/attributions">CARTO</a>`,
-    maxZoom: 19,
+    description: 'Muted dark canvas - keeps risk colours dominant',
+    url: `${ESRI}/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}`,
+    labelOverlay: `${ESRI}/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}`,
+    attribution: ESRI_ATTR,
+    maxZoom: 20,
+    maxNativeZoom: 16,
   },
   {
     id: 'satellite',
     label: 'Satellite',
     description: 'Real imagery - shows what is actually built on the floodplain',
-    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    url: `${ESRI}/World_Imagery/MapServer/tile/{z}/{y}/{x}`,
+    labelOverlay: `${ESRI}/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}`,
     attribution:
       'Imagery &copy; <a href="https://www.esri.com/">Esri</a>, Maxar, Earthstar Geographics',
-    maxZoom: 18,
-    labelOverlay: CARTO_LABELS,
+    maxZoom: 20,
+    maxNativeZoom: 19,
   },
   {
     id: 'terrain',
     label: 'Elevation',
-    description: 'Contour lines and hillshading - where water collects',
-    url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-    attribution: `${OSM_ATTR}, <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)`,
-    maxZoom: 17,
+    description: 'Contours and shaded relief - shows where water collects',
+    url: `${ESRI}/World_Topo_Map/MapServer/tile/{z}/{y}/{x}`,
+    attribution: ESRI_ATTR + ', USGS, NOAA',
+    maxZoom: 20,
+    maxNativeZoom: 19,
   },
   {
     id: 'streets',
     label: 'Streets',
     description: 'Legible street names for ground coordination',
-    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    attribution: `${OSM_ATTR} &copy; <a href="https://carto.com/attributions">CARTO</a>`,
-    maxZoom: 19,
+    url: `${ESRI}/World_Street_Map/MapServer/tile/{z}/{y}/{x}`,
+    attribution: ESRI_ATTR,
+    maxZoom: 20,
+    maxNativeZoom: 19,
   },
 ];
 
@@ -174,8 +182,10 @@ export function availableBasemaps(): Basemap[] {
       description: 'MapTiler topographic relief',
       url: `https://api.maptiler.com/maps/topo-v2/{z}/{x}/{y}.png?key=${key}`,
       attribution:
-        '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> ' + OSM_ATTR,
+        '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> ' +
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 20,
+      maxNativeZoom: 20,
     },
   ];
 }
@@ -183,3 +193,15 @@ export function availableBasemaps(): Basemap[] {
 export function basemapById(id: string): Basemap {
   return availableBasemaps().find((b) => b.id === id) ?? BASEMAPS[0];
 }
+
+/**
+ * India's bounding box, generously padded.
+ *
+ * Constrains panning so the viewport never drifts into empty ocean, while
+ * leaving every district - Kashmir to Kanyakumari, Kutch to the Northeast -
+ * freely reachable.
+ */
+export const INDIA_BOUNDS: [[number, number], [number, number]] = [
+  [5.5, 66.0],
+  [37.5, 98.5],
+];

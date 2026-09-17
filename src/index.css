@@ -292,6 +292,10 @@
 }
 
 .leaflet-control-attribution {
+  max-width: 62%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   background: color-mix(in oklab, var(--color-surface) 82%, transparent) !important;
   color: var(--color-subtle) !important;
   font-size: 10px !important;

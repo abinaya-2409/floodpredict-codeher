@@ -23,6 +23,11 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="/og-cover.svg" />
 
+    <!-- Tile and geocoding hosts: warms DNS + TLS before Leaflet asks for
+         the first tile, which is the largest single chunk of map latency. -->
+    <link rel="preconnect" href="https://server.arcgisonline.com" crossorigin />
+    <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
