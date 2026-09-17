@@ -618,33 +618,14 @@ export const LeafletFloodMap: React.FC<Props> = ({
     setRecon(null);
     try {
       const grid = sampleGrid(place.bbox!, 3);
-      setFacilitiesLoading(true);
-      const [elevations, rainfall, boundary, camps] = await Promise.all([
+      // Terrain and rainfall answer in well under a second; Overpass is a
+      // shared community service and can take twenty. Waiting on all three
+      // together meant the panel sat on "Reading terrain..." long after the
+      // terrain had arrived, so the slow one runs on its own track.
+      const [elevations, rainfall] = await Promise.all([
         fetchElevations(grid),
         fetchRainfall(place.lat, place.lon),
-        fetchBoundary(place.id, `${place.name}, ${place.context}`).catch(() => null),
-        // Relief camp candidates exist for every Indian district, not just
-        // the eight we model by hand.
-        fetchFacilities(place.bbox!, [place.lat, place.lon], 40).catch(() => [] as Facility[]),
       ]);
-      setFacilities(camps);
-      setFacilitiesLoading(false);
-
-      facilityLayerRef.current?.remove();
-      facilityLayerRef.current = L.layerGroup(
-        camps.slice(0, 25).map((f) =>
-          L.circleMarker([f.lat, f.lon], {
-            radius: 5,
-            color: tokens.positive,
-            weight: 2,
-            fillColor: tokens.positive,
-            fillOpacity: 0.45,
-          }).bindPopup(
-            `<strong style="color:${tokens.fg}">${f.name}</strong><br/>` +
-              `<span style="color:${tokens.muted}">Relief camp candidate &middot; ${f.distanceKm}km</span>`
-          )
-        )
-      ).addTo(map);
 
       setRecon(
         assessDistrict({
@@ -655,22 +636,49 @@ export const LeafletFloodMap: React.FC<Props> = ({
           rainfall,
         })
       );
+      setReconLoading(false);
 
-      boundaryRef.current?.remove();
-      boundaryRef.current = null;
-      if (boundary && boundary.length) {
-        boundaryRef.current = L.polygon(boundary, {
-          color: 'var(--color-accent)',
-          weight: 2,
-          fill: false,
-          dashArray: '6, 6',
-          interactive: false,
-        }).addTo(map);
-      }
+      // Boundary: cosmetic, so failure is silent.
+      void fetchBoundary(place.id, `${place.name}, ${place.context}`)
+        .then((boundary) => {
+          if (!boundary?.length) return;
+          boundaryRef.current?.remove();
+          boundaryRef.current = L.polygon(boundary, {
+            color: tokens.accent,
+            weight: 2,
+            fill: false,
+            dashArray: '6, 6',
+            interactive: false,
+          }).addTo(map);
+        })
+        .catch(() => undefined);
+
+      // Relief camps: slower, and the panel renders a spinner for them alone.
+      setFacilitiesLoading(true);
+      void fetchFacilities(place.bbox!, [place.lat, place.lon], 40)
+        .then((camps) => {
+          setFacilities(camps);
+          facilityLayerRef.current?.remove();
+          facilityLayerRef.current = L.layerGroup(
+            camps.slice(0, 25).map((f) =>
+              L.circleMarker([f.lat, f.lon], {
+                radius: 5,
+                color: tokens.positive,
+                weight: 2,
+                fillColor: tokens.positive,
+                fillOpacity: 0.45,
+              }).bindPopup(
+                `<strong style="color:${tokens.fg}">${f.name}</strong><br/>` +
+                  `<span style="color:${tokens.muted}">Relief camp candidate &middot; ${f.distanceKm}km</span>`
+              )
+            )
+          ).addTo(map);
+        })
+        .catch(() => setFacilities([]))
+        .finally(() => setFacilitiesLoading(false));
     } catch (err) {
       console.warn('Reconnaissance read unavailable:', err);
       setRecon(null);
-    } finally {
       setReconLoading(false);
     }
   };
