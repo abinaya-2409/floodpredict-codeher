@@ -3,8 +3,7 @@ import L from 'leaflet';
 import { CityData, ZoneData, SimulationParams, ReliefShelter } from '../types';
 import { RESOURCE_PREPOSITIONS, CHENNAI_HISTORICAL_OVERLAYS } from '../data/mockData';
 import { Sliders, Layers, Search, MapPin, AlertTriangle, ShieldCheck, Navigation, Eye, EyeOff, RotateCcw } from 'lucide-react';
-import { useTheme } from '../theme/ThemeProvider';
-import { basemapFor, useThemeTokens } from '../theme/useThemeTokens';
+import { basemap, useThemeTokens } from '../theme/useThemeTokens';
 
 interface Props {
   city: CityData;
@@ -30,9 +29,6 @@ export const LeafletFloodMap: React.FC<Props> = ({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const layerGroupRef = useRef<L.LayerGroup | null>(null);
-  const tileLayerRef = useRef<L.TileLayer | null>(null);
-
-  const { theme } = useTheme();
   const tokens = useThemeTokens();
 
   // Overlay state toggles
@@ -175,9 +171,9 @@ export const LeafletFloodMap: React.FC<Props> = ({
         zoomControl: true,
       });
 
-      const basemap = basemapFor(theme);
-      tileLayerRef.current = L.tileLayer(basemap.url, {
-        attribution: basemap.attribution,
+      const tiles = basemap();
+      L.tileLayer(tiles.url, {
+        attribution: tiles.attribution,
         maxZoom: 19,
       }).addTo(map);
 
@@ -193,19 +189,6 @@ export const LeafletFloodMap: React.FC<Props> = ({
     };
   }, [city.id]);
 
-  // Swap the basemap when the theme changes - a dark tile set under a light
-  // interface is the most obvious way a themed map gives itself away.
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-    const basemap = basemapFor(theme);
-    tileLayerRef.current?.remove();
-    tileLayerRef.current = L.tileLayer(basemap.url, {
-      attribution: basemap.attribution,
-      maxZoom: 19,
-    }).addTo(map);
-    tileLayerRef.current.bringToBack();
-  }, [theme]);
 
   // Update Layers on Map whenever simulation or toggles change
   useEffect(() => {

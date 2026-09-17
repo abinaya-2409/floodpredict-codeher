@@ -6,10 +6,9 @@
    ---------------------------------------------------------------------------
    Every colour in the application resolves through one of the names below.
    No component may reference a raw palette value (bg-slate-900, #0ea5e9, ...)
-   directly - that is what made this codebase unthemeable in the first place.
+   directly - one edit here restyles the whole interface, header to footer.
 
-   A theme is nothing more than a redefinition of these same variables, so
-   adding one costs a block of CSS rather than an edit to ten components.
+   The palette is tuned to sit as dark glass over the live Vanta sky.
    =========================================================================== */
 
 @theme {
@@ -56,150 +55,12 @@
   --glass-blur: 22px;
   --glass-shadow: 0 18px 44px -14px rgb(2 8 20 / 0.72), inset 0 1px 0 0 rgb(255 255 255 / 0.04);
 
-  /* Motion - Dynamic theme scales this with live risk */
+  /* Kept as a single knob for ambient animation tempo. */
   --motion-scale: 1;
 
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Plus Jakarta Sans", "Inter", ui-sans-serif, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
-}
-
-/* ---------------------------------------------------------------------------
-   LIGHT - "Daylight Operations"
-   A municipal control room at midday. Elevation comes from shadow, not glow;
-   the glass panels are rebuilt rather than tinted, because a dark radial
-   gradient behind a blur reads as dirty grey on a light ground.
-   --------------------------------------------------------------------------- */
-:root[data-theme="light"] {
-  --color-bg: #eef2f7;
-  --color-bg-deep: #e2e8f0;
-  --color-surface: #ffffff;
-  --color-surface-2: #f6f8fb;
-  --color-surface-3: #eaeff6;
-
-  --color-line: #d7e0ea;
-  --color-line-strong: #b6c4d4;
-
-  --color-fg: #0c1522;
-  --color-fg-soft: #27364a;
-  --color-muted: #55677e;
-  --color-subtle: #7c8ca2;
-
-  --color-accent: #0369a1;
-  --color-accent-soft: #0284c7;
-  --color-accent-deep: #075985;
-  --color-accent-2: #6d28d9;
-  --color-on-accent: #ffffff;
-
-  /* Darkened so every band clears 4.5:1 against white */
-  --color-risk-low: #0f766e;
-  --color-risk-moderate: #1d4ed8;
-  --color-risk-high: #a16207;
-  --color-risk-severe: #be123c;
-  --color-risk-critical: #a21caf;
-
-  --color-positive: #047857;
-  --color-warning: #a16207;
-  --color-danger: #be123c;
-
-  --glass-bg: linear-gradient(160deg, rgb(255 255 255 / 0.86) 0%, rgb(246 249 252 / 0.78) 100%);
-  --glass-border: rgb(15 40 70 / 0.1);
-  --glass-blur: 18px;
-  --glass-shadow: 0 12px 32px -16px rgb(15 35 62 / 0.28), inset 0 1px 0 0 rgb(255 255 255 / 0.9);
-}
-
-/* ---------------------------------------------------------------------------
-   OLED - "Blackout Mode"
-   True #000000. On an OLED panel a black pixel is an unlit pixel, so this
-   theme measurably extends battery life on the phones people are actually
-   holding during a flood. Surfaces separate by hairline, never by lighter fill.
-   --------------------------------------------------------------------------- */
-:root[data-theme="oled"] {
-  --color-bg: #000000;
-  --color-bg-deep: #000000;
-  --color-surface: #050505;
-  --color-surface-2: #0a0a0c;
-  --color-surface-3: #101015;
-
-  --color-line: #1c1c22;
-  --color-line-strong: #2e2e38;
-
-  --color-fg: #ffffff;
-  --color-fg-soft: #d4d4dc;
-  --color-muted: #9494a2;
-  --color-subtle: #6b6b78;
-
-  --color-accent: #22d3ee;
-  --color-accent-soft: #67e8f9;
-  --color-accent-deep: #0891b2;
-  --color-accent-2: #c084fc;
-  --color-on-accent: #000000;
-
-  --color-risk-low: #2dd4bf;
-  --color-risk-moderate: #7dd3fc;
-  --color-risk-high: #fcd34d;
-  --color-risk-severe: #fb7185;
-  --color-risk-critical: #f0abfc;
-
-  --glass-bg: linear-gradient(160deg, rgb(10 10 12 / 0.9) 0%, rgb(0 0 0 / 0.94) 100%);
-  --glass-border: rgb(255 255 255 / 0.1);
-  --glass-blur: 14px;
-  --glass-shadow: 0 0 0 1px rgb(255 255 255 / 0.05);
-}
-
-/* ---------------------------------------------------------------------------
-   DYNAMIC - "Situational"
-   The only theme that is not a fixed palette. ThemeProvider writes
-   --live-risk (0-1) and --live-hue from the highest current VRI across the
-   city, and the interface warms from calm cyan toward emergency magenta as
-   conditions worsen. Ambient motion accelerates with it.
-   --------------------------------------------------------------------------- */
-:root[data-theme="dynamic"] {
-  --live-risk: 0;
-  --live-hue: 196;
-
-  --color-bg: oklch(0.17 calc(0.03 + var(--live-risk) * 0.07) var(--live-hue));
-  --color-bg-deep: oklch(0.12 calc(0.03 + var(--live-risk) * 0.06) var(--live-hue));
-  --color-surface: oklch(0.22 calc(0.03 + var(--live-risk) * 0.06) var(--live-hue));
-  --color-surface-2: oklch(0.26 calc(0.035 + var(--live-risk) * 0.06) var(--live-hue));
-  --color-surface-3: oklch(0.31 calc(0.04 + var(--live-risk) * 0.06) var(--live-hue));
-
-  --color-line: oklch(0.34 calc(0.04 + var(--live-risk) * 0.07) var(--live-hue));
-  --color-line-strong: oklch(0.44 calc(0.06 + var(--live-risk) * 0.09) var(--live-hue));
-
-  --color-fg: oklch(0.97 0.012 var(--live-hue));
-  --color-fg-soft: oklch(0.88 0.022 var(--live-hue));
-  --color-muted: oklch(0.72 0.03 var(--live-hue));
-  --color-subtle: oklch(0.58 0.032 var(--live-hue));
-
-  --color-accent: oklch(0.78 0.15 var(--live-hue));
-  --color-accent-soft: oklch(0.86 0.11 var(--live-hue));
-  --color-accent-deep: oklch(0.62 0.16 var(--live-hue));
-  --color-on-accent: oklch(0.16 0.04 var(--live-hue));
-
-  --glass-bg: linear-gradient(
-    160deg,
-    oklch(0.24 calc(0.04 + var(--live-risk) * 0.07) var(--live-hue) / 0.68) 0%,
-    oklch(0.15 calc(0.035 + var(--live-risk) * 0.06) var(--live-hue) / 0.82) 100%
-  );
-  --glass-border: oklch(0.72 0.14 var(--live-hue) / 0.2);
-
-  /* Calm at rest, agitated under load. */
-  --motion-scale: calc(1 + var(--live-risk) * 1.6);
-
-  transition: --live-risk 1.4s ease-out, --live-hue 1.4s ease-out;
-}
-
-@property --live-risk {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 0;
-}
-
-@property --live-hue {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 196;
 }
 
 /* ===========================================================================
@@ -217,12 +78,9 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Colour-scheme hint so form controls and scrollbars follow the theme. */
+  /* Form controls and scrollbars render dark to match the interface. */
   :root {
     color-scheme: dark;
-  }
-  :root[data-theme="light"] {
-    color-scheme: light;
   }
 
   /* Visible focus for every interactive element. The previous build had no

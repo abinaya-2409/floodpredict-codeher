@@ -39,24 +39,20 @@ reporting.
 
 ---
 
-## Themes
+## Look and feel
 
-Three complete themes, all driven from one token layer in
-[`src/index.css`](src/index.css). No component references a raw colour.
+A live sky renders behind the whole interface (Vanta CLOUDS2, using the
+effect's own palette), with the application sitting on top of it as dark
+glass panels.
 
-- **Daylight** — high-contrast control room. Readable on a projector.
-- **Blackout** — true `#000000`. On OLED phones a black pixel is an unlit
-  pixel, so this measurably extends battery life on the devices people are
-  actually holding during a flood.
-- **Situational** — not a fixed palette. Hue, contrast and animation tempo are
-  driven by the highest live VRI across the city, so the interface warms from
-  calm cyan toward emergency magenta as conditions worsen.
-
-Adding a theme costs one CSS block, not an edit to ten components. Libraries
-that cannot read CSS (Leaflet, Recharts) are bridged through
+Every colour resolves through a semantic token defined once in
+[`src/index.css`](src/index.css) - no component references a raw palette
+value, so restyling the interface header-to-footer is an edit to one block.
+Libraries that cannot read CSS (Leaflet, Recharts) are bridged through
 [`src/theme/useThemeTokens.ts`](src/theme/useThemeTokens.ts).
 
----
+The background is skipped for anyone with `prefers-reduced-motion` set, and
+three.js is dynamically imported so it never sits on the first-paint path.
 
 ## Running it
 
@@ -78,8 +74,8 @@ Copy `.env.example` to `.env`. Every variable is optional:
 - `GEMINI_API_KEY` — enables the AI analysis routes. Without it, those routes
   return a response explicitly flagged `{"sample": true, "aiAvailable": false}`
   so placeholder text can never be mistaken for real analysis.
-- `VITE_MAPTILER_KEY` — optional terrain basemap for the Situational theme.
-  The other themes use CARTO's keyless basemaps.
+- `VITE_MAPTILER_KEY` — optional. Upgrades the map to MapTiler terrain;
+  without it the map uses CARTO's keyless basemap.
 
 ---
 
@@ -94,7 +90,6 @@ src/
     floodEngine.ts   Hydrology: runoff, drainage deficit, inundation depth
     riskIndex.ts     Social vulnerability + composite VRI  ← pure, tested
   theme/
-    ThemeProvider.tsx   Theme state, persistence, live-risk feed
     useThemeTokens.ts   CSS-token bridge for Leaflet and Recharts
   components/         UI, one concern per file
   data/mockData.ts    Ward, drain, shelter and demographic fixtures

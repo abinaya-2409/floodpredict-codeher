@@ -1,14 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { RiskLevel } from '../types';
-import { useTheme } from './ThemeProvider';
 
 /**
  * The bridge between CSS tokens and the libraries that cannot read them.
  *
  * Leaflet paints polygons through JS options and Recharts takes colours as
- * props, so neither sees a stylesheet. Without this hook the map and the
- * charts keep their dark palette in light mode - the usual way a theme
- * migration half-fails.
+ * props, so neither sees a stylesheet. This hook reads the resolved custom
+ * properties once so the map and the charts stay in step with the palette
+ * defined in index.css.
  */
 export interface ThemeTokens {
   bg: string;
@@ -95,38 +94,18 @@ export function readThemeTokens(): ThemeTokens {
 }
 
 export function useThemeTokens(): ThemeTokens {
-  const { theme, riskLevel } = useTheme();
-  const [tokens, setTokens] = useState<ThemeTokens>(() => readThemeTokens());
-
-  useEffect(() => {
-    // One frame after the attribute flips, the cascade has settled.
-    const id = requestAnimationFrame(() => setTokens(readThemeTokens()));
-    return () => cancelAnimationFrame(id);
-  }, [theme, riskLevel]);
-
-  return tokens;
+  // The palette is fixed, so this resolves once per mount.
+  return useMemo(() => readThemeTokens(), []);
 }
 
 /**
- * Basemap tiles per theme.
- *
- * CARTO's basemaps are free and keyless, and ship matched light and dark
- * variants - which is exactly what a themed map needs. A MapTiler key, when
- * present, upgrades the Situational theme to full terrain relief.
+ * Basemap tiles. CARTO's dark basemap is free and keyless, and sits correctly
+ * under the interface. A MapTiler key, when present, upgrades it to terrain.
  */
-export function basemapFor(theme: string): { url: string; attribution: string } {
+export function basemap(): { url: string; attribution: string } {
   const maptilerKey = (import.meta as { env?: Record<string, string> }).env?.VITE_MAPTILER_KEY;
-  const cartoAttr =
-    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
-  if (theme === 'light') {
-    return {
-      url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-      attribution: cartoAttr,
-    };
-  }
-
-  if (theme === 'dynamic' && maptilerKey) {
+  if (maptilerKey) {
     return {
       url: `https://api.maptiler.com/maps/topo-v2/{z}/{x}/{y}.png?key=${maptilerKey}`,
       attribution:
@@ -136,6 +115,7 @@ export function basemapFor(theme: string): { url: string; attribution: string } 
 
   return {
     url: 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png',
-    attribution: cartoAttr,
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
   };
 }

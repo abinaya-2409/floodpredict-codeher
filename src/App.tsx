@@ -19,13 +19,11 @@ import { SystemExplainerModal } from './components/SystemExplainerModal';
 import { VantaBackground } from './components/VantaBackground';
 import { VulnerabilityIndexPanel } from './components/VulnerabilityIndexPanel';
 import { EvacuationPriorityQueue } from './components/EvacuationPriorityQueue';
-import { useTheme } from './theme/ThemeProvider';
 import { AlertTriangle, ShieldCheck, Waves, Users, Clock, ArrowUpRight, Gauge, Cpu, CloudRain, Radio, WifiOff, Map as MapIcon, Sliders } from 'lucide-react';
 import { useThemeTokens } from './theme/useThemeTokens';
 
 export default function App() {
   const tokens = useThemeTokens();
-  const { setRiskLevel } = useTheme();
   const [selectedCity, setSelectedCity] = useState<CityData>(CITIES[0]); // Default Chennai
   const [activeTab, setActiveTab] = useState<string>('map');
   const [mapRenderMode, setMapRenderMode] = useState<'leaflet' | 'schematic'>('leaflet');
@@ -87,11 +85,6 @@ export default function App() {
     [assessments]
   );
 
-  /** Highest live VRI across the city - drives the Dynamic theme's intensity. */
-  const peakVri = useMemo(
-    () => (assessments.length ? Math.max(...assessments.map((a) => a.vri)) : 0),
-    [assessments]
-  );
 
   // Selected Zone for detailed inspection
   const [selectedZoneId, setSelectedZoneId] = useState<string>(computedZones[0]?.id || 'velachery');
@@ -156,12 +149,6 @@ export default function App() {
     ...computedZones.flatMap(z => z.keyStreets.map(s => s.predictedTimeToFloodMinutes))
   );
 
-  // Feed the highest live VRI to the Situational theme, which colours and
-  // paces the entire interface from it.
-  useEffect(() => {
-    setRiskLevel(peakVri / 100);
-  }, [peakVri, setRiskLevel]);
-
   // Keep the document language in step so screen readers use the right voice.
   useEffect(() => {
     document.documentElement.lang = language;
@@ -171,7 +158,7 @@ export default function App() {
     <div className="relative min-h-screen bg-bg text-fg flex flex-col font-sans selection:bg-risk-low/30 selection:text-risk-low overflow-x-hidden">
       <a href="#main-content" className="sr-only-focusable">Skip to main content</a>
 
-      {/* Animated sky (Vanta CLOUDS2), lazily loaded and theme-aware. */}
+      {/* Live sky (Vanta CLOUDS2), lazily loaded after first paint. */}
       <VantaBackground />
 
       {/* Ambient Fluid Hydrodynamics Background SVG & Blurs with Multi-Accent Nodes */}

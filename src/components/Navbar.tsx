@@ -5,7 +5,6 @@ import { Language, TRANSLATIONS } from '../utils/translations';
 import { Wifi, WifiOff } from 'lucide-react';
 import { useThemeTokens } from '../theme/useThemeTokens';
 import { LogoMark } from './Logo';
-import { ThemeSwitcher } from './ThemeSwitcher';
 
 interface Props {
   selectedCity: CityData;
@@ -94,7 +93,6 @@ export const Navbar: React.FC<Props> = ({
           </div>
 
           <div className="flex items-center gap-2 pl-4">
-            <ThemeSwitcher />
             <button
               onClick={onToggleOffline}
               className="inline-flex items-center gap-1.5 bg-risk-low/15 border border-risk-low/40 px-3 py-0.5 rounded-full text-risk-low font-mono text-[11px] font-semibold shadow-[0_0_10px_rgba(16,185,129,0.2)] hover:bg-risk-low/25 transition-colors cursor-pointer"

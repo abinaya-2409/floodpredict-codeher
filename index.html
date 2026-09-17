@@ -23,27 +23,6 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="/og-cover.svg" />
 
-    <!--
-      Applies the stored theme before React mounts. Without this, every visitor
-      sees a flash of the default palette before their own choice loads.
-    -->
-    <script>
-      (function () {
-        try {
-          var stored = localStorage.getItem('jalrakshak.theme');
-          var theme =
-            stored === 'light' || stored === 'oled' || stored === 'dynamic'
-              ? stored
-              : window.matchMedia('(prefers-color-scheme: light)').matches
-                ? 'light'
-                : 'oled';
-          document.documentElement.setAttribute('data-theme', theme);
-        } catch (e) {
-          document.documentElement.setAttribute('data-theme', 'oled');
-        }
-      })();
-    </script>
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
