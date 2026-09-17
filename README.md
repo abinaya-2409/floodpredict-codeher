@@ -38,6 +38,14 @@ for geographic spread (Yamuna floodplain, Hooghly tidal lock, Musi basin,
 Brahmaputra bank, Kerala backwaters). Every feature works in every city; the
 map itself reaches any district in India through keyless place search.
 
+**Any other district:** search a district outside those eight and the map
+draws its real OSM boundary and returns a *reconnaissance read* - a 0-100
+hazard score built from live rainfall and a 3x3 terrain sample, both fetched
+on demand. It is labelled and caveated as the weaker claim it is: no drainage
+network, no demographics, not for dispatch decisions. Nothing is bundled to
+make this work, which is the point - a national district boundary set is
+4-34MB, while one district's boundary is about 80KB.
+
 **Also included:** street-level inundation depth with per-street rainfall
 thresholds, a what-if hydraulic sandbox (drain blockages, pumping, tide),
 tiered alert drafting, citizen reporting, and Gemini-assisted executive
@@ -122,6 +130,9 @@ src/
     useThemeTokens.ts   CSS-token bridge for Leaflet and Recharts
   components/         UI, one concern per file
     dispatch.ts      Resource recommendations derived from the index
+    openMeteo.ts     Keyless live elevation and rainfall
+    districtModel.ts Reconnaissance scoring for unmodelled districts
+    geocode.ts       Nominatim place search and on-demand boundaries
   data/mockData.ts    Ward, drain, shelter and demographic fixtures
 tools/
   audit.mjs           Walks every city against every tab, reports what renders
@@ -144,12 +155,27 @@ Read this before quoting any number from this application.
 - **Hydrology** uses a Modified Rational Formula with a micro-topography
   factor. The coefficients are calibrated by judgement, not against gauge
   records, and the model has not been validated against observed flood extent.
-- **Weather and gauge readings are fixtures.** There is no live meteorological
-  feed yet; the intended source is Open-Meteo.
+- **Weather and gauge readings are fixtures for the eight modelled cities.**
+  The reconnaissance path for other districts uses live Open-Meteo rainfall
+  and elevation; folding that feed back into the modelled cities is the next
+  obvious step.
 - **Nothing persists.** Citizen reports and dispatch state live in memory and
   are lost on refresh.
 
 Replace all four with authoritative feeds before any operational use.
+
+## Open data used
+
+All of it keyless, and fetched on demand rather than vendored:
+
+| Source | Used for | Licence |
+|---|---|---|
+| [Open-Meteo](https://open-meteo.com/) | Live rainfall forecast, terrain elevation | CC-BY 4.0, free for non-commercial use |
+| [Nominatim / OpenStreetMap](https://www.openstreetmap.org/copyright) | Place search, district boundaries | ODbL |
+| [Esri ArcGIS Online](https://www.esri.com/) | Basemap, satellite and topographic tiles | Free with attribution |
+
+Nominatim asks for at most one request per second; every lookup here is
+debounced and cached for the session.
 
 ## Licence
 

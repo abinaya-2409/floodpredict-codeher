@@ -19,6 +19,10 @@ export interface PlaceResult {
   /** Suggested zoom, derived from how large the place is. */
   zoom: number;
   kind: string;
+  /** [south, north, west, east] - used to sample terrain across the area. */
+  bbox?: [number, number, number, number];
+  /** True when the result is large enough to be worth a terrain read. */
+  isArea: boolean;
 }
 
 const ENDPOINT = 'https://nominatim.openstreetmap.org/search';
@@ -72,16 +76,57 @@ export async function searchPlaces(
   if (!res.ok) throw new Error(`Place search failed (${res.status})`);
 
   const raw = (await res.json()) as any[];
-  const results: PlaceResult[] = raw.map((r) => ({
-    id: String(r.place_id),
-    name: r.name || String(r.display_name).split(',')[0],
-    context: tidyContext(r.display_name),
-    lat: Number(r.lat),
-    lon: Number(r.lon),
-    zoom: zoomForRank(Number(r.place_rank ?? 16), r.type),
-    kind: r.type || r.category || 'place',
-  }));
+  const results: PlaceResult[] = raw.map((r) => {
+    const bb = (r.boundingbox ?? []).map(Number);
+    const rank = Number(r.place_rank ?? 16);
+    return {
+      id: String(r.place_id),
+      name: r.name || String(r.display_name).split(',')[0],
+      context: tidyContext(r.display_name),
+      lat: Number(r.lat),
+      lon: Number(r.lon),
+      zoom: zoomForRank(rank, r.type),
+      kind: r.type || r.category || 'place',
+      bbox: bb.length === 4 ? ([bb[0], bb[1], bb[2], bb[3]] as [number, number, number, number]) : undefined,
+      // Districts, cities and taluks are worth a terrain read; a single
+      // building or road is not.
+      isArea: rank <= 18 && bb.length === 4 && Math.abs(bb[1] - bb[0]) > 0.02,
+    };
+  });
 
   cache.set(q.toLowerCase(), results);
   return results;
+}
+
+/**
+ * The administrative boundary for one place, fetched only when the user asks
+ * for it. A national district dataset is 4-34MB; this is ~80KB for the single
+ * district in question, which is why nothing is bundled.
+ */
+export async function fetchBoundary(
+  placeId: string,
+  query: string,
+  signal?: AbortSignal
+): Promise<[number, number][][] | null> {
+  const params = new URLSearchParams({
+    q: query,
+    countrycodes: 'in',
+    format: 'jsonv2',
+    polygon_geojson: '1',
+    limit: '1',
+  });
+  const res = await fetch(`${ENDPOINT}?${params}`, { signal, headers: { Accept: 'application/json' } });
+  if (!res.ok) return null;
+
+  const raw = (await res.json()) as any[];
+  const geo = raw[0]?.geojson;
+  if (!geo) return null;
+
+  // Leaflet wants [lat, lng]; GeoJSON gives [lng, lat].
+  const flip = (ring: number[][]) => ring.map(([x, y]) => [y, x] as [number, number]);
+
+  if (geo.type === 'Polygon') return (geo.coordinates as number[][][]).map(flip);
+  if (geo.type === 'MultiPolygon')
+    return (geo.coordinates as number[][][][]).flatMap((poly) => poly.map(flip));
+  return null;
 }

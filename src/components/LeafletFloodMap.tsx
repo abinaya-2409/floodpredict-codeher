@@ -3,7 +3,10 @@ import L from 'leaflet';
 import { CityData, ZoneData, SimulationParams, ReliefShelter, ResourcePrepositioning } from '../types';
 import { CHENNAI_HISTORICAL_OVERLAYS } from '../data/mockData';
 import { Sliders, Layers, Search, MapPin, AlertTriangle, ShieldCheck, Navigation, Eye, EyeOff, RotateCcw, Loader2 } from 'lucide-react';
-import { PlaceResult, searchPlaces } from '../utils/geocode';
+import { PlaceResult, fetchBoundary, searchPlaces } from '../utils/geocode';
+import { fetchElevations, fetchRainfall } from '../utils/openMeteo';
+import { DistrictReconnaissance, assessDistrict, sampleGrid } from '../utils/districtModel';
+import { DistrictReconPanel } from './DistrictReconPanel';
 import {
   availableBasemaps,
   basemapById,
@@ -52,6 +55,9 @@ export const LeafletFloodMap: React.FC<Props> = ({
   const [isSearching, setIsSearching] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const searchMarkerRef = useRef<L.Marker | null>(null);
+  const boundaryRef = useRef<L.Polygon | null>(null);
+  const [recon, setRecon] = useState<DistrictReconnaissance | null>(null);
+  const [reconLoading, setReconLoading] = useState(false);
   /**
    * Marker labels are only legible once there is room for them. Below this
    * zoom every marker collapses to a dot, which is what stops shelters and
@@ -592,6 +598,63 @@ export const LeafletFloodMap: React.FC<Props> = ({
 
     setSearchOpen(false);
     setSearchQuery(place.name);
+
+    // Anything district-sized gets a real terrain and rainfall read. Nothing
+    // is bundled: the boundary and the weather are fetched for this one place.
+    if (place.isArea && place.bbox) void runReconnaissance(place, map);
+  };
+
+  /**
+   * Builds a first-pass read for a district outside the modelled cities, from
+   * its OSM boundary, a 3x3 terrain sample and the live rainfall forecast.
+   */
+  const runReconnaissance = async (place: PlaceResult, map: L.Map) => {
+    setReconLoading(true);
+    setRecon(null);
+    try {
+      const grid = sampleGrid(place.bbox!, 3);
+      const [elevations, rainfall, boundary] = await Promise.all([
+        fetchElevations(grid),
+        fetchRainfall(place.lat, place.lon),
+        fetchBoundary(place.id, `${place.name}, ${place.context}`).catch(() => null),
+      ]);
+
+      setRecon(
+        assessDistrict({
+          name: place.name,
+          context: place.context,
+          center: [place.lat, place.lon],
+          elevations,
+          rainfall,
+        })
+      );
+
+      boundaryRef.current?.remove();
+      boundaryRef.current = null;
+      if (boundary && boundary.length) {
+        boundaryRef.current = L.polygon(boundary, {
+          color: 'var(--color-accent)',
+          weight: 2,
+          fill: false,
+          dashArray: '6, 6',
+          interactive: false,
+        }).addTo(map);
+      }
+    } catch (err) {
+      console.warn('Reconnaissance read unavailable:', err);
+      setRecon(null);
+    } finally {
+      setReconLoading(false);
+    }
+  };
+
+  const dismissRecon = () => {
+    setRecon(null);
+    setReconLoading(false);
+    boundaryRef.current?.remove();
+    boundaryRef.current = null;
+    searchMarkerRef.current?.remove();
+    searchMarkerRef.current = null;
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -872,6 +935,17 @@ export const LeafletFloodMap: React.FC<Props> = ({
             </ul>
           </div>
         </div>
+
+        {/* Reconnaissance read for a searched district, when one is active. */}
+        {(recon || reconLoading) && (
+          <div className="absolute left-3 top-3 z-[600] w-[19rem] max-w-[calc(100%-1.5rem)]">
+            <DistrictReconPanel
+              recon={recon}
+              loading={reconLoading}
+              onDismiss={dismissRecon}
+            />
+          </div>
+        )}
 
         {/* Model provenance. Kept bottom-left so it never sits under
             Leaflet's own attribution control in the bottom-right. */}
