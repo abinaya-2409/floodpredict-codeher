@@ -32,6 +32,12 @@ Everything downstream reads from the VRI rather than from hand-authored
 priorities: the evacuation queue, resource dispatch ranking, and map colouring
 are all derived.
 
+**Cities covered:** Chennai, Mumbai, Bengaluru, Delhi, Kolkata, Hyderabad,
+Guwahati and Kochi - 19 wards across eight flood-prone Indian cities, chosen
+for geographic spread (Yamuna floodplain, Hooghly tidal lock, Musi basin,
+Brahmaputra bank, Kerala backwaters). Every feature works in every city; the
+map itself reaches any district in India through keyless place search.
+
 **Also included:** street-level inundation depth with per-street rainfall
 thresholds, a what-if hydraulic sandbox (drain blockages, pumping, tide),
 tiered alert drafting, citizen reporting, and Gemini-assisted executive
@@ -115,7 +121,11 @@ src/
   theme/
     useThemeTokens.ts   CSS-token bridge for Leaflet and Recharts
   components/         UI, one concern per file
+    dispatch.ts      Resource recommendations derived from the index
   data/mockData.ts    Ward, drain, shelter and demographic fixtures
+tools/
+  audit.mjs           Walks every city against every tab, reports what renders
+  probe.mjs           Loads a deployment and reports tile/console diagnostics
 ```
 
 `floodEngine.ts` and `riskIndex.ts` are deliberately separate: physical

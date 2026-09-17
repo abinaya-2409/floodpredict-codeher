@@ -296,7 +296,16 @@ Provide:
   }
 });
 
-// Unknown /api route -> explicit 404 (never a silent crash)
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not found', path: req.originalUrl });
-});
+/**
+ * Unknown /api route -> explicit 404, never a silent crash.
+ *
+ * Mounted by the caller rather than at import time: in local dev the same
+ * Express app also carries Vite's middleware, and Express matches in
+ * registration order, so a catch-all registered here would swallow every
+ * page request before Vite ever saw it.
+ */
+export function mountNotFound() {
+  app.use((req, res) => {
+    res.status(404).json({ error: 'Not found', path: req.originalUrl });
+  });
+}

@@ -3,6 +3,7 @@ import { CITIES, INITIAL_CITIZEN_REPORTS } from './data/mockData';
 import { CityData, ZoneData, SimulationParams, CitizenReport, StreetVulnerability } from './types';
 import { calculateZoneHydrology, calculateStreetHydrology } from './utils/floodEngine';
 import { assessZone, rankByPriority } from './utils/riskIndex';
+import { recommendResources } from './utils/dispatch';
 import { Language, TRANSLATIONS } from './utils/translations';
 import { Navbar } from './components/Navbar';
 import { LeafletFloodMap } from './components/LeafletFloodMap';
@@ -81,6 +82,15 @@ export default function App() {
   );
 
   const priorityQueue = useMemo(() => rankByPriority(assessments), [assessments]);
+
+  /**
+   * Dispatch recommendations, derived from the index rather than authored.
+   * This is what makes the board work in every city instead of only Chennai.
+   */
+  const resourcePlan = useMemo(
+    () => recommendResources(priorityQueue, computedZones, selectedCity),
+    [priorityQueue, computedZones, selectedCity]
+  );
 
   const assessmentById = useMemo(
     () => Object.fromEntries(assessments.map((a) => [a.zoneId, a])),
@@ -427,6 +437,7 @@ export default function App() {
               <div className="lg:col-span-8">
                 {mapRenderMode === 'leaflet' ? (
                   <LeafletFloodMap
+              resources={resourcePlan}
                     city={selectedCity}
                     zones={computedZones}
                     selectedZone={selectedZone}
@@ -617,6 +628,7 @@ export default function App() {
             <ResourcePrepositioningHub
               city={selectedCity}
               zones={computedZones}
+              resources={resourcePlan}
               simulationParams={simulationParams}
               onDispatchResource={(resId) => console.log('Dispatched', resId)}
             />

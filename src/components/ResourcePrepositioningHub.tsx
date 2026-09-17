@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { CityData, ZoneData, ResourcePrepositioning, SimulationParams } from '../types';
-import { RESOURCE_PREPOSITIONS } from '../data/mockData';
 import { ShieldAlert, Zap, Truck, Users, Send, CheckCircle2, AlertTriangle, LifeBuoy, MapPin, Sparkles, TrendingUp } from 'lucide-react';
 
 const ASSET_FILTERS: { id: string; label: string }[] = [
@@ -15,6 +14,8 @@ interface Props {
   city: CityData;
   zones: ZoneData[];
   simulationParams: SimulationParams;
+  /** Derived from the risk index in App, not authored by hand. */
+  resources: ResourcePrepositioning[];
   onDispatchResource: (resourceId: string) => void;
 }
 
@@ -22,8 +23,8 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
   city,
   zones,
   simulationParams,
+  resources,
 }) => {
-  const [resources, setResources] = useState<ResourcePrepositioning[]>(RESOURCE_PREPOSITIONS);
   const [dispatchedList, setDispatchedList] = useState<string[]>(['res-2', 'res-5']);
   const [filterType, setFilterType] = useState<string>('all');
 

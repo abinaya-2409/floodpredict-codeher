@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
-import { CityData, ZoneData, SimulationParams, ReliefShelter } from '../types';
-import { RESOURCE_PREPOSITIONS, CHENNAI_HISTORICAL_OVERLAYS } from '../data/mockData';
+import { CityData, ZoneData, SimulationParams, ReliefShelter, ResourcePrepositioning } from '../types';
+import { CHENNAI_HISTORICAL_OVERLAYS } from '../data/mockData';
 import { Sliders, Layers, Search, MapPin, AlertTriangle, ShieldCheck, Navigation, Eye, EyeOff, RotateCcw, Loader2 } from 'lucide-react';
 import { PlaceResult, searchPlaces } from '../utils/geocode';
 import {
@@ -18,6 +18,7 @@ interface Props {
   onSelectZone: (zone: ZoneData) => void;
   simulationParams: SimulationParams;
   onUpdateParams: (newParams: SimulationParams) => void;
+  resources: ResourcePrepositioning[];
   onToggleDrainBlockage: (drainId: string) => void;
   onTogglePumpingStation: (drainId: string) => void;
 }
@@ -28,6 +29,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
   selectedZone,
   onSelectZone,
   simulationParams,
+  resources,
   onUpdateParams,
   onToggleDrainBlockage,
   onTogglePumpingStation,
@@ -71,6 +73,13 @@ export const LeafletFloodMap: React.FC<Props> = ({
   const basemaps = availableBasemaps();
 
   /**
+   * The 2015 deluge and Cyclone Michaung extents are surveyed Chennai
+   * polygons. Offering them elsewhere drew a Chennai outline over another
+   * city's map, so the controls only appear where the data applies.
+   */
+  const hasHistoricalExtents = city.id === 'chennai';
+
+  /**
    * Tile options tuned for perceived latency.
    *
    * keepBuffer preloads a ring of off-screen tiles so panning reveals cached
@@ -92,82 +101,20 @@ export const LeafletFloodMap: React.FC<Props> = ({
   const getRiskColor = (risk: string) =>
     tokens.risk[risk as keyof typeof tokens.risk] ?? tokens.risk.low;
 
-  // Geographic coordinates for Chennai zones
-  const ZONE_COORDINATES: Record<string, { center: [number, number]; polygon: [number, number][] }> = {
-    velachery: {
-      center: [12.9815, 80.2180],
-      polygon: [
-        [12.9920, 80.2080],
-        [12.9900, 80.2290],
-        [12.9710, 80.2310],
-        [12.9680, 80.2120],
-        [12.9780, 80.2040],
-      ]
-    },
-    mudichur: {
-      center: [12.9230, 80.0760],
-      polygon: [
-        [12.9360, 80.0620],
-        [12.9340, 80.0910],
-        [12.9120, 80.0930],
-        [12.9090, 80.0680],
-      ]
-    },
-    madipakkam: {
-      center: [12.9647, 80.1961],
-      polygon: [
-        [12.9750, 80.1860],
-        [12.9740, 80.2070],
-        [12.9540, 80.2050],
-        [12.9530, 80.1850],
-      ]
-    },
-    omr: {
-      center: [12.9654, 80.2461],
-      polygon: [
-        [12.9820, 80.2380],
-        [12.9780, 80.2590],
-        [12.9420, 80.2520],
-        [12.9460, 80.2360],
-      ]
-    },
-    tnagar: {
-      center: [13.0418, 80.2341],
-      polygon: [
-        [13.0520, 80.2220],
-        [13.0510, 80.2480],
-        [13.0310, 80.2450],
-        [13.0320, 80.2210],
-      ]
-    },
-    vyasarpadi: {
-      center: [13.1116, 80.2608],
-      polygon: [
-        [13.1240, 80.2490],
-        [13.1220, 80.2740],
-        [13.0990, 80.2710],
-        [13.1010, 80.2480],
-      ]
-    },
-    kurla: {
-      center: [19.0657, 72.8794],
-      polygon: [
-        [19.0760, 72.8680],
-        [19.0740, 72.8920],
-        [19.0540, 72.8890],
-        [19.0560, 72.8690],
-      ]
-    },
-    bellandur: {
-      center: [12.9304, 77.6784],
-      polygon: [
-        [12.9420, 77.6650],
-        [12.9400, 77.6920],
-        [12.9180, 77.6890],
-        [12.9200, 77.6660],
-      ]
-    }
-  };
+  /**
+   * Zone geometry now travels with the zone.
+   *
+   * It used to live here as a hardcoded table keyed by zone id, which meant
+   * adding a city to the data did not add it to the map: adyar, kolathur and
+   * hindmata had no entry, so three wards silently never rendered, and a
+   * stale "vyasarpadi" key pointed at a zone that no longer existed.
+   */
+  const geometryFor = (zone: ZoneData) =>
+    zone.geoCenter && zone.geoPolygon
+      ? { center: zone.geoCenter, polygon: zone.geoPolygon }
+      : null;
+
+
 
   // Safe evacuation routes & submerged corridors
   const EVACUATION_ROUTES = [
@@ -247,7 +194,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
     // the zones this app exists to show sit off-screen on first paint.
     const map = mapInstanceRef.current;
     const zonePoints = zones
-      .map((z) => ZONE_COORDINATES[z.id]?.polygon)
+      .map((z) => geometryFor(z)?.polygon)
       .filter(Boolean)
       .flat() as [number, number][];
     if (map && zonePoints.length > 0) {
@@ -297,7 +244,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
 
     // 1. Render Zone Polygons
     zones.forEach((zone) => {
-      const coords = ZONE_COORDINATES[zone.id];
+      const coords = geometryFor(zone);
       const riskColor = getRiskColor(zone.currentRisk);
 
       if (coords) {
@@ -372,7 +319,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
     });
 
     // 2. Render Historical Overlays if enabled
-    if (show2015Historical) {
+    if (show2015Historical && hasHistoricalExtents) {
       // 2015 Deluge Boundary
       const hist2015 = L.polygon([
         [13.0020, 80.1980],
@@ -392,7 +339,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
       layerGroup.addLayer(hist2015);
     }
 
-    if (show2023Historical) {
+    if (show2023Historical && hasHistoricalExtents) {
       // 2023 Cyclone Michaung Boundary
       const hist2023 = L.polygon([
         [12.9900, 80.2050],
@@ -533,7 +480,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
 
     // 6. Render Resource Pre-positioning points
     if (showResources) {
-      RESOURCE_PREPOSITIONS.filter(r => zones.some(z => z.id === r.zoneId)).forEach((res) => {
+      resources.forEach((res) => {
         const showLabel = zoomLevel >= LABEL_ZOOM;
         const resColor = res.priority === 'CRITICAL' ? tokens.accent2 : tokens.accent;
         const resLabel =
@@ -658,7 +605,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
 
     if (matchedZone) {
       onSelectZone(matchedZone);
-      const coords = ZONE_COORDINATES[matchedZone.id];
+      const coords = geometryFor(matchedZone);
       if (coords) {
         mapInstanceRef.current.flyTo(coords.center, 14, { duration: 1.0 });
       }
@@ -738,6 +685,8 @@ export const LeafletFloodMap: React.FC<Props> = ({
 
         {/* Layer Filter Toggles */}
         <div className="flex flex-wrap items-center gap-2 text-xs">
+          {hasHistoricalExtents && (
+          <>
           <button
             onClick={() => setShow2015Historical(!show2015Historical)}
             className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer shadow-sm ${
@@ -768,6 +717,8 @@ export const LeafletFloodMap: React.FC<Props> = ({
             </svg>
             <span>2023 Michaung</span>
           </button>
+          </>
+          )}
 
           <button
             onClick={() => setShowEvacRoutes(!showEvacRoutes)}
