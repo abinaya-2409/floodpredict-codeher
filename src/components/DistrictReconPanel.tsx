@@ -1,6 +1,6 @@
 import React from 'react';
 import { Compass, CloudRain, Mountain, Timer, Info, X, Home, Loader2 } from 'lucide-react';
-import { Facility, facilityLabel } from '../utils/overpass';
+import { Facility, facilityLabel } from '../utils/facilities';
 import { DistrictReconnaissance } from '../utils/districtModel';
 import { RiskBadge } from './ui/Badge';
 

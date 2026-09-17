@@ -28,7 +28,7 @@ await new Promise((r) => setTimeout(r, 4000));
 const opts = await page.$$('[role="option"] button');
 console.log('search results:', opts.length);
 if (opts.length) await opts[0].click();
-await new Promise((r) => setTimeout(r, 10000));
+await new Promise((r) => setTimeout(r, 40000));
 
 const out = await page.evaluate(() => {
   const p = document.querySelector('[aria-labelledby="recon-heading"]');

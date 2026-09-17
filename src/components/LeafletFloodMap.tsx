@@ -6,7 +6,7 @@ import { Sliders, Layers, Search, MapPin, AlertTriangle, ShieldCheck, Navigation
 import { PlaceResult, fetchBoundary, searchPlaces } from '../utils/geocode';
 import { fetchElevations, fetchRainfall } from '../utils/openMeteo';
 import { DistrictReconnaissance, assessDistrict, sampleGrid } from '../utils/districtModel';
-import { Facility, fetchFacilities } from '../utils/overpass';
+import { Facility, fetchFacilities } from '../utils/facilities';
 import { DistrictReconPanel } from './DistrictReconPanel';
 import {
   availableBasemaps,
