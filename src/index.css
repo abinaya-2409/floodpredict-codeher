@@ -1,124 +1,449 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
-/* Hydrodynamic Theme & Custom CSS */
+/* ===========================================================================
+   JalRakshak design tokens
+   ---------------------------------------------------------------------------
+   Every colour in the application resolves through one of the names below.
+   No component may reference a raw palette value (bg-slate-900, #0ea5e9, ...)
+   directly - that is what made this codebase unthemeable in the first place.
+
+   A theme is nothing more than a redefinition of these same variables, so
+   adding one costs a block of CSS rather than an edit to ten components.
+   =========================================================================== */
+
+@theme {
+  /* Surfaces, from the page ground upward */
+  --color-bg: #070d17;
+  --color-bg-deep: #04080f;
+  --color-surface: #0d1524;
+  --color-surface-2: #131e30;
+  --color-surface-3: #1b293f;
+
+  /* Lines */
+  --color-line: #1e2c42;
+  --color-line-strong: #2b3d58;
+
+  /* Type */
+  --color-fg: #eef4fb;
+  --color-fg-soft: #c3d2e4;
+  --color-muted: #8aa0bb;
+  --color-subtle: #5d738f;
+
+  /* Brand accents */
+  --color-accent: #38bdf8;
+  --color-accent-soft: #7dd3fc;
+  --color-accent-deep: #0284c7;
+  --color-accent-2: #a78bfa;
+  --color-on-accent: #04121f;
+
+  /* Risk ramp - blue to magenta, chosen to stay distinguishable for
+     deuteranopia and protanopia, unlike the usual green/amber/red. */
+  --color-risk-low: #2dd4bf;
+  --color-risk-moderate: #60a5fa;
+  --color-risk-high: #fbbf24;
+  --color-risk-severe: #fb7185;
+  --color-risk-critical: #e879f9;
+
+  /* Status */
+  --color-positive: #34d399;
+  --color-warning: #fbbf24;
+  --color-danger: #fb7185;
+
+  /* Glass / elevation */
+  --glass-bg: linear-gradient(160deg, rgb(19 30 48 / 0.72) 0%, rgb(9 15 26 / 0.82) 100%);
+  --glass-border: rgb(56 189 248 / 0.14);
+  --glass-blur: 22px;
+  --glass-shadow: 0 18px 44px -14px rgb(2 8 20 / 0.72), inset 0 1px 0 0 rgb(255 255 255 / 0.04);
+
+  /* Motion - Dynamic theme scales this with live risk */
+  --motion-scale: 1;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Inter", ui-sans-serif, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* ---------------------------------------------------------------------------
+   LIGHT - "Daylight Operations"
+   A municipal control room at midday. Elevation comes from shadow, not glow;
+   the glass panels are rebuilt rather than tinted, because a dark radial
+   gradient behind a blur reads as dirty grey on a light ground.
+   --------------------------------------------------------------------------- */
+:root[data-theme="light"] {
+  --color-bg: #eef2f7;
+  --color-bg-deep: #e2e8f0;
+  --color-surface: #ffffff;
+  --color-surface-2: #f6f8fb;
+  --color-surface-3: #eaeff6;
+
+  --color-line: #d7e0ea;
+  --color-line-strong: #b6c4d4;
+
+  --color-fg: #0c1522;
+  --color-fg-soft: #27364a;
+  --color-muted: #55677e;
+  --color-subtle: #7c8ca2;
+
+  --color-accent: #0369a1;
+  --color-accent-soft: #0284c7;
+  --color-accent-deep: #075985;
+  --color-accent-2: #6d28d9;
+  --color-on-accent: #ffffff;
+
+  /* Darkened so every band clears 4.5:1 against white */
+  --color-risk-low: #0f766e;
+  --color-risk-moderate: #1d4ed8;
+  --color-risk-high: #a16207;
+  --color-risk-severe: #be123c;
+  --color-risk-critical: #a21caf;
+
+  --color-positive: #047857;
+  --color-warning: #a16207;
+  --color-danger: #be123c;
+
+  --glass-bg: linear-gradient(160deg, rgb(255 255 255 / 0.86) 0%, rgb(246 249 252 / 0.78) 100%);
+  --glass-border: rgb(15 40 70 / 0.1);
+  --glass-blur: 18px;
+  --glass-shadow: 0 12px 32px -16px rgb(15 35 62 / 0.28), inset 0 1px 0 0 rgb(255 255 255 / 0.9);
+}
+
+/* ---------------------------------------------------------------------------
+   OLED - "Blackout Mode"
+   True #000000. On an OLED panel a black pixel is an unlit pixel, so this
+   theme measurably extends battery life on the phones people are actually
+   holding during a flood. Surfaces separate by hairline, never by lighter fill.
+   --------------------------------------------------------------------------- */
+:root[data-theme="oled"] {
+  --color-bg: #000000;
+  --color-bg-deep: #000000;
+  --color-surface: #050505;
+  --color-surface-2: #0a0a0c;
+  --color-surface-3: #101015;
+
+  --color-line: #1c1c22;
+  --color-line-strong: #2e2e38;
+
+  --color-fg: #ffffff;
+  --color-fg-soft: #d4d4dc;
+  --color-muted: #9494a2;
+  --color-subtle: #6b6b78;
+
+  --color-accent: #22d3ee;
+  --color-accent-soft: #67e8f9;
+  --color-accent-deep: #0891b2;
+  --color-accent-2: #c084fc;
+  --color-on-accent: #000000;
+
+  --color-risk-low: #2dd4bf;
+  --color-risk-moderate: #7dd3fc;
+  --color-risk-high: #fcd34d;
+  --color-risk-severe: #fb7185;
+  --color-risk-critical: #f0abfc;
+
+  --glass-bg: linear-gradient(160deg, rgb(10 10 12 / 0.9) 0%, rgb(0 0 0 / 0.94) 100%);
+  --glass-border: rgb(255 255 255 / 0.1);
+  --glass-blur: 14px;
+  --glass-shadow: 0 0 0 1px rgb(255 255 255 / 0.05);
+}
+
+/* ---------------------------------------------------------------------------
+   DYNAMIC - "Situational"
+   The only theme that is not a fixed palette. ThemeProvider writes
+   --live-risk (0-1) and --live-hue from the highest current VRI across the
+   city, and the interface warms from calm cyan toward emergency magenta as
+   conditions worsen. Ambient motion accelerates with it.
+   --------------------------------------------------------------------------- */
+:root[data-theme="dynamic"] {
+  --live-risk: 0;
+  --live-hue: 196;
+
+  --color-bg: oklch(0.17 calc(0.03 + var(--live-risk) * 0.07) var(--live-hue));
+  --color-bg-deep: oklch(0.12 calc(0.03 + var(--live-risk) * 0.06) var(--live-hue));
+  --color-surface: oklch(0.22 calc(0.03 + var(--live-risk) * 0.06) var(--live-hue));
+  --color-surface-2: oklch(0.26 calc(0.035 + var(--live-risk) * 0.06) var(--live-hue));
+  --color-surface-3: oklch(0.31 calc(0.04 + var(--live-risk) * 0.06) var(--live-hue));
+
+  --color-line: oklch(0.34 calc(0.04 + var(--live-risk) * 0.07) var(--live-hue));
+  --color-line-strong: oklch(0.44 calc(0.06 + var(--live-risk) * 0.09) var(--live-hue));
+
+  --color-fg: oklch(0.97 0.012 var(--live-hue));
+  --color-fg-soft: oklch(0.88 0.022 var(--live-hue));
+  --color-muted: oklch(0.72 0.03 var(--live-hue));
+  --color-subtle: oklch(0.58 0.032 var(--live-hue));
+
+  --color-accent: oklch(0.78 0.15 var(--live-hue));
+  --color-accent-soft: oklch(0.86 0.11 var(--live-hue));
+  --color-accent-deep: oklch(0.62 0.16 var(--live-hue));
+  --color-on-accent: oklch(0.16 0.04 var(--live-hue));
+
+  --glass-bg: linear-gradient(
+    160deg,
+    oklch(0.24 calc(0.04 + var(--live-risk) * 0.07) var(--live-hue) / 0.68) 0%,
+    oklch(0.15 calc(0.035 + var(--live-risk) * 0.06) var(--live-hue) / 0.82) 100%
+  );
+  --glass-border: oklch(0.72 0.14 var(--live-hue) / 0.2);
+
+  /* Calm at rest, agitated under load. */
+  --motion-scale: calc(1 + var(--live-risk) * 1.6);
+
+  transition: --live-risk 1.4s ease-out, --live-hue 1.4s ease-out;
+}
+
+@property --live-risk {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --live-hue {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 196;
+}
+
+/* ===========================================================================
+   Base
+   =========================================================================== */
+
 @layer base {
-  html, body {
+  html,
+  body {
     margin: 0;
     padding: 0;
-    background-color: #060b13;
-    color: #f0f6fc;
-    font-family: 'Inter', sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Colour-scheme hint so form controls and scrollbars follow the theme. */
+  :root {
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+  }
+
+  /* Visible focus for every interactive element. The previous build had no
+     focus styling at all, which made the app unusable by keyboard. */
+  :where(a, button, [role="button"], input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 }
 
-::-webkit-scrollbar { display: none; }
+/* Screen-reader-only text that still receives focus when tabbed to. */
+.sr-only-focusable {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.sr-only-focusable:focus {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0.6rem 1rem;
+  clip: auto;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border-radius: 6px;
+  font-weight: 600;
+}
 
-/* Hydrodynamic Multi-Accent Fluid Glass */
+/* Scrollbars: hidden was a mistake - it removes a navigation affordance.
+   Slim and themed instead. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-subtle);
+}
+
+/* ===========================================================================
+   Surface primitives
+   =========================================================================== */
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Retained so older markup keeps rendering during the migration. */
 .fluid-glass {
-  background: radial-gradient(140% 125% at 15% 0%, rgba(16, 26, 40, 0.82) 0%, rgba(8, 14, 24, 0.9) 100%);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(56, 189, 248, 0.16);
-  box-shadow: 0 16px 40px -10px rgba(2, 8, 20, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
+.glass-interactive,
 .fluid-glass-interactive {
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
 }
 
+.glass-interactive:hover,
 .fluid-glass-interactive:hover {
   transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--color-accent) 40%, transparent);
 }
 
-/* Ambient Wave Ripples & Animations */
+/* ===========================================================================
+   Ambient motion. Every duration divides by --motion-scale, so the Dynamic
+   theme speeds the whole interface up as risk climbs, from one variable.
+   =========================================================================== */
+
 @keyframes hydroPulse {
-  0%, 100% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.08); opacity: 1; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
 }
 
 .animate-hydro-pulse {
-  animation: hydroPulse 4s ease-in-out infinite;
+  animation: hydroPulse calc(4s / var(--motion-scale)) ease-in-out infinite;
 }
 
 @keyframes radarSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .animate-radar-sweep {
-  animation: radarSpin 3s linear infinite;
+  animation: radarSpin calc(3s / var(--motion-scale)) linear infinite;
   transform-origin: center;
 }
 
 @keyframes fluidFlow {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  50% { transform: translate(-10px, 8px) rotate(1deg); }
-  100% { transform: translate(0, 0) rotate(0deg); }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(-10px, 8px) rotate(1deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
 }
 
 .animate-fluid-flow {
-  animation: fluidFlow 14s ease-in-out infinite;
+  animation: fluidFlow calc(14s / var(--motion-scale)) ease-in-out infinite;
 }
 
-/* Custom Hydro Slider */
-input[type=range].fluid-slider {
-  -webkit-appearance: none;
-  background: transparent;
+@keyframes riskBreathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
-input[type=range].fluid-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  height: 22px;
-  width: 22px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #6ee7b7, #059669);
-  cursor: pointer;
-  box-shadow: 0 0 16px #10b981, 0 0 28px rgba(16,185,129,0.5);
-  border: 2px solid #ffffff;
-  margin-top: -8px;
-  transition: transform 0.15s ease;
+.animate-risk-breathe {
+  animation: riskBreathe calc(2.4s / var(--motion-scale)) ease-in-out infinite;
 }
 
-input[type=range].fluid-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.22);
+/* Anyone who has asked for less motion gets none of it. Non-negotiable in an
+   application whose whole premise is accessibility. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
-input[type=range].fluid-slider::-webkit-slider-runnable-track {
-  width: 100%;
-  height: 6px;
-  cursor: pointer;
-  background: linear-gradient(90deg, #10b981 0%, #06b6d4 35%, #f59e0b 70%, #f43f5e 100%);
-  border-radius: 9999px;
-  border: none;
-}
+/* ===========================================================================
+   Leaflet chrome, themed. Without this the map keeps its own white popups
+   and attribution bar in every theme.
+   =========================================================================== */
 
-/* Leaflet dark theme customizations */
 .leaflet-container {
-  background-color: #050b14 !important;
-  font-family: inherit;
+  background: var(--color-bg-deep);
+  font-family: var(--font-sans);
 }
 
-.leaflet-popup-content-wrapper, .leaflet-popup-tip {
-  background: rgba(15, 23, 42, 0.95) !important;
-  backdrop-filter: blur(16px);
-  color: #f8fafc !important;
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  border-radius: 1rem;
-  box-shadow: 0 16px 36px -5px rgba(0, 0, 0, 0.7);
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--color-surface);
+  color: var(--color-fg);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--glass-shadow);
 }
 
 .leaflet-popup-content {
-  margin: 14px 16px;
-  line-height: 1.4;
+  margin: 0.75rem 0.9rem;
+  font-size: 0.8rem;
+}
+
+.leaflet-popup-close-button {
+  color: var(--color-muted) !important;
 }
 
 .leaflet-control-zoom a {
-  background-color: #0c131d !important;
-  color: #38bdf8 !important;
-  border-color: #334155 !important;
+  background: var(--color-surface) !important;
+  color: var(--color-fg) !important;
+  border-color: var(--color-line) !important;
 }
 
 .leaflet-control-zoom a:hover {
-  background-color: #1e293b !important;
+  background: var(--color-surface-2) !important;
+}
+
+.leaflet-control-attribution {
+  background: color-mix(in oklab, var(--color-surface) 82%, transparent) !important;
+  color: var(--color-subtle) !important;
+  font-size: 10px !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--color-accent) !important;
+}
+
+/* Vanta injects a fixed canvas; keep it behind everything and inert. */
+.vanta-canvas-host canvas {
+  pointer-events: none !important;
 }

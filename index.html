@@ -2,21 +2,61 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>JalRakshak AI — Hydrodynamic Urban Flood Intelligence</title>
-    <meta name="description" content="AI-powered urban flood forecasting, drainage bottleneck simulation, street-level inundation thresholds, and tiered early warning system." />
-    <meta property="og:title" content="JalRakshak AI — Hydrodynamic Urban Flood Intelligence" />
-    <meta property="og:description" content="AI-powered urban flood forecasting, drainage bottleneck simulation, street-level inundation thresholds, and tiered early warning system." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>JalRakshak - Urban Flood Intelligence</title>
+    <meta
+      name="description"
+      content="Composite vulnerability risk index, street-level inundation forecasting and tiered early warning for flood-prone Indian wards."
+    />
+    <meta name="theme-color" content="#070d17" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <meta property="og:title" content="JalRakshak - Urban Flood Intelligence" />
+    <meta
+      property="og:description"
+      content="Composite vulnerability risk index, street-level inundation forecasting and tiered early warning for flood-prone Indian wards."
+    />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og-cover.svg" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <meta name="twitter:image" content="/og-cover.svg" />
+
+    <!--
+      Applies the stored theme before React mounts. Without this, every visitor
+      sees a flash of the default palette before their own choice loads.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('jalrakshak.theme');
+          var theme =
+            stored === 'light' || stored === 'oled' || stored === 'dynamic'
+              ? stored
+              : window.matchMedia('(prefers-color-scheme: light)').matches
+                ? 'light'
+                : 'oled';
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'oled');
+        }
+      })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
   </head>
-  <body class="bg-slate-950 text-slate-100 antialiased font-sans selection:bg-cyan-500 selection:text-white">
+  <body>
     <div id="root"></div>
+    <noscript>
+      JalRakshak needs JavaScript to render live flood modelling. For emergency
+      assistance in India call 1070 (State) or 1913 (Chennai Corporation).
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
