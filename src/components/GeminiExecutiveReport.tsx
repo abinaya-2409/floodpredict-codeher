@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CityData, ZoneData, SimulationParams } from '../types';
 import { useThemeTokens } from '../theme/useThemeTokens';
+import { AlertTriangle } from 'lucide-react';
 
 interface Props {
   city: CityData;
@@ -17,6 +18,9 @@ export const GeminiExecutiveReport: React.FC<Props> = ({
   const [report, setReport] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [reportGeneratedTime, setReportGeneratedTime] = useState<string | null>(null);
+  // Tracks whether what is on screen came from Gemini or is placeholder text.
+  const [isSample, setIsSample] = useState(false);
+  const [sampleReason, setSampleReason] = useState<string | null>(null);
 
   const generateReport = async () => {
     setIsLoading(true);
@@ -43,10 +47,14 @@ export const GeminiExecutiveReport: React.FC<Props> = ({
       });
 
       const data = await response.json();
+      setIsSample(Boolean(data.sample));
+      setSampleReason(data.reasonDetail ?? data.reason ?? null);
       setReport(data.analysis || 'Hydrological analysis generated.');
       setReportGeneratedTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     } catch (err) {
       console.error(err);
+      setIsSample(true);
+      setSampleReason('The analysis service could not be reached from this browser.');
       setReport(
         `TACTICAL DIRECTIVE: FLASH-${simulationParams.rainfallIntensityMmHr}MM-${city.name.toUpperCase()}\n\n` +
           `1. NDRF Deployment: Pre-stage 2 rescue rafts at low-lying catchment junctions before critical culvert breach window.\n` +
@@ -66,6 +74,25 @@ export const GeminiExecutiveReport: React.FC<Props> = ({
       className="fluid-glass rounded-[28px] p-5 shadow-2xl flex flex-col gap-4 border border-accent-2/25 relative overflow-hidden"
       id="gemini-executive-report"
     >
+      {/* Placeholder output must never be mistakable for real analysis. */}
+      {report && isSample && (
+        <div
+          role="status"
+          className="relative z-10 flex items-start gap-2 rounded-xl border border-risk-high/40 bg-risk-high/10 px-3 py-2"
+        >
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-risk-high" aria-hidden="true" />
+          <div className="text-[11px] leading-snug">
+            <strong className="font-bold uppercase tracking-wider text-risk-high">
+              Sample output - not AI generated
+            </strong>
+            <p className="mt-0.5 text-muted">
+              Illustrative figures shown because live analysis is unavailable.
+              {sampleReason ? ` ${sampleReason}` : ''}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Ambient Fluid Glow Background (Violet / Cyan) */}
       <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-accent-2/15 blur-2xl pointer-events-none" />
 
