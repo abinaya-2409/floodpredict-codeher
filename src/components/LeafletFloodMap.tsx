@@ -178,7 +178,6 @@ export const LeafletFloodMap: React.FC<Props> = ({
         // Smoother wheel zoom than Leaflet's stepped default.
         zoomSnap: 0.5,
         wheelPxPerZoomLevel: 110,
-        preferCanvas: true,
       });
 
       const tiles = basemapById(basemapId);
@@ -847,10 +846,21 @@ export const LeafletFloodMap: React.FC<Props> = ({
 
       {/* Map Container */}
       <div className="relative w-full h-[clamp(24rem,58vh,40rem)] bg-bg-deep">
-        <div
-          ref={mapContainerRef}
-          className={`w-full h-full z-10 ${basemapId === 'dark' ? 'map-dim' : ''}`}
-        />
+        {/*
+          The element Leaflet owns must keep a constant className.
+          Leaflet writes its own classes (leaflet-container, leaflet-touch,
+          the zoom-animation classes) straight onto this node, and React
+          rewrites className wholesale whenever the interpolated value
+          changes - which silently deleted them the moment the basemap was
+          switched, taking .leaflet-container's positioning with it. The
+          tiles stayed in the DOM, orphaned and unpositioned, so the map went
+          black while every network request still succeeded.
+
+          Anything conditional therefore lives on the wrapper, never here.
+        */}
+        <div className={`w-full h-full ${basemapId === 'dark' ? 'map-dim' : ''}`}>
+          <div ref={mapContainerRef} className="w-full h-full z-10" />
+        </div>
 
         {/* Real-time Scenario Slider (Floating Hydro Wave Slider) */}
         <div className="absolute bottom-9 left-3 right-3 md:right-auto md:w-[24rem] z-[500] glass rounded-card p-3.5 shadow-xl border border-line-strong/40 space-y-2">

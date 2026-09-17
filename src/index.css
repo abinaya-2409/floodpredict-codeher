@@ -292,7 +292,7 @@
    =========================================================================== */
 
 /* The basemap is context, not content: dim it so risk colours dominate. */
-.map-dim .leaflet-tile-pane {
+.map-dim .leaflet-tile-pane img.leaflet-tile {
   filter: brightness(0.82) saturate(0.55) contrast(1.05);
 }
 
