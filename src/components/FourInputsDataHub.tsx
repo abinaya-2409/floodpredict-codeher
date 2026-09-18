@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { CityData, WeatherForecast, DrainageChannel, HistoricalFloodComparison } from '../types';
+import { CityData, WeatherForecast, DrainageChannel } from '../types';
 import { CloudRain, Waves, Radio, History, CheckCircle2, AlertCircle, Gauge, Activity, Wind, Compass, Droplet } from 'lucide-react';
-import { CHENNAI_HISTORICAL_DATA } from '../data/mockData';
+import { TnDisasterRecord } from './TnDisasterRecord';
 
 interface Props {
   city: CityData;
@@ -233,36 +233,10 @@ export const FourInputsDataHub: React.FC<Props> = ({
         </div>
       )}
 
-      {/* Tab 4: Historical Flood Calibration (Chennai 2015 & 2023) */}
+      {/* Tab 4: the Tamil Nadu disaster record. */}
       {activeTab === 'historical' && (
-        <div className="space-y-4 animate-in fade-in duration-200">
-          <div className="p-3.5 bg-bg border border-line rounded-card text-xs text-fg-soft">
-            <span className="font-bold text-fg">Machine Learning Ground-Truth Training:</span> The hydrological risk model is calibrated and validated against real past inundation datasets from the 2015 Deluge and 2023 Cyclone Michaung in Chennai.
-          </div>
-
-          <div className="space-y-3">
-            {CHENNAI_HISTORICAL_DATA.map((deluge, i) => (
-              <div key={i} className="p-4 bg-bg border border-line rounded-card space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <span className="p-1 rounded bg-accent/20 text-accent font-mono text-xs font-bold">{deluge.year}</span>
-                    <span className="font-bold text-fg text-sm">{deluge.eventName}</span>
-                  </div>
-                  <span className="font-mono text-xs text-accent-soft font-bold">{deluge.recordedRainfallMm24h} mm / 24h</span>
-                </div>
-
-                <p className="text-xs text-fg-soft leading-relaxed">
-                  <strong className="text-fg-soft">Hydrological Root Cause:</strong> {deluge.primaryCause}
-                </p>
-
-                <div className="flex items-center space-x-4 text-mini text-muted pt-2 border-t border-line/80 font-mono">
-                  <span>Peak Inundation: <strong className="text-fg-soft">{deluge.peakInundationAreaSqKm} sq.km</strong></span>
-                  <span>•</span>
-                  <span>Impacted Population: <strong className="text-risk-critical">{deluge.affectedPopulation.toLocaleString()}</strong></span>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="animate-in fade-in duration-200">
+          <TnDisasterRecord />
         </div>
       )}
     </div>

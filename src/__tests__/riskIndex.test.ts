@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { CITIES } from '../data/mockData';
+// ALL_CITIES, not CITIES: the app is scoped to Tamil Nadu, but the index
+// itself is not, and this file tests the index. Reading the scoped list would
+// make these assertions quietly vanish the moment the scope narrowed.
+import { ALL_CITIES, CITIES } from '../data/mockData';
 import { assessZone, bandForScore, rankByPriority, VRI_WEIGHTS } from '../utils/riskIndex';
 import { calculateZoneHydrology } from '../utils/floodEngine';
 import { SimulationParams } from '../types';
 
-const chennai = CITIES[0];
+const chennai = ALL_CITIES.find((c) => c.id === 'chennai')!;
 
 const params = (over: Partial<SimulationParams> = {}): SimulationParams => ({
   rainfallIntensityMmHr: 45,
@@ -68,7 +71,7 @@ describe('assessZone', () => {
 
   it('separates two zones that flood alike but differ socially', () => {
     // Kurla is far denser and more fragile than the OMR tech corridor.
-    const kurlaCity = CITIES.find((c) => c.id === 'mumbai')!;
+    const kurlaCity = ALL_CITIES.find((c) => c.id === 'mumbai')!;
     const kurla = kurlaCity.zones.find((z) => z.id === 'kurla')!;
     const omr = chennai.zones.find((z) => z.id === 'omr')!;
     expect(kurla.demographics.groundFloorDwellingPercent).toBeGreaterThan(

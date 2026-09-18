@@ -19,7 +19,7 @@ import {
 import {
   availableBasemaps,
   basemapById,
-  INDIA_BOUNDS,
+  TAMIL_NADU_BOUNDS,
   useThemeTokens,
 } from '../theme/useThemeTokens';
 
@@ -207,11 +207,11 @@ export const LeafletFloodMap: React.FC<Props> = ({
         center: [city.lat, city.lng],
         zoom: 12,
         zoomControl: true,
-        // Every Indian district stays reachable; the viewport cannot drift
-        // into open ocean and lose the user.
-        maxBounds: INDIA_BOUNDS,
+        // Scoped to Tamil Nadu: every district in the state stays reachable
+        // and the viewport cannot drift out of the area the data covers.
+        maxBounds: TAMIL_NADU_BOUNDS,
         maxBoundsViscosity: 0.6,
-        minZoom: 4,
+        minZoom: 6,
         maxZoom: 20,
         // Smoother wheel zoom than Leaflet's stepped default.
         zoomSnap: 0.5,

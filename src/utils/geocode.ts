@@ -26,6 +26,9 @@ export interface PlaceResult {
 }
 
 const ENDPOINT = 'https://nominatim.openstreetmap.org/search';
+/** left,top,right,bottom - Nominatim's order, not GeoJSON's. */
+const TN_VIEWBOX = '75.8,13.8,80.7,7.6';
+
 const cache = new Map<string, PlaceResult[]>();
 
 /**
@@ -67,6 +70,11 @@ export async function searchPlaces(
     format: 'jsonv2',
     limit: '6',
     addressdetails: '0',
+    // Scoped to Tamil Nadu. `bounded` makes the viewbox a filter rather than
+    // a preference, so searching "Salem" returns the Tamil Nadu district and
+    // not the one in Oregon or the several elsewhere in India.
+    viewbox: TN_VIEWBOX,
+    bounded: '1',
   });
 
   const res = await fetch(`${ENDPOINT}?${params}`, {
@@ -114,6 +122,8 @@ export async function fetchBoundary(
     format: 'jsonv2',
     polygon_geojson: '1',
     limit: '1',
+    viewbox: TN_VIEWBOX,
+    bounded: '1',
   });
   const res = await fetch(`${ENDPOINT}?${params}`, { signal, headers: { Accept: 'application/json' } });
   if (!res.ok) return null;

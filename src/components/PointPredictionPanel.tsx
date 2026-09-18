@@ -1,6 +1,7 @@
 import React from 'react';
 import { Loader2, Pause, Play, X } from 'lucide-react';
 import { ForecastMode, PointForecast } from '../utils/pointForecast';
+import { historyForPoint } from '../utils/tnHistory';
 import { useThemeTokens } from '../theme/useThemeTokens';
 
 /**
@@ -365,6 +366,63 @@ export const PointPredictionPanel: React.FC<Props> = ({
             </div>
           ))}
         </div>
+
+        {/*
+          What has actually happened here.
+
+          Deliberately below the forecast and visually separated from it: this
+          is a record of past events, and none of it is an input to the number
+          above. Eleven flood and cyclone events in ten years is context for a
+          person, not a coefficient.
+        */}
+        {(() => {
+          const history = historyForPoint(forecast.lat, forecast.lon);
+          if (!history || !history.floodEvents.length) return null;
+          const recent = [...history.floodEvents]
+            .sort((a, b) => b.year - a.year)
+            .slice(0, 4);
+
+          return (
+            <div className="rounded-card border border-line/70 bg-surface/50 px-2.5 py-2">
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="font-mono text-nano uppercase tracking-[0.14em] text-muted">
+                  Recorded here before
+                </p>
+                <span className="font-mono text-nano text-subtle">
+                  nearest: {history.district}
+                </span>
+              </div>
+
+              <p className="mt-1 text-nano leading-relaxed text-fg-soft">
+                <strong className="text-fg">{history.floodCount}</strong> flood or cyclone
+                {history.floodCount === 1 ? ' event' : ' events'} on record since 2016
+                {history.floodDeaths > 0 && (
+                  <>
+                    , with <strong className="text-risk-severe">{history.floodDeaths}</strong>{' '}
+                    recorded deaths across them
+                  </>
+                )}
+                .
+              </p>
+
+              <ul className="mt-1.5 space-y-0.5">
+                {recent.map((e) => (
+                  <li key={e.id} className="flex items-baseline gap-1.5 text-nano">
+                    <span className="font-mono font-bold text-accent">{e.year}</span>
+                    <span className="min-w-0 flex-1 truncate text-fg-soft">{e.name}</span>
+                    {e.deaths !== null && (
+                      <span className="shrink-0 font-mono text-subtle">{e.deaths} dead</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+
+              <p className="mt-1.5 text-nano leading-relaxed text-subtle">
+                Past events, not a model input. The forecast above is unchanged by them.
+              </p>
+            </div>
+          );
+        })()}
 
         {/* Why. Ordered by how much each term moved the result. */}
         <div>

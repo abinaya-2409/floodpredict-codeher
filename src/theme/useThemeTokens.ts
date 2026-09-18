@@ -205,3 +205,20 @@ export const INDIA_BOUNDS: [[number, number], [number, number]] = [
   [5.5, 66.0],
   [37.5, 98.5],
 ];
+
+/**
+ * Tamil Nadu, padded.
+ *
+ * The application is scoped to the one state its disaster record covers, so
+ * the map is bounded to it: panning cannot wander to Delhi and leave every
+ * historical overlay, ward model and relief-camp lookup behind. The padding
+ * keeps Kanniyakumari and the Nilgiris comfortably reachable rather than
+ * pinned against the edge.
+ */
+export const TAMIL_NADU_BOUNDS: [[number, number], [number, number]] = [
+  [7.6, 75.8],
+  [13.8, 80.7],
+];
+
+/** Roughly the geographic centre of the state. */
+export const TAMIL_NADU_CENTRE: [number, number] = [10.9, 78.3];

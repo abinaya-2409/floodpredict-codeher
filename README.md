@@ -32,11 +32,16 @@ Everything downstream reads from the VRI rather than from hand-authored
 priorities: the evacuation queue, resource dispatch ranking, and map colouring
 are all derived.
 
-**Cities covered:** Chennai, Mumbai, Bengaluru, Delhi, Kolkata, Hyderabad,
-Guwahati and Kochi - 19 wards across eight flood-prone Indian cities, chosen
-for geographic spread (Yamuna floodplain, Hooghly tidal lock, Musi basin,
-Brahmaputra bank, Kerala backwaters). Every feature works in every city; the
-map itself reaches any district in India through keyless place search.
+**Scope: Tamil Nadu.** The map, the district grid, place search and the city
+list are all bounded to the one state whose disaster record this repository
+holds. Chennai is the modelled city, with surveyed drainage, ward
+demographics and per-street thresholds; every other point in the state is
+answered by the terrain-and-rainfall read described below.
+
+Scoping is a filter, not a deletion. The ward models for Mumbai, Bengaluru,
+Delhi, Kolkata, Hyderabad, Guwahati and Kochi are still in `mockData.ts`,
+still typed and still exercised by the test suite; widening the app again is
+a one-line change to `ACTIVE_STATE`.
 
 **Click anywhere to predict there.** The map is an instrument rather than a
 viewer: click any coordinate in India and it samples terrain as a nine-point
@@ -57,6 +62,20 @@ Two sources, switchable in the panel: the live Open-Meteo forecast, or a
 what-if storm you set. Switching between them and dragging the intensity
 recompute locally from the reading already in hand, so the map redraws on the
 same frame instead of waiting on the network.
+
+**The Tamil Nadu disaster record.** 27 sourced events from 2016 to 2025 -
+11 floods and cyclones, plus fireworks-factory explosions, boiler blasts, a
+rail collision and a drought declaration - generated from the CSVs in `data/`
+by `tools/build-tn-history.mjs`. Clicking a point shows what has actually
+happened in that district: events, deaths and the government record they came
+from.
+
+None of it is a model input, and the reason is worth stating plainly. Eleven
+flood and cyclone events cannot calibrate a hydrological model; only one of
+them carries a published rainfall figure, and none records an observed water
+depth. It is context for a person reading a forecast. What the record *can*
+do is catch a model that is badly wrong - see **Does the model agree with the
+record?** below.
 
 **Any other district:** search a district outside those eight and the map
 draws its real OSM boundary and returns a *reconnaissance read* - a 0-100
@@ -189,6 +208,43 @@ different people, and only one of them is contestable on engineering grounds.
 
 ---
 
+## Does the model agree with the record?
+
+`npx tsx tools/validate-model.ts` runs one identical storm - 80mm/hr for six
+hours - at all 32 Tamil Nadu district centroids and ranks the results against
+how often each district appears in the disaster record.
+
+| | |
+|---|---|
+| Districts scored | 32 |
+| With a recorded flood or cyclone | 18 |
+| Mean predicted depth, districts with events | 29.9 cm |
+| Mean predicted depth, districts without | 27.3 cm |
+| **Spearman rho** | **0.389** |
+
+A positive correlation, significant at 5% for n=32. Read it for what it is:
+the model separates the hill districts from the coastal and deltaic ones,
+which is the main thing a terrain read *can* do. Kanniyakumari, Coimbatore,
+the Nilgiris, Salem, Dharmapuri and Krishnagiri all score low, and all of
+them shed water. What it does not do is separate the plains from each other -
+Chennai scores 35cm against Ariyalur's 36cm, and Chennai has six recorded
+events to Ariyalur's none.
+
+That gap is the honest measure of this model: it reads terrain, and urban
+flooding is decided by drainage the terrain cannot see.
+
+Two artefacts of the harness, not of the model, which depress the number:
+
+- **A centroid is one point, and often the wrong one.** Kanniyakumari has two
+  recorded events and scores 0cm because its centroid lands 39m above its
+  surroundings in the Western Ghats, while the district floods on its coastal
+  plain.
+- **The record counts reporting, not flooding.** Chennai is the most reported
+  place in the state for reasons that include it being Chennai.
+
+This is a ranking check, not a depth validation. It can show that a model is
+wrong. It cannot show that one is right.
+
 ## Data provenance and limitations
 
 Read this before quoting any number from this application.
@@ -212,6 +268,18 @@ Read this before quoting any number from this application.
   obvious step.
 - **Nothing persists.** Citizen reports and dispatch state live in memory and
   are lost on refresh.
+- **The disaster record is an impact record, not a meteorological one.** It
+  says what was destroyed and who died, sourced to government releases where
+  possible. It almost never says how much rain fell, and never how deep the
+  water was, so it cannot train or calibrate anything. Where the two source
+  files disagree - Nivar at 6 deaths against 12, Fengal at 40 against 3 - the
+  government-sourced figure is used and the other is kept on the record as a
+  documented variant rather than discarded.
+- **Six Tamil Nadu districts have no polygon.** Chengalpattu, Kallakurichi,
+  Mayiladuthurai, Ranipet, Tenkasi and Tirupathur were created after 2019 and
+  do not exist in the Census 2011 boundary set, so their events are attributed
+  to the parent district they were carved from, and the substitution is
+  recorded on each event.
 
 Replace all four with authoritative feeds before any operational use.
 
@@ -226,7 +294,8 @@ All of it keyless, and fetched on demand rather than vendored:
 | [Esri ArcGIS Online](https://www.esri.com/) | Basemap, satellite and topographic tiles | Free with attribution |
 | [datameet/maps](https://github.com/datameet/maps) | Census 2011 district boundaries (641 districts) | MIT |
 | [CARTO GL basemaps](https://carto.com/attributions) | Vector styles for the national map | Free with attribution |
-| [Nominatim / OpenStreetMap](https://www.openstreetmap.org/copyright) | Relief camp candidates (schools, halls, hospitals) nationwide | ODbL |
+| [Nominatim / OpenStreetMap](https://www.openstreetmap.org/copyright) | Relief camp candidates (schools, halls, hospitals) statewide | ODbL |
+| Tamil Nadu disaster record (`data/*.csv`) | 27 sourced events, 2016-2025 | Compiled from MHA/PIB/CWC parliamentary records, TN government gazettes and press reporting; each row carries its own source URL |
 
 Nominatim asks for at most one request per second; every lookup here is
 debounced and cached for the session.

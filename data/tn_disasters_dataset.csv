@@ -1,0 +1,12 @@
+Year,Event,Type,Month(s),Districts Affected,Deaths (TN),Displaced / Evacuated,Houses Damaged,Est. Economic Loss (INR Cr),Peak Wind / Rainfall,Notes
+2016,Cyclone Vardah,Cyclone,December,"Chennai, Kancheepuram, Thiruvallur",18,,,,Winds up to 130 km/h,Landfall near Chennai; widespread tree and power-line damage
+2018,Cyclone Gaja,Cyclone,November,"Nagapattinam, Thanjavur, Tiruvarur, Pudukottai, Cuddalore, Ramanathapuram",45,250000,115000,,Winds 100-165 km/h,Very severe cyclonic storm; heavy damage across delta districts
+2020,Cyclone Nivar,Cyclone,November,"Cuddalore, Puducherry region, Chengalpattu",12,,,,Winds up to 120 km/h,Major flooding; followed days later by weaker Cyclone Burevi
+2020,Cyclone Burevi,Cyclone,December,Southern coastal districts,,,,,Weakened before landfall,Small tropical storm; limited impact in TN vs Sri Lanka
+2023,Cyclone Michaung,Cyclone / Flood,December,"Chennai, Thiruvallur, Kancheepuram, Chengalpattu, Tirunelveli, Thoothukudi, Tenkasi",17,8000,,,Winds up to 110 km/h; heavy rainfall,Chennai airport runway submerged; Foxconn/Pegatron plants halted; second wave of flooding hit southern districts later in December
+2024,Cyclone Fengal,Cyclone,November-December,"Cauvery Delta districts (Nagapattinam, Thanjavur, Tiruvarur, Mayiladuthurai)",3,,,,"164 mm rainfall (Nagapattinam, single day)",Declared a severe natural disaster by TN Govt for relief fund release
+2025,Cyclone Ditwah,Cyclone / Flood,November-December,"Nagapattinam, Tiruvarur, Mayiladuthurai",3,,,,Bulk of damage occurred in Sri Lanka,"~57,000 hectares of farmland affected across three delta districts"
+,,,,,,,,,,
+2015,Chennai Floods,Urban Flood,November-December,"Chennai, Cuddalore, Kancheepuram",500,1800000,,,"1,200 mm rainfall (highest in a century)",OUTSIDE the 10-year window (reference only); Chembarambakkam reservoir release worsened flooding
+,,,,,,,,,,
+TOTAL (2016-2025),,,,,98,258000,115000,,,

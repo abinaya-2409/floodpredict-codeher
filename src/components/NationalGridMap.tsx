@@ -13,10 +13,15 @@ import {
 import { useThemeTokens } from '../theme/useThemeTokens';
 
 /**
- * National district view.
+ * Tamil Nadu district view.
  *
- * MapLibre rather than Leaflet, because 641 district polygons repainted on
- * every epicentre move is a GPU job: Leaflet would put 641 SVG paths in the
+ * The bundled file carries all 641 Indian districts; this filters it to the
+ * state the application is scoped to, because a footprint drawn over
+ * districts whose flood record the app does not hold is a footprint it
+ * cannot say anything useful about.
+ *
+ * MapLibre rather than Leaflet, because district polygons repainted on
+ * every epicentre move is a GPU job: Leaflet would put every SVG path in the
  * DOM and restyle them one at a time. Here the geometry is uploaded once and
  * only a per-feature score changes, which is what makes dragging the
  * epicentre feel immediate.
@@ -32,7 +37,10 @@ const STYLES = [
   { id: 'light', label: 'Light', url: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json' },
 ] as const;
 
-const INDIA_CENTRE: [number, number] = [78.9629, 22.5937];
+/** Lon, lat - MapLibre's order. */
+const TN_CENTRE: [number, number] = [78.3, 10.9];
+/** [west, south, east, north], padded. */
+const TN_MAX_BOUNDS: [number, number, number, number] = [75.3, 7.2, 81.2, 14.2];
 
 interface LoadedDistrict {
   props: DistrictFeatureProps;
@@ -53,7 +61,15 @@ export function NationalGridMap({
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [districts, setDistricts] = useState<LoadedDistrict[]>([]);
-  const [epicentre, setEpicentre] = useState<[number, number]>([25.6, 87.1]); // Bihar plains
+  /**
+   * Opens on the Coromandel coast near Mahabalipuram.
+   *
+   * The previous default sat in the Bihar plains, which scored zero districts
+   * the moment the grid was filtered to Tamil Nadu - the map loaded with an
+   * empty impact list and nothing to say. This is where cyclones in this
+   * record actually make landfall.
+   */
+  const [epicentre, setEpicentre] = useState<[number, number]>([12.6, 80.19]);
   const [severity, setSeverity] = useState<SeverityLevel>(SEVERITY_LEVELS[2]);
   const [styleId, setStyleId] = useState<(typeof STYLES)[number]['id']>('dark');
   const [placing, setPlacing] = useState(false);
@@ -89,8 +105,18 @@ export function NationalGridMap({
           fetch('/data/india-districts.json'),
         ]);
         if (!res.ok) throw new Error(`District boundaries unavailable (${res.status})`);
-        const geo = (await res.json()) as GeoJSON.FeatureCollection;
+        const all = (await res.json()) as GeoJSON.FeatureCollection;
         if (cancelled || !hostRef.current) return;
+
+        // One state, from the national file. Filtering here rather than
+        // shipping a separate Tamil Nadu extract keeps a single source of
+        // truth for the geometry and one build script to regenerate it.
+        const geo: GeoJSON.FeatureCollection = {
+          type: 'FeatureCollection',
+          features: all.features.filter((f) =>
+            /tamil nadu/i.test(String((f.properties as { state?: string })?.state ?? ''))
+          ),
+        };
 
         geojsonRef.current = geo;
         setDistricts(
@@ -103,10 +129,11 @@ export function NationalGridMap({
         map = new maplibregl.Map({
           container: hostRef.current,
           style: STYLES.find((s) => s.id === styleId)!.url,
-          center: INDIA_CENTRE,
-          zoom: 3.6,
+          center: TN_CENTRE,
+          zoom: 5.9,
           maxZoom: 12,
-          minZoom: 3,
+          minZoom: 5.2,
+          maxBounds: TN_MAX_BOUNDS,
           attributionControl: { compact: true },
         });
         // Top-right: the severity panel owns the top-left corner.
@@ -416,7 +443,7 @@ export function NationalGridMap({
             <div className="absolute inset-0 flex items-center justify-center bg-bg-deep/80">
               <span className="inline-flex items-center gap-2 text-xs text-muted">
                 <Loader2 className="h-4 w-4 animate-spin text-accent" aria-hidden="true" />
-                Loading 641 district boundaries...
+                Loading Tamil Nadu district boundaries...
               </span>
             </div>
           )}

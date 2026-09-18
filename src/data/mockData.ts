@@ -1,4 +1,4 @@
-import { CityData, HistoricalFloodComparison } from '../types';
+import { CityData } from '../types';
 
 /**
  * Ward demographics are indicative estimates compiled from Census 2011
@@ -6,37 +6,27 @@ import { CityData, HistoricalFloodComparison } from '../types';
  * planning estimates, not survey data, and should be replaced with an
  * authoritative feed before any operational use.
  */
-export const CHENNAI_HISTORICAL_DATA: HistoricalFloodComparison[] = [
-  {
-    eventName: '2015 Chennai Deluge (Chembarambakkam Spill)',
-    year: 2015,
-    recordedRainfallMm24h: 494,
-    peakInundationAreaSqKm: 182,
-    affectedPopulation: 1800000,
-    primaryCause: 'Extreme northeast monsoon cloudburst + 29,000 cusecs sudden Chembarambakkam reservoir release into Adyar river coupled with choked stormwater canals.',
-    similarityScore: 0,
-  },
-  {
-    eventName: '2023 Cyclone Michaung Stalled Rainstorm',
-    year: 2023,
-    recordedRainfallMm24h: 390,
-    peakInundationAreaSqKm: 145,
-    affectedPopulation: 1200000,
-    primaryCause: 'Stationary cyclonic outer band lingering over coast for 28 hrs + severe tidal lock preventing Buckingham Canal discharge to sea.',
-    similarityScore: 0,
-  },
-  {
-    eventName: '2021 November Intense Squall',
-    year: 2021,
-    recordedRainfallMm24h: 215,
-    peakInundationAreaSqKm: 65,
-    affectedPopulation: 450000,
-    primaryCause: 'Rapid 60mm/hr cloudburst causing flash waterlogging across low-lying micro-catchments in South Chennai.',
-    similarityScore: 0,
-  }
-];
+/**
+ * The hand-authored Chennai flood comparisons that used to live here have
+ * been removed rather than kept. Their rainfall figures were roughly right
+ * but the inundation areas, affected-population counts and prose "root
+ * causes" were invented, and they were rendered under a heading claiming the
+ * model was calibrated against them. The real record is in
+ * src/data/tnDisasterHistory.ts, generated from sourced CSVs.
+ */
 
-export const CITIES: CityData[] = [
+/**
+ * The state this build operates in.
+ *
+ * Scoping to Tamil Nadu is a filter, not a deletion: the ward models for the
+ * other seven cities are still here, still typed and still tested, and
+ * widening the app again is a one-line change to ACTIVE_STATE. That matters
+ * because the seven carry surveyed drainage networks and ward demographics
+ * that took real work to assemble.
+ */
+export const ACTIVE_STATE = 'Tamil Nadu';
+
+export const ALL_CITIES: CityData[] = [
   {
     id: 'chennai',
     name: 'Chennai',
@@ -2580,6 +2570,9 @@ export const CITIES: CityData[] = [
     ],
   }
 ];
+
+/** Cities inside the active state. Chennai is the only one in Tamil Nadu. */
+export const CITIES: CityData[] = ALL_CITIES.filter((c) => c.state === ACTIVE_STATE);
 
 export const INITIAL_CITIZEN_REPORTS = [
   {
