@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CityData, ZoneData } from '../types';
-import { Shield, ShieldAlert, UserCheck, ArrowRight, Lock, Phone, Mail, MapPin, Building2, CheckCircle2, RefreshCw, Loader2, AlertCircle, Sparkles } from 'lucide-react';
+import { Shield, ShieldAlert, UserCheck, ArrowRight, Lock, Phone, Mail, MapPin, Building2, CheckCircle2, RefreshCw, Loader2, AlertCircle, Sparkles, LogOut, X } from 'lucide-react';
 
 export interface AuthSession {
   mode: 'citizen' | 'authority';
@@ -17,6 +17,8 @@ interface Props {
   selectedCity: CityData;
   zones: ZoneData[];
   onLoginSuccess: (session: AuthSession) => void;
+  onSignOut?: () => void;
+  onClose?: () => void;
   initialSession?: AuthSession | null;
 }
 
@@ -33,6 +35,8 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
   selectedCity,
   zones,
   onLoginSuccess,
+  onSignOut,
+  onClose,
   initialSession
 }) => {
   const [mode, setMode] = useState<'citizen' | 'authority'>('citizen');
@@ -251,6 +255,46 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
 
       <div className="relative w-full max-w-lg my-auto rounded-3xl bg-slate-900/90 border border-cyan-500/30 shadow-[0_25px_60px_-15px_rgba(0,173,181,0.25)] p-6 sm:p-8 backdrop-blur-2xl">
         
+        {/* Close button */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            title="Close"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+
+        {/* Currently Signed In Banner with Sign Out */}
+        {initialSession && !initialSession.isGuest && (
+          <div className="mb-6 p-3.5 rounded-2xl bg-slate-950/80 border border-cyan-500/30 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 overflow-hidden">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <div className="flex flex-col min-w-0">
+                <span className="text-[11px] text-slate-400 font-medium">Currently Signed In:</span>
+                <span className="text-xs font-bold text-white truncate font-mono">
+                  {initialSession.contact || (initialSession.mode === 'authority' ? 'Authority Officer' : 'Verified Citizen')}
+                </span>
+              </div>
+            </div>
+
+            {onSignOut && (
+              <button
+                type="button"
+                onClick={() => {
+                  onSignOut();
+                  showToast('Signed out successfully.');
+                }}
+                className="px-3 py-1.5 rounded-xl bg-rose-950/70 hover:bg-rose-900 border border-rose-500/40 text-rose-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+              >
+                <LogOut className="w-3.5 h-3.5 text-rose-400" />
+                <span>Sign Out</span>
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Top Emblem & Brand */}
         <div className="flex flex-col items-center text-center mb-6">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 via-cyan-600 to-blue-600 p-0.5 shadow-[0_0_24px_rgba(20,184,166,0.4)] flex items-center justify-center mb-3">

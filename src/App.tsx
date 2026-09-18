@@ -217,6 +217,17 @@ export default function App() {
     }
   };
 
+  const handleSignOut = () => {
+    try {
+      localStorage.removeItem('jalrakshak_session');
+    } catch (e) {
+      console.error(e);
+    }
+    setAuthSession(null);
+    setUserRole('citizen');
+    setIsAuthModalOpen(false);
+  };
+
   return (
     <div className="relative min-h-screen bg-bg text-fg flex flex-col font-sans selection:bg-risk-low/30 selection:text-risk-low overflow-x-hidden">
       <a href="#main-content" className="sr-only-focusable">Skip to main content</a>
@@ -264,6 +275,7 @@ export default function App() {
         isOfflineSimulated={isOfflineSimulated}
         onToggleOffline={() => setIsOfflineSimulated(!isOfflineSimulated)}
         onOpenAuthModal={() => setIsAuthModalOpen(true)}
+        onSignOut={handleSignOut}
         session={authSession}
       />
 
@@ -756,6 +768,8 @@ export default function App() {
           zones={computedZones}
           initialSession={authSession}
           onLoginSuccess={handleLoginSuccess}
+          onSignOut={handleSignOut}
+          onClose={() => setIsAuthModalOpen(false)}
         />
       )}
     </div>

@@ -2,7 +2,7 @@ import React from 'react';
 import { CityData, WeatherForecast } from '../types';
 import { CITIES } from '../data/mockData';
 import { Language, TRANSLATIONS } from '../utils/translations';
-import { Wifi, WifiOff } from 'lucide-react';
+import { Wifi, WifiOff, LogIn, LogOut, User, ShieldCheck } from 'lucide-react';
 import { useThemeTokens } from '../theme/useThemeTokens';
 import { LogoMark } from './Logo';
 import { LanguagePicker } from './LanguagePicker';
@@ -37,6 +37,7 @@ interface Props {
   isOfflineSimulated: boolean;
   onToggleOffline: () => void;
   onOpenAuthModal?: () => void;
+  onSignOut?: () => void;
   session?: {
     mode: 'citizen' | 'authority';
     isGuest: boolean;
@@ -60,6 +61,7 @@ export const Navbar: React.FC<Props> = ({
   isOfflineSimulated,
   onToggleOffline,
   onOpenAuthModal,
+  onSignOut,
   session,
 }) => {
   const tokens = useThemeTokens();
@@ -231,24 +233,58 @@ export const Navbar: React.FC<Props> = ({
               Concept
             </button>
 
-            {/* JalRakshak Login / Persona Modal CTA */}
-            {onOpenAuthModal && (
-              <button
-                onClick={onOpenAuthModal}
-                className="h-9 px-3.5 rounded-full bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
-                title="JalRakshak AI Login / Switch Mode"
-              >
-                <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                <span>
-                  {session
-                    ? session.isGuest
-                      ? 'Guest Mode'
-                      : session.mode === 'authority'
-                      ? 'Admin Active'
-                      : 'Citizen Logged In'
-                    : 'Sign In / Modes'}
-                </span>
-              </button>
+            {/* JalRakshak Authentication Controls (Sign-In / Sign-Out) */}
+            {session && !session.isGuest ? (
+              <div className="flex items-center gap-1.5 bg-surface-2/90 border border-line-strong/60 rounded-full p-0.5 pl-2.5 shadow-sm">
+                {/* User Identity Pill (clickable to view modal) */}
+                <button
+                  onClick={onOpenAuthModal}
+                  className="flex items-center gap-1.5 text-xs text-fg-soft hover:text-cyan-300 transition-colors cursor-pointer py-1 pr-1.5 focus:outline-none"
+                  title={`Logged in as ${session.contact || 'User'} (${session.mode === 'authority' ? 'Officer' : 'Citizen'}) - Click to switch or view profile`}
+                >
+                  {session.mode === 'authority' ? (
+                    <ShieldCheck className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  ) : (
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                  )}
+                  <span className="font-medium max-w-[130px] sm:max-w-[170px] truncate text-fg">
+                    {session.contact ? session.contact.split('@')[0] : session.mode === 'authority' ? 'Officer' : 'Citizen'}
+                  </span>
+                  <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-surface-3 text-muted hidden md:inline">
+                    {session.mode === 'authority' ? 'Admin' : 'Verified'}
+                  </span>
+                </button>
+
+                {/* Dedicated Sign-Out Button */}
+                {onSignOut && (
+                  <button
+                    onClick={onSignOut}
+                    className="h-7 px-2.5 rounded-full bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/40 hover:border-rose-400 text-rose-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                    title="Sign Out of JalRakshak AI"
+                  >
+                    <LogOut className="w-3 h-3 text-rose-400" />
+                    <span className="text-[11px]">Sign Out</span>
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                {session?.isGuest && (
+                  <span className="text-[10px] font-mono uppercase px-2 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-400 hidden sm:inline">
+                    Guest Mode
+                  </span>
+                )}
+                {onOpenAuthModal && (
+                  <button
+                    onClick={onOpenAuthModal}
+                    className="h-9 px-3.5 sm:px-4 rounded-full bg-gradient-to-r from-teal-600/90 to-cyan-600/90 hover:from-teal-500 hover:to-cyan-500 text-white border border-teal-400/50 text-xs font-bold flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(20,184,166,0.3)] cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                    title="Sign In with Email OTP or Authority Credentials"
+                  >
+                    <LogIn className="w-3.5 h-3.5 text-cyan-200" />
+                    <span>Sign In</span>
+                  </button>
+                )}
+              </div>
             )}
 
             {/* Authority Hub CTA */}
