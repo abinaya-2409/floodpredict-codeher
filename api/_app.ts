@@ -5,7 +5,7 @@ import { sendOtpEmail } from './emailService.js';
 export const app = express();
 app.use(express.json());
 
-const OTP_SECRET = process.env.OTP_SECRET || 'jalrakshak-chennai-2026-secure-secret';
+const OTP_SECRET = process.env.OTP_SECRET || 'floodypredict-chennai-2026-secure-secret';
 
 function createOtpToken(contact: string, otp: string, expiresAt: number): string {
   const payload = `${contact.toLowerCase()}:${otp}:${expiresAt}`;
@@ -86,7 +86,7 @@ async function getGeminiClient(): Promise<any | null> {
     const { GoogleGenAI } = await import('@google/genai');
     aiClient = new GoogleGenAI({
       apiKey,
-      httpOptions: { headers: { 'User-Agent': 'jalrakshak-ai' } },
+      httpOptions: { headers: { 'User-Agent': 'floodypredict' } },
     });
     return aiClient;
   } catch (err) {
@@ -197,8 +197,8 @@ function buildBroadcastSample(body: any = {}) {
     sample: true,
     aiAvailable: false,
     reason: 'no_api_key',
-    smsEn: `[JALRAKSHAK FLOOD ${tierLabel}] Severe rain (${rainfallMmHr || 45}mm/hr) forecast for ${zoneName || 'your ward'}. Est water level: ${predictedDepthCm || 45}cm. Move vehicles to high ground & turn off main switch. Emergency: 1070 / 1913.`,
-    smsLocal: `[ஜல்ரக்ஷக் வெள்ள அபாய எச்சரிக்கை - ${tierLabel}] ${zoneName || 'உங்கள் பகுதி'} பகுதியில் கனமழை காரணமாக ${predictedDepthCm || 45}செ.மீ வரை நீர் தேங்க வாய்ப்பு. வாகனங்களை மேடான பகுதிக்கு மாற்றவும். அவசர உதவிக்கு: 1913.`,
+    smsEn: `[FloodyPredict FLOOD ${tierLabel}] Severe rain (${rainfallMmHr || 45}mm/hr) forecast for ${zoneName || 'your ward'}. Est water level: ${predictedDepthCm || 45}cm. Move vehicles to high ground & turn off main switch. Emergency: 1070 / 1913.`,
+    smsLocal: `[FloodyPredict வெள்ள அபாய எச்சரிக்கை - ${tierLabel}] ${zoneName || 'உங்கள் பகுதி'} பகுதியில் கனமழை காரணமாக ${predictedDepthCm || 45}செ.மீ வரை நீர் தேங்க வாய்ப்பு. வாகனங்களை மேடான பகுதிக்கு மாற்றவும். அவசர உதவிக்கு: 1913.`,
     actions: [
       'Shift 4-wheelers to elevated parking',
       'Turn off ground-level inverters',
@@ -216,7 +216,7 @@ app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
     time: new Date().toISOString(),
-    platform: 'Floody predict',
+    platform: 'FloodyPredict',
     aiConfigured: Boolean(key),
     // Shape check only - it never proves Google will accept the key, but it
     // catches the common paste errors without spending a request.
@@ -249,7 +249,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
       if (!AUTHORIZED_EMAILS.has(normalizedContact)) {
         return res.status(403).json({
           success: false,
-          message: `Access restricted. The email "${normalizedContact}" is not registered in the Floody predict system. Please contact your GCC zone administrator.`,
+          message: `Access restricted. The email "${normalizedContact}" is not registered in the FloodyPredict system. Please contact your GCC zone administrator.`,
         });
       }
     }
@@ -280,7 +280,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
     });
 
     console.log(`\n======================================================`);
-    console.log(`[JalRakshak AI] 🔑 OTP for ${normalizedContact}: ${otpCode}`);
+    console.log(`[FloodyPredict] 🔑 OTP for ${normalizedContact}: ${otpCode}`);
     console.log(`Expires: ${new Date(expiresAt).toLocaleTimeString()} (5 min)`);
     console.log(`======================================================\n`);
 
@@ -331,7 +331,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
       });
     }
   } catch (err: any) {
-    console.error('[JalRakshak Auth] Send OTP Error:', err);
+    console.error('[FloodyPredict Auth] Send OTP Error:', err);
     res.status(500).json({ success: false, message: 'Failed to process OTP request.' });
   }
 });
@@ -410,7 +410,7 @@ app.post('/api/auth/verify-otp', (req, res) => {
       },
     });
   } catch (err: any) {
-    console.error('[JalRakshak Auth] Verify OTP Error:', err);
+    console.error('[FloodyPredict Auth] Verify OTP Error:', err);
     res.status(500).json({ success: false, message: 'Verification processing error.' });
   }
 });
@@ -423,7 +423,7 @@ app.post('/api/gemini/analyze-flood', async (req, res) => {
     const ai = await getGeminiClient();
     if (!ai) return res.json(buildAnalyzeSample(req.body));
 
-    const prompt = `You are the Chief Hydrologist and Disaster Management AI Specialist for the JalRakshak Urban Flood System.
+    const prompt = `You are the Chief Hydrologist and Disaster Management AI Specialist for the FloodyPredict Urban Flood System.
 Analyze the following live meteorological and hydrological parameters for ${city}:
 - Current Rainfall: ${currentRainfallMmHr} mm/hr (Total 24h Forecast: ${weather?.forecast24hMm || 280} mm)
 - Doppler Radar Trend: ${weather?.dopplerRadarTrend || 'Intensifying'}

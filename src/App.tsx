@@ -22,7 +22,7 @@ import { RiskBadge } from './components/ui/Badge';
 import { VantaBackground } from './components/VantaBackground';
 import { VulnerabilityIndexPanel } from './components/VulnerabilityIndexPanel';
 import { EvacuationPriorityQueue } from './components/EvacuationPriorityQueue';
-import { JalRakshakLoginModal, AuthSession } from './components/JalRakshakLoginModal';
+import { LoginModal, AuthSession } from './components/LoginModal';
 import { AlertTriangle, ShieldCheck, Waves, Users, Clock, ArrowUpRight, Gauge, Cpu, CloudRain, Radio, WifiOff, Map as MapIcon, Sliders } from 'lucide-react';
 import { useThemeTokens } from './theme/useThemeTokens';
 
@@ -37,10 +37,10 @@ export default function App() {
   const [isExplainerOpen, setIsExplainerOpen] = useState(false);
   const [citizenReports, setCitizenReports] = useState<CitizenReport[]>(INITIAL_CITIZEN_REPORTS);
 
-  // JalRakshak AI Auth Session State
+  // FloodyPredict Auth Session State
   const [authSession, setAuthSession] = useState<AuthSession | null>(() => {
     try {
-      const cached = localStorage.getItem('jalrakshak_session');
+      const cached = localStorage.getItem('floodypredict_session');
       return cached ? JSON.parse(cached) : null;
     } catch {
       return null;
@@ -49,7 +49,7 @@ export default function App() {
   // Default modal opens if user has never logged in/chosen guest mode
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(() => {
     try {
-      return !localStorage.getItem('jalrakshak_session');
+      return !localStorage.getItem('floodypredict_session');
     } catch {
       return true;
     }
@@ -202,7 +202,7 @@ export default function App() {
 
   const handleLoginSuccess = (session: AuthSession) => {
     setAuthSession(session);
-    localStorage.setItem('jalrakshak_session', JSON.stringify(session));
+    localStorage.setItem('floodypredict_session', JSON.stringify(session));
     setIsAuthModalOpen(false);
 
     if (session.mode === 'authority') {
@@ -219,7 +219,7 @@ export default function App() {
 
   const handleSignOut = () => {
     try {
-      localStorage.removeItem('jalrakshak_session');
+      localStorage.removeItem('floodypredict_session');
     } catch (e) {
       console.error(e);
     }
@@ -737,7 +737,7 @@ export default function App() {
           <div className="flex items-center gap-2">
             <span className="text-risk-low font-semibold flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-risk-low animate-pulse" />
-              Floody predict
+              FloodyPredict
             </span>
             <span className="text-subtle">•</span>
             <span>S-34 AI-Based Flood Risk Prediction &amp; Tiered Early Warning System</span>
@@ -761,9 +761,9 @@ export default function App() {
         onClose={() => setIsExplainerOpen(false)}
       />
 
-      {/* JalRakshak AI Login Modal */}
+      {/* FloodyPredict Login Modal */}
       {isAuthModalOpen && (
-        <JalRakshakLoginModal
+        <LoginModal
           selectedCity={selectedCity}
           zones={computedZones}
           initialSession={authSession}

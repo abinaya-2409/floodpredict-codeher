@@ -48,7 +48,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
     <div
       role="status"
       aria-live="polite"
-      aria-label="Loading JalRakshak"
+      aria-label="Loading FloodyPredict"
       onClick={onDone}
       className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-bg-deep transition-opacity duration-500"
       style={{ opacity: leaving ? 0 : 1, pointerEvents: leaving ? 'none' : 'auto' }}
@@ -71,7 +71,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
 
         <div>
           <h1 className="font-display text-2xl font-extrabold tracking-tight text-fg">
-            JalRakshak
+            FloodyPredict
           </h1>
           <p className="mt-1.5 font-mono text-micro uppercase tracking-[0.28em] text-subtle">
             Flood Intelligence

@@ -31,7 +31,7 @@ const AUTHORITY_ROLES = [
   { id: 'imd_met', label: 'Regional Meteorological Centre (IMD)', department: 'Hydrological Forecasting' }
 ];
 
-export const JalRakshakLoginModal: React.FC<Props> = ({
+export const LoginModal: React.FC<Props> = ({
   selectedCity,
   zones,
   onLoginSuccess,
@@ -154,7 +154,7 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
       setOtpDigits(['', '', '', '']);
       showToast(data.delivered ? `✅ OTP sent to ${contact}!` : `🔑 OTP ready for ${contact}`);
     } catch (err: any) {
-      console.error('[JalRakshak] OTP request error:', err);
+      console.error('[FloodyPredict] OTP request error:', err);
       showToast('Network error while requesting OTP.');
       setOtpError('Failed to connect to authentication server.');
     } finally {
@@ -206,7 +206,7 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
         return;
       }
 
-      showToast('Verification successful! Welcome to JalRakshak AI.');
+      showToast('Verification successful! Welcome to FloodyPredict.');
       const ward = getWardObj(selectedWardId);
       const session: AuthSession = {
         mode: 'citizen',
@@ -218,7 +218,7 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
       };
       onLoginSuccess(session);
     } catch (err: any) {
-      console.error('[JalRakshak] OTP verification error:', err);
+      console.error('[FloodyPredict] OTP verification error:', err);
       setOtpError('Network connection error during verification.');
     } finally {
       setIsVerifyingOtp(false);
@@ -238,6 +238,9 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
       contact: authorityIdentifier.trim() || 'officer@chennaicorporation.gov.in',
       wardId: ward.wardId,
       wardName: ward.wardName,
+      // The guest and OTP flows both carry this; the authority flow omitted
+      // it, so an officer session reached the app with zoneName undefined.
+      zoneName: ward.zoneName,
       };
     onLoginSuccess(session);
   };
@@ -303,7 +306,7 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
             </div>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            Floody predict
+            FloodyPredict
           </h2>
           <p className="text-xs text-cyan-400 font-mono tracking-wider mt-1 uppercase">
             {selectedCity.name} Flood Alert &amp; Inundation Defense System
@@ -660,7 +663,7 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             <span>Govt of Tamil Nadu • GCC Node</span>
           </div>
-          <span>JalRakshak AI v2.4</span>
+          <span>FloodyPredict v2.4</span>
         </div>
 
       </div>

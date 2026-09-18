@@ -187,7 +187,7 @@ export const Navbar: React.FC<Props> = ({
             <LogoMark className="h-8 w-8 shrink-0 text-accent" />
             <div className="flex flex-col leading-none">
               <span className="font-display text-base sm:text-lg font-extrabold tracking-tight text-fg">
-                Floody predict
+                FloodyPredict
               </span>
               <span className="mt-1 text-micro font-medium uppercase tracking-[0.18em] text-subtle">
                 Flood Intelligence
@@ -233,7 +233,7 @@ export const Navbar: React.FC<Props> = ({
               Concept
             </button>
 
-            {/* JalRakshak Authentication Controls (Sign-In / Sign-Out) */}
+            {/* FloodyPredict Authentication Controls (Sign-In / Sign-Out) */}
             {session && !session.isGuest ? (
               <div className="flex items-center gap-1.5 bg-surface-2/90 border border-line-strong/60 rounded-full p-0.5 pl-2.5 shadow-sm">
                 {/* User Identity Pill (clickable to view modal) */}
@@ -260,7 +260,7 @@ export const Navbar: React.FC<Props> = ({
                   <button
                     onClick={onSignOut}
                     className="h-7 px-2.5 rounded-full bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/40 hover:border-rose-400 text-rose-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
-                    title="Sign Out of JalRakshak AI"
+                    title="Sign Out of FloodyPredict"
                   >
                     <LogOut className="w-3 h-3 text-rose-400" />
                     <span className="text-[11px]">Sign Out</span>

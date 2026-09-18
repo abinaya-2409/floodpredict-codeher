@@ -1,4 +1,4 @@
-# JalRakshak — Urban Flood Intelligence
+# FloodyPredict — Urban Flood Intelligence
 
 Flood risk prediction and **vulnerability-weighted response prioritisation** for
 flood-prone Indian wards. Built for SDG 11.5 (reducing disaster deaths and
@@ -6,7 +6,7 @@ losses in cities).
 
 Live: https://floodpredict-codeher.vercel.app
 
-Hydrology tells you where the water goes. JalRakshak tells you **where it hurts
+Hydrology tells you where the water goes. FloodyPredict tells you **where it hurts
 most** — two wards can flood to the same depth and still deserve completely
 different responses.
 

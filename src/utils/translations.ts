@@ -54,7 +54,7 @@ export const CITY_LANGUAGE: Record<string, Language> = {
 
 export const TRANSLATIONS = {
   en: {
-    appTitle: 'Floody predict',
+    appTitle: 'FloodyPredict',
     tagline: 'Urban flood risk prediction and tiered early warning',
     liveTelemetry: 'LIVE TELEMETRY',
     rainfall: 'Rainfall',
@@ -96,7 +96,7 @@ export const TRANSLATIONS = {
   },
 
   hi: {
-    appTitle: 'जलरक्षक',
+    appTitle: 'FloodyPredict',
     tagline: 'शहरी बाढ़ जोखिम पूर्वानुमान और स्तरित पूर्व चेतावनी',
     liveTelemetry: 'लाइव टेलीमेट्री',
     rainfall: 'वर्षा',
@@ -138,7 +138,7 @@ export const TRANSLATIONS = {
   },
 
   bn: {
-    appTitle: 'জলরক্ষক',
+    appTitle: 'FloodyPredict',
     tagline: 'নগর বন্যা ঝুঁকি পূর্বাভাস ও স্তরভিত্তিক আগাম সতর্কতা',
     liveTelemetry: 'লাইভ টেলিমেট্রি',
     rainfall: 'বৃষ্টিপাত',
@@ -180,7 +180,7 @@ export const TRANSLATIONS = {
   },
 
   mr: {
-    appTitle: 'जलरक्षक',
+    appTitle: 'FloodyPredict',
     tagline: 'शहरी पूर धोका अंदाज आणि स्तरित पूर्वसूचना',
     liveTelemetry: 'थेट टेलिमेट्री',
     rainfall: 'पाऊस',
@@ -222,7 +222,7 @@ export const TRANSLATIONS = {
   },
 
   te: {
-    appTitle: 'జలరక్షక్',
+    appTitle: 'FloodyPredict',
     tagline: 'నగర వరద ప్రమాద అంచనా మరియు శ్రేణీబద్ధ ముందస్తు హెచ్చరిక',
     liveTelemetry: 'ప్రత్యక్ష టెలిమెట్రీ',
     rainfall: 'వర్షపాతం',
@@ -264,7 +264,7 @@ export const TRANSLATIONS = {
   },
 
   ta: {
-    appTitle: 'ஜல்ரக்ஷக்',
+    appTitle: 'FloodyPredict',
     tagline: 'நகர்ப்புற வெள்ள இடர் கணிப்பு மற்றும் அடுக்கு முன்னெச்சரிக்கை',
     liveTelemetry: 'நேரலை தரவு',
     rainfall: 'மழைப்பொழிவு',
@@ -306,7 +306,7 @@ export const TRANSLATIONS = {
   },
 
   kn: {
-    appTitle: 'ಜಲರಕ್ಷಕ',
+    appTitle: 'FloodyPredict',
     tagline: 'ನಗರ ಪ್ರವಾಹ ಅಪಾಯ ಮುನ್ಸೂಚನೆ ಮತ್ತು ಹಂತಬದ್ಧ ಮುಂಚಿತ ಎಚ್ಚರಿಕೆ',
     liveTelemetry: 'ನೇರ ಟೆಲಿಮೆಟ್ರಿ',
     rainfall: 'ಮಳೆ',
@@ -348,7 +348,7 @@ export const TRANSLATIONS = {
   },
 
   ml: {
-    appTitle: 'ജലരക്ഷക്',
+    appTitle: 'FloodyPredict',
     tagline: 'നഗര വെള്ളപ്പൊക്ക അപകടസാധ്യത പ്രവചനവും ഘട്ടം തിരിച്ചുള്ള മുന്നറിയിപ്പും',
     liveTelemetry: 'തത്സമയ ടെലിമെട്രി',
     rainfall: 'മഴ',
@@ -390,7 +390,7 @@ export const TRANSLATIONS = {
   },
 
   as: {
-    appTitle: 'জলৰক্ষক',
+    appTitle: 'FloodyPredict',
     tagline: 'নগৰ বানপানীৰ ভাবুকি পূৰ্বানুমান আৰু স্তৰভিত্তিক আগতীয়া সতৰ্কবাণী',
     liveTelemetry: 'প্ৰত্যক্ষ টেলিমেট্ৰী',
     rainfall: 'বৰষুণ',

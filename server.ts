@@ -22,7 +22,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`JalRakshak AI server running on http://localhost:${PORT}`);
+    console.log(`FloodyPredict server running on http://localhost:${PORT}`);
   });
 }
 

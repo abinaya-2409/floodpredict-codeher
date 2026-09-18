@@ -1,11 +1,11 @@
 import React from 'react';
 
 /**
- * JalRakshak mark.
+ * FloodyPredict mark.
  *
  * A shield whose lower half is held by water, crossed by a level line.
- * Three ideas in one silhouette: protection (rakshak), water (jal), and a
- * measured level - which is precisely what the application does.
+ * Three ideas in one silhouette: protection, water, and a measured level -
+ * which is precisely what the application does.
  *
  * The previous mark was a circle with two wave lines: readable, but generic
  * enough to belong to any water utility, and the lower wave collapsed into
@@ -17,7 +17,7 @@ import React from 'react';
  */
 export function LogoMark({
   className = '',
-  title = 'JalRakshak',
+  title = 'FloodyPredict',
 }: {
   className?: string;
   title?: string;
@@ -72,7 +72,7 @@ export function Logo({ compact = false }: { compact?: boolean }) {
       {!compact && (
         <span className="flex flex-col leading-none">
           <span className="font-display text-sm font-extrabold tracking-tight text-fg">
-            JalRakshak
+            FloodyPredict
           </span>
           <span className="mt-0.5 text-micro font-medium uppercase tracking-[0.16em] text-subtle">
             Flood Intelligence

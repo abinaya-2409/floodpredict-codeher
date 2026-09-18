@@ -1,0 +1,21 @@
+import puppeteer from 'puppeteer-core';
+const b = await puppeteer.launch({ executablePath: process.env.CHROME, headless: true, protocolTimeout: 180000, args:['--no-sandbox'] });
+const page = await b.newPage();
+await page.setViewport({ width: 1600, height: 1000 });
+const assets = [];
+page.on('response', async r => {
+  const h = r.headers();
+  assets.push({ url: r.url(), status: r.status(), len: Number(h['content-length'] || 0), type: h['content-type'] || '' });
+});
+await page.goto(process.argv[2], { waitUntil:'networkidle2', timeout:90000 });
+await new Promise(r=>setTimeout(r,8000));
+const own = assets.filter(a => a.url.includes('urban-vuln'));
+own.sort((x,y)=>y.len-x.len);
+console.log('--- own assets by size ---');
+own.slice(0,12).forEach(a=>console.log(`${String(Math.round(a.len/1024)).padStart(6)} kB  ${a.url.split('/').pop().slice(0,50)}`));
+console.log('own total kB:', Math.round(own.reduce((s,a)=>s+a.len,0)/1024));
+const ext = assets.filter(a=>!a.url.includes('urban-vuln'));
+console.log('external requests:', ext.length, '| total kB:', Math.round(ext.reduce((s,a)=>s+a.len,0)/1024));
+const hosts = [...new Set(ext.map(a=>{try{return new URL(a.url).host}catch{return '?'}}))];
+console.log('external hosts:', hosts.join(', '));
+await b.close();

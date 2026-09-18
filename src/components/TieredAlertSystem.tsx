@@ -60,11 +60,11 @@ export const TieredAlertSystem: React.FC<Props> = ({
 
     if (selectedLanguage === 'ta') {
       if (selectedTier === 'evacuate') {
-        return `[ஜல்ரக்ஷக் - அவசர வெளியேற்ற எச்சரிக்கை] ${zoneName} பகுதியில் ${depth}செ.மீ வரை வெள்ள நீர் உயர வாய்ப்புள்ளது. தரைதளத்தில் உள்ளவர்கள் உடனடியாக நிவாரண முகாமுக்கு செல்லவும். உதவிக்கு: 1913 / 1070.`;
+        return `[FloodyPredict - அவசர வெளியேற்ற எச்சரிக்கை] ${zoneName} பகுதியில் ${depth}செ.மீ வரை வெள்ள நீர் உயர வாய்ப்புள்ளது. தரைதளத்தில் உள்ளவர்கள் உடனடியாக நிவாரண முகாமுக்கு செல்லவும். உதவிக்கு: 1913 / 1070.`;
       } else if (selectedTier === 'warning') {
-        return `[ஜல்ரக்ஷக் - வெள்ள எச்சரிக்கை] ${zoneName} பகுதியில் கனமழை தொடர்வதால் வாகனங்களை மேடான பகுதிக்கு மாற்றவும். மின் இணைப்பை சரிபார்க்கவும்.`;
+        return `[FloodyPredict - வெள்ள எச்சரிக்கை] ${zoneName} பகுதியில் கனமழை தொடர்வதால் வாகனங்களை மேடான பகுதிக்கு மாற்றவும். மின் இணைப்பை சரிபார்க்கவும்.`;
       }
-      return `[ஜல்ரக்ஷக் - கண்காணிப்பு அறிக்கை] ${zoneName} பகுதியில் அடுத்த 6 மணி நேரத்திற்கு மிதமான மழை பெய்ய வாய்ப்புள்ளது. கழிவுநீர் வடிகால்கள் கண்காணிக்கப்படுகின்றன.`;
+      return `[FloodyPredict - கண்காணிப்பு அறிக்கை] ${zoneName} பகுதியில் அடுத்த 6 மணி நேரத்திற்கு மிதமான மழை பெய்ய வாய்ப்புள்ளது. கழிவுநீர் வடிகால்கள் கண்காணிக்கப்படுகின்றன.`;
     }
 
     if (selectedLanguage === 'hi') {
@@ -76,11 +76,11 @@ export const TieredAlertSystem: React.FC<Props> = ({
 
     // Default English
     if (selectedTier === 'evacuate') {
-      return `[JALRAKSHAK TIER-3 EVACUATE] Immediate flash flood risk for ${zoneName}. Est depth: ${depth}cm within 45 mins. Evacuate ground floors to designated community centers. Emergency: 1070 / 1913.`;
+      return `[FloodyPredict TIER-3 EVACUATE] Immediate flash flood risk for ${zoneName}. Est depth: ${depth}cm within 45 mins. Evacuate ground floors to designated community centers. Emergency: 1070 / 1913.`;
     } else if (selectedTier === 'warning') {
-      return `[JALRAKSHAK TIER-2 WARNING] High flood risk in ${zoneName}. Rainfall exceeding drain discharge capacity. Relocate vehicles to elevated parking decks now.`;
+      return `[FloodyPredict TIER-2 WARNING] High flood risk in ${zoneName}. Rainfall exceeding drain discharge capacity. Relocate vehicles to elevated parking decks now.`;
     }
-    return `[JALRAKSHAK TIER-1 WATCH] Heavy rainfall band approaching ${zoneName}. Municipal desilting teams active. Monitor local alerts.`;
+    return `[FloodyPredict TIER-1 WATCH] Heavy rainfall band approaching ${zoneName}. Municipal desilting teams active. Monitor local alerts.`;
   };
 
   const handleDispatchAlert = () => {

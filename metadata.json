@@ -1,5 +1,5 @@
 {
-  "name": "JalRakshak AI - Flood Risk Prediction & Alert System",
+  "name": "FloodyPredict - Flood Risk Prediction & Alert System",
   "description": "AI-powered urban flood forecasting, drainage bottleneck simulation, street-level inundation thresholds, and tiered early warning system.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

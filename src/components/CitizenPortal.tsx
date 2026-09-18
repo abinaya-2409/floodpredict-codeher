@@ -42,7 +42,7 @@ export const CitizenPortal: React.FC<Props> = ({
       isPassableForVehicles: reportPassable,
       drainCloggedNotice: reportClogged,
       powerOutage: reportPower,
-      description: reportDesc || 'Citizen waterlogging report submitted via JalRakshak Portal.',
+      description: reportDesc || 'Citizen waterlogging report submitted via FloodyPredict Portal.',
       verifiedByAuthority: false,
     };
 

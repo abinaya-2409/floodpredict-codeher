@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import type { Transporter } from 'nodemailer';
 
 export interface EmailSendResult {
   success: boolean;
@@ -20,7 +21,7 @@ export const AUTHORIZED_EMAILS: ReadonlySet<string> = new Set([
 ]);
 
 /* ---------------------------------------------------------------------------
- * JalRakshak AI Dedicated Ethereal Test Account
+ * FloodyPredict Dedicated Ethereal Test Account
  * This is a real SMTP service (smtp.ethereal.email) that captures emails
  * and makes them viewable at the preview URL. It does NOT deliver to real
  * inboxes. Use Gmail App Password env vars for live inbox delivery.
@@ -31,7 +32,7 @@ const ETHEREAL_SMTP = {
   secure: false,
   user: 'ivmffylzwojpqoum@ethereal.email',
   pass: 'Vvsrz2AyUqqeXzCM9b',
-  from: '"JalRakshak AI Alert System" <ivmffylzwojpqoum@ethereal.email>',
+  from: '"FloodyPredict Alert System" <ivmffylzwojpqoum@ethereal.email>',
 };
 
 /**
@@ -43,7 +44,7 @@ const ETHEREAL_SMTP = {
  * 3. Ethereal fallback (hardcoded above)                  → preview URL only
  */
 function createTransporter(): {
-  transporter: nodemailer.Transporter;
+  transporter: Transporter;
   fromAddress: string;
   channel: 'smtp' | 'ethereal';
 } {
@@ -57,7 +58,7 @@ function createTransporter(): {
         auth: { user: gmailUser, pass: gmailPass },
         connectionTimeout: 8000,
       }),
-      fromAddress: `"Floody predict Alert System" <${gmailUser}>`,
+      fromAddress: `"FloodyPredict Alert System" <${gmailUser}>`,
       channel: 'smtp',
     };
   }
@@ -77,7 +78,7 @@ function createTransporter(): {
         auth: { user: smtpUser, pass: smtpPass },
         connectionTimeout: 8000,
       }),
-      fromAddress: `"Floody predict Alert System" <${smtpFrom}>`,
+      fromAddress: `"FloodyPredict Alert System" <${smtpFrom}>`,
       channel: 'smtp',
     };
   }
@@ -103,7 +104,7 @@ function buildEmailHtml(otpCode: string, toEmail: string, wardName?: string): st
     <html lang="en">
     <head>
       <meta charset="utf-8">
-      <title>Floody predict – Verification Code</title>
+      <title>FloodyPredict – Verification Code</title>
       <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #080f1a; color: #e2e8f0; margin: 0; padding: 24px; }
         .container { max-width: 560px; margin: 0 auto; background: #0f1c2e; border: 1px solid #1e3a5f; border-radius: 16px; overflow: hidden; }
@@ -124,12 +125,12 @@ function buildEmailHtml(otpCode: string, toEmail: string, wardName?: string): st
     <body>
       <div class="container">
         <div class="header">
-          <h1>🌊 Floody predict</h1>
+          <h1>🌊 FloodyPredict</h1>
           <p>Chennai Flood Alert &amp; Inundation Defense System</p>
         </div>
         <div class="content">
           <p class="info">Hello <strong>${toEmail}</strong>,</p>
-          <p class="info">Your one-time verification code to access the <strong>Floody predict</strong> Flood Risk Portal is:</p>
+          <p class="info">Your one-time verification code to access the <strong>FloodyPredict</strong> Flood Risk Portal is:</p>
 
           <div class="otp-badge">
             <div class="otp-label">Verification Code</div>
@@ -147,7 +148,7 @@ function buildEmailHtml(otpCode: string, toEmail: string, wardName?: string): st
           <p class="meta">If you did not request this code, please ignore this email.</p>
         </div>
         <div class="footer">
-          Floody predict &bull; Greater Chennai Corporation &amp; TNSDMA Hydrological Defense
+          FloodyPredict &bull; Greater Chennai Corporation &amp; TNSDMA Hydrological Defense
         </div>
       </div>
     </body>
@@ -172,8 +173,8 @@ export async function sendOtpEmail(
     const info = await transporter.sendMail({
       from: fromAddress,
       to: toEmail,
-      subject: `[Floody predict] ${otpCode} – Your Flood Portal Verification Code`,
-      text: `Your Floody predict verification code is: ${otpCode}. Valid for 5 minutes. Emergency: GCC 1913 / Disaster 1077.`,
+      subject: `[FloodyPredict] ${otpCode} – Your Flood Portal Verification Code`,
+      text: `Your FloodyPredict verification code is: ${otpCode}. Valid for 5 minutes. Emergency: GCC 1913 / Disaster 1077.`,
       html: htmlContent,
     });
 
@@ -182,10 +183,10 @@ export async function sendOtpEmail(
       : undefined;
 
     if (previewUrl) {
-      console.log(`\n[JalRakshak Email] ✅ OTP email captured by Ethereal for ${toEmail}`);
-      console.log(`[JalRakshak Email] 👁  Preview URL: ${previewUrl}\n`);
+      console.log(`\n[FloodyPredict Email] ✅ OTP email captured by Ethereal for ${toEmail}`);
+      console.log(`[FloodyPredict Email] 👁  Preview URL: ${previewUrl}\n`);
     } else {
-      console.log(`[JalRakshak Email] ✅ OTP email delivered to real inbox: ${toEmail} (ID: ${info.messageId})`);
+      console.log(`[FloodyPredict Email] ✅ OTP email delivered to real inbox: ${toEmail} (ID: ${info.messageId})`);
     }
 
     return {
@@ -196,7 +197,7 @@ export async function sendOtpEmail(
       previewUrl,
     };
   } catch (error: any) {
-    console.error(`[JalRakshak Email] ❌ Failed to send to ${toEmail}:`, error?.message);
+    console.error(`[FloodyPredict Email] ❌ Failed to send to ${toEmail}:`, error?.message);
     return {
       success: false,
       configured: true,
