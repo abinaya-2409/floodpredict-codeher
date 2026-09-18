@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { CityData, ZoneData, SimulationParams } from '../types';
+import { assessZone } from '../utils/riskIndex';
+import { briefingToText, buildIncidentBriefing } from '../utils/briefing';
 import { Sliders, Play, RotateCcw, AlertTriangle, Sparkles, Droplets, CheckCircle, TrendingUp, ShieldAlert, Cpu, ArrowRight } from 'lucide-react';
 
 interface Props {
@@ -84,26 +86,23 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
     });
   };
 
-  const runAiDiagnosis = async () => {
+  /**
+   * Diagnoses the scenario from the model rather than from a hosted one.
+   *
+   * This called Gemini and, when the key was rejected, printed invented
+   * prose. The same facts are already computed - depths, lead times, who
+   * needs help, what to dispatch - so the diagnosis is composed from them.
+   * It is instant, needs no key, and cannot state a number the model did not
+   * produce.
+   */
+  const runAiDiagnosis = () => {
     setIsLoadingAi(true);
-    setAiDiagnosis(null);
     try {
-      const response = await fetch('/api/gemini/what-if-diagnosis', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          cityName: city.name,
-          rainfallMmHr: simulationParams.rainfallIntensityMmHr,
-          durationHrs: simulationParams.durationHours,
-          modifiedDrains: simulationParams.blockedDrainIds,
-          changedZoneDepths: zones.map(z => ({ name: z.name, depthCm: z.predictedInundationDepthCm, risk: z.currentRisk }))
-        })
-      });
-      const data = await response.json();
-      setAiDiagnosis(data.diagnosis || 'Diagnosis completed.');
-    } catch (err) {
-      console.error(err);
-      setAiDiagnosis('Hydraulic AI Assessment:\n• Increasing rainfall past 50 mm/hr creates critical backwater pressure on the downstream surplus canal.\n• Re-opening blocked culverts on 100ft Road reduces low-lying inundation by 42% in under 90 minutes.');
+      const assessments = zones.map((z) =>
+        assessZone(z, city, (z as ZoneData & { leadTimeToFloodMins?: number }).leadTimeToFloodMins ?? 360)
+      );
+      const briefing = buildIncidentBriefing(city, zones, assessments, simulationParams);
+      setAiDiagnosis(briefingToText(briefing));
     } finally {
       setIsLoadingAi(false);
     }
@@ -361,17 +360,17 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
             className="w-full py-3 bg-gradient-to-r from-accent to-accent hover:from-accent hover:to-accent text-fg font-bold text-xs rounded-card shadow-lg shadow-accent/20 flex items-center justify-center space-x-2 transition-colors disabled:opacity-50"
           >
             <Sparkles className="w-4 h-4 text-accent-soft animate-pulse" />
-            <span>{isLoadingAi ? 'Running Gemini Hydraulic Diagnosis...' : 'Generate AI Hydraulic Action Report'}</span>
+            <span>{isLoadingAi ? 'Working out what this storm does...' : 'What does this storm do?'}</span>
           </button>
         </div>
       </div>
 
-      {/* Gemini AI Diagnosis Results Panel */}
+      {/* Diagnosis, composed from the flood model. */}
       {aiDiagnosis && (
         <div className="p-5 bg-bg border border-accent/40 rounded-card space-y-3 animate-in fade-in duration-300">
           <div className="flex items-center space-x-2 text-accent font-bold text-sm pb-2 border-b border-line">
             <Cpu className="w-4 h-4" />
-            <span>Gemini AI Hydraulic Assessment & Engineering Countermeasures</span>
+            <span>What this storm does, and what to send</span>
           </div>
           <div className="text-xs md:text-sm text-fg-soft whitespace-pre-line leading-relaxed font-sans">
             {aiDiagnosis}

@@ -244,6 +244,37 @@ different people, and only one of them is contestable on engineering grounds.
 
 ---
 
+## The incident briefing needs no AI
+
+The briefing used to be a Gemini call. The key in production was rejected for
+weeks, and what users saw instead was invented prose - "exceeding local
+percolation limits by 240%", "runoff coefficient exceeding 0.85" - with no
+connection to anything the application had computed.
+
+Every hosted model needs a key, so swapping Gemini for another one would have
+moved the problem rather than fixed it. The briefing is now **composed from
+the application's own model** in `src/utils/briefing.ts`: which wards score
+worst, how deep the water gets, how long there is, how many people cannot
+leave without help, what to dispatch, and what happened in that district
+before. It renders instantly, needs no key, quota or network, and cannot
+state a figure the model did not produce - which is the failure mode that
+matters when the output is an evacuation order.
+
+A language model is still offered, but only to rewrite those same facts as
+prose, and only when a key is set. Two providers, both serving **open-weight
+Llama 3.3 70B** on a free tier:
+
+```
+LLM_PROVIDER=groq        LLM_API_KEY=gsk_...    # console.groq.com
+LLM_PROVIDER=openrouter  LLM_API_KEY=sk-or-...  # openrouter.ai
+```
+
+The model is told to add no numbers. It cannot be stopped from trying, which
+is precisely why the facts are computed elsewhere and the rewrite is optional.
+With no key the button explains itself and the briefing is untouched.
+
+`@google/genai` is gone, as are the three `/api/gemini/*` routes.
+
 ## Keeping it simple
 
 The map screen was showing 54 controls at once, ten of them tabs in a strip

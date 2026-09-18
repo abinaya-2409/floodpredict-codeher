@@ -33,7 +33,7 @@ import { ResourcePrepositioningHub } from './components/ResourcePrepositioningHu
 import { FourInputsDataHub } from './components/FourInputsDataHub';
 import { HydrologicalTimelineView } from './components/HydrologicalTimelineView';
 import { CitizenPortal } from './components/CitizenPortal';
-import { GeminiExecutiveReport } from './components/GeminiExecutiveReport';
+import { IncidentBriefingPanel } from './components/IncidentBriefingPanel';
 import { SystemExplainerModal } from './components/SystemExplainerModal';
 import { NationalGridMap } from './components/NationalGridMap';
 import { StatTile } from './components/ui/StatTile';
@@ -735,10 +735,12 @@ export default function App() {
                   </div>
                 )}
 
-                {/* Gemini AI Briefing */}
-                <GeminiExecutiveReport
+                {/* Incident briefing, composed from the model rather than
+                    fetched from one. */}
+                <IncidentBriefingPanel
                   city={selectedCity}
                   zones={computedZones}
+                  assessments={assessments}
                   simulationParams={simulationParams}
                 />
               </div>
