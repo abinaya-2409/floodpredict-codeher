@@ -92,6 +92,8 @@ export const LeafletFloodMap: React.FC<Props> = ({
   const [forecastMode, setForecastMode] = useState<ForecastMode>('scenario');
   const [expanded, setExpanded] = useState(false);
   const floodLayerRef = useRef<L.LayerGroup | null>(null);
+  const maskRef = useRef<L.Polygon | null>(null);
+  const stateBoundsRef = useRef<L.LatLngBounds | null>(null);
   const predictAbortRef = useRef<AbortController | null>(null);
 
   /** Mirrors the thresholds in calculateZoneHydrology. */
@@ -139,6 +141,100 @@ export const LeafletFloodMap: React.FC<Props> = ({
     updateWhenIdle: false,
     crossOrigin: true as const,
   });
+
+  /**
+   * Stops the map zooming out past the state.
+   *
+   * Recomputed whenever the container resizes, because the zoom at which
+   * Tamil Nadu fits depends on how tall the map is - the inline map and the
+   * fullscreen one do not agree.
+   */
+  const clampMinZoom = (map: L.Map) => {
+    const bounds = stateBoundsRef.current;
+    if (!bounds) return;
+    const fit = map.getBoundsZoom(bounds, false, L.point(16, 16));
+    if (!Number.isFinite(fit)) return;
+    map.setMinZoom(Math.max(5, Math.floor(fit * 10) / 10));
+    if (map.getZoom() < fit) map.setZoom(fit);
+  };
+
+  /**
+   * Hides everything outside Tamil Nadu.
+   *
+   * Bounding the pan is not enough on its own: a viewport is a rectangle and
+   * a state is not, so Kerala, Andhra Pradesh and Sri Lanka still filled the
+   * corners of every view. This draws one polygon covering the region with
+   * the state punched out of it as holes, so only Tamil Nadu shows through.
+   *
+   * The outer ring is a generous box rather than the whole world: a polygon
+   * spanning 360 degrees of longitude has to be special-cased for the
+   * antimeridian, and nothing here can pan far enough to need it. Leaflet
+   * renders paths with fill-rule evenodd, so the holes do not need a
+   * particular winding order.
+   */
+  const applyStateMask = async (map: L.Map) => {
+    try {
+      const res = await fetch('/data/tamil-nadu-outline.json');
+      if (!res.ok) throw new Error(`outline ${res.status}`);
+      const outline = (await res.json()) as {
+        properties: { bbox: [number, number, number, number] };
+        geometry: { type: string; coordinates: number[][][] | number[][][][] };
+      };
+
+      const parts =
+        outline.geometry.type === 'MultiPolygon'
+          ? (outline.geometry.coordinates as number[][][][])
+          : [outline.geometry.coordinates as number[][][]];
+
+      // GeoJSON is [lng, lat]; Leaflet wants [lat, lng].
+      const holes = parts.map((poly) =>
+        poly[0].map(([lng, lat]) => [lat, lng] as [number, number])
+      );
+
+      const surround: [number, number][] = [
+        [-20, 40],
+        [50, 40],
+        [50, 130],
+        [-20, 130],
+      ];
+
+      maskRef.current?.remove();
+      maskRef.current = L.polygon([surround, ...holes], {
+        pane: 'tnMask',
+        interactive: false,
+        stroke: false,
+        fillColor: tokens.bgDeep,
+        fillOpacity: 1,
+      }).addTo(map);
+
+      // A thin edge so the coastline and border read as deliberate.
+      L.polygon(holes, {
+        pane: 'tnMask',
+        interactive: false,
+        fill: false,
+        color: tokens.accent,
+        weight: 1,
+        opacity: 0.35,
+      }).addTo(map);
+
+      // Clamp panning to the real outline rather than the padded guess in
+      // the theme. Deliberately no fitBounds here: the mask already makes
+      // the state the only thing visible at any zoom, and framing the whole
+      // of Tamil Nadu on load would shrink the Chennai wards - the actual
+      // subject of this tab - to a few pixels.
+      const [s, w, n, e] = outline.properties.bbox;
+      stateBoundsRef.current = L.latLngBounds([s, w], [n, e]);
+      map.setMaxBounds(
+        L.latLngBounds([s - 0.35, w - 0.35], [n + 0.35, e + 0.35])
+      );
+      // maxBounds constrains panning but not zoom, so without this the map
+      // still zooms out to a Tamil Nadu adrift in an empty ocean.
+      clampMinZoom(map);
+    } catch (err) {
+      // Without the mask the map still works; it just shows its neighbours.
+      console.warn('State mask unavailable:', err);
+    }
+  };
 
   // Risk colours are read from the active theme so the map never falls out of
   // step with the rest of the interface.
@@ -224,6 +320,23 @@ export const LeafletFloodMap: React.FC<Props> = ({
         ...tileOptions(tiles.maxZoom, tiles.maxNativeZoom),
       }).addTo(map);
 
+      /**
+       * Panes, so the state mask lands between the tiles and the data.
+       *
+       * Leaflet's own order puts the label overlay in shadowPane (500),
+       * above overlayPane (400) where the ward polygons live. A mask high
+       * enough to cover the labels would therefore also cover the data, and
+       * one low enough to sit under the data would leave the place names of
+       * three neighbouring states painted across it. Giving the labels and
+       * the mask their own panes below overlayPane fixes both at once.
+       */
+      map.createPane('tnLabels').style.zIndex = '250';
+      map.createPane('tnMask').style.zIndex = '300';
+      map.getPane('tnMask')!.style.pointerEvents = 'none';
+      map.getPane('tnLabels')!.style.pointerEvents = 'none';
+
+      void applyStateMask(map);
+
       map.on('zoomend', () => setZoomLevel(map.getZoom()));
 
       const layerGroup = L.layerGroup().addTo(map);
@@ -271,7 +384,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
     if (tiles.labelOverlay) {
       labelLayerRef.current = L.tileLayer(tiles.labelOverlay, {
         ...tileOptions(tiles.maxZoom, tiles.maxNativeZoom),
-        pane: 'shadowPane',
+        pane: 'tnLabels',
       }).addTo(map);
     }
   }, [basemapId]);
@@ -422,7 +535,10 @@ export const LeafletFloodMap: React.FC<Props> = ({
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
-    const id = window.setTimeout(() => map.invalidateSize(), 260);
+    const id = window.setTimeout(() => {
+      map.invalidateSize();
+      clampMinZoom(map);
+    }, 260);
     return () => window.clearTimeout(id);
   }, [expanded]);
 
@@ -491,10 +607,20 @@ export const LeafletFloodMap: React.FC<Props> = ({
 
         layerGroup.addLayer(polygon);
 
-        // Center Marker with Inundation Badge
+        /**
+         * Centre marker with its inundation badge.
+         *
+         * Shelters and resource units already collapsed to dots when zoomed
+         * out; ward labels never did, which did not matter while the map
+         * opened on one city. Now that it can frame the whole state, seven
+         * Chennai wards land within a few pixels of each other and stack into
+         * an unreadable pile, so they get the same treatment.
+         */
+        const showZoneLabel = zoomLevel >= LABEL_ZOOM;
         const customIcon = L.divIcon({
           className: 'custom-zone-label',
-          html: `
+          html: showZoneLabel
+            ? `
             <div style="
               background: ${tokens.surface};
               border: 1px solid ${riskColor};
@@ -514,8 +640,19 @@ export const LeafletFloodMap: React.FC<Props> = ({
               <span>${zone.name.split(' ')[0]}</span>
               <span style="color: ${riskColor}; font-family: monospace;">${zone.predictedInundationDepthCm}cm</span>
             </div>
+          `
+            : `
+            <div title="${zone.name}" style="
+              width: 10px;
+              height: 10px;
+              border-radius: 50%;
+              background: ${riskColor};
+              border: 1.5px solid ${tokens.bgDeep};
+              box-shadow: 0 0 6px ${riskColor};
+              transform: translate(-50%, -50%);
+            "></div>
           `,
-          iconSize: [80, 20],
+          iconSize: showZoneLabel ? [80, 20] : [10, 10],
         });
 
         const labelMarker = L.marker(coords.center, { icon: customIcon });
@@ -737,7 +874,13 @@ export const LeafletFloodMap: React.FC<Props> = ({
     showDrains,
     showResources,
     showEvacRoutes,
-  , tokens]);
+    // Marker icons collapse to dots below LABEL_ZOOM, and that decision is
+    // made inside this effect - without zoomLevel here it was made once and
+    // never revisited, so zooming out left every ward and shelter label at
+    // full size, piled on top of each other over Chennai.
+    zoomLevel,
+    tokens,
+  ]);
 
   // Handle Search Input & Pan Map
   /**
@@ -994,8 +1137,8 @@ export const LeafletFloodMap: React.FC<Props> = ({
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-accent/80" aria-hidden="true" />
           <input
             type="text"
-            aria-label="Search any district, town or street in India"
-            placeholder="Search anywhere in India..."
+            aria-label="Search any district, town or street in Tamil Nadu"
+            placeholder="Search anywhere in Tamil Nadu..."
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -1020,7 +1163,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
             >
               {placeResults.length === 0 && !isSearching && (
                 <li className="px-3 py-2.5 text-mini text-subtle">
-                  No place found in India for that search.
+                  No place found in Tamil Nadu for that search.
                 </li>
               )}
               {placeResults.map((place) => (

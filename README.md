@@ -32,9 +32,13 @@ Everything downstream reads from the VRI rather than from hand-authored
 priorities: the evacuation queue, resource dispatch ranking, and map colouring
 are all derived.
 
-**Scope: Tamil Nadu.** The map, the district grid, place search and the city
-list are all bounded to the one state whose disaster record this repository
-holds. Chennai is the modelled city, with surveyed drainage, ward
+**Scope: Tamil Nadu.** Both maps mask everything outside the state: a polygon
+covering the region with Tamil Nadu punched out of it as holes, drawn over
+the tiles. Bounding the pan alone was not enough, because a viewport is a
+rectangle and a state is not, so Kerala, Andhra Pradesh and Sri Lanka still
+filled the corners of every view. The outline is dissolved from the 32 Census
+2011 district polygons by `tools/build-tn-outline.mjs`. Place search and the
+city list are bounded to the state too. Chennai is the modelled city, with surveyed drainage, ward
 demographics and per-street thresholds; every other point in the state is
 answered by the terrain-and-rainfall read described below.
 
@@ -207,6 +211,43 @@ hydrology and social vulnerability are different concerns, reviewed by
 different people, and only one of them is contestable on engineering grounds.
 
 ---
+
+## Offline Bluetooth chat: what works and what does not
+
+**It cannot work in a browser, and it cannot currently be built as an app.**
+
+The feature is written against a Capacitor native Android bridge
+(`android/app/src/main/java/com/floodypredict/app/BluetoothChatPlugin.java`).
+In the deployed web app `window.Capacitor` does not exist, so
+`BluetoothService.isNativeAvailable()` is false and every scan falls through
+to a simulation that is off by default - which is why scanning finds nothing
+and says nothing. The empty state now says so instead of advising you to
+check Bluetooth on nearby phones, which could never have helped.
+
+There is no Web Bluetooth fallback, and one would not rescue this. Web
+Bluetooth connects only to BLE GATT peripherals the user picks from a browser
+chooser; it has no classic-Bluetooth discovery and no peripheral mode, and a
+phone running a browser does not advertise itself as a connectable GATT
+peripheral. Phone-to-phone chat needs a native app on both handsets.
+
+To make it real, three things are missing:
+
+1. **Capacitor is not installed.** `package.json` has no `@capacitor/core`,
+   `@capacitor/android` or `@capacitor/cli`, so `capacitor.config.ts` is
+   inert and `npx cap sync` cannot run.
+2. **`android/` is not a Gradle project.** It holds three files -
+   `AndroidManifest.xml`, `BluetoothChatPlugin.java`, `MainActivity.java` -
+   with no `build.gradle`, no `settings.gradle` and no Gradle wrapper.
+   `npx cap add android` generates these.
+3. **Runtime permissions.** Android 12+ needs `BLUETOOTH_SCAN`,
+   `BLUETOOTH_CONNECT` and `BLUETOOTH_ADVERTISE` requested at runtime, and
+   Android 6-11 additionally requires Location to be enabled before a scan
+   returns anything.
+
+Until then the browser offers a simulated two-device demo, labelled as
+simulated. None of this was verified against a real handset here - there is
+no Android SDK in this environment - so treat the list above as the diagnosis
+it is, not as a tested build recipe.
 
 ## Does the model agree with the record?
 

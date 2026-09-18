@@ -56,6 +56,7 @@ export function NationalGridMap({
   const hostRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const geojsonRef = useRef<GeoJSON.FeatureCollection | null>(null);
+  const maskRef = useRef<GeoJSON.Feature | null>(null);
   const tokens = useThemeTokens();
 
   const [ready, setReady] = useState(false);
@@ -119,6 +120,39 @@ export function NationalGridMap({
         };
 
         geojsonRef.current = geo;
+
+        // One polygon covering the region with the state punched out of it.
+        try {
+          const oRes = await fetch('/data/tamil-nadu-outline.json');
+          if (oRes.ok) {
+            const outline = (await oRes.json()) as {
+              geometry: { type: string; coordinates: number[][][] | number[][][][] };
+            };
+            const parts =
+              outline.geometry.type === 'MultiPolygon'
+                ? (outline.geometry.coordinates as number[][][][])
+                : [outline.geometry.coordinates as number[][][]];
+            maskRef.current = {
+              type: 'Feature',
+              properties: {},
+              geometry: {
+                type: 'Polygon',
+                coordinates: [
+                  [
+                    [40, -20],
+                    [130, -20],
+                    [130, 50],
+                    [40, 50],
+                    [40, -20],
+                  ],
+                  ...parts.map((poly) => poly[0]),
+                ],
+              },
+            } as GeoJSON.Feature;
+          }
+        } catch {
+          // The grid is still usable unmasked; it just shows its neighbours.
+        }
         setDistricts(
           geo.features.map((f) => ({
             props: f.properties as unknown as DistrictFeatureProps,
@@ -177,6 +211,25 @@ export function NationalGridMap({
     // setStyle discards layers but this can also be reached on a re-render,
     // and adding an existing source throws.
     if (map.getSource('districts')) return;
+
+    /**
+     * Mask everything outside the state, below the district layers.
+     *
+     * The basemap is a world style, so without this the grid sits in the
+     * middle of Kerala, Andhra Pradesh and Sri Lanka - which the app holds no
+     * data for and cannot say anything about. Same outline file as the
+     * inundation map, so the two views agree on where Tamil Nadu ends.
+     */
+    if (maskRef.current) {
+      map.addSource('tn-mask', { type: 'geojson', data: maskRef.current });
+      map.addLayer({
+        id: 'tn-mask-fill',
+        type: 'fill',
+        source: 'tn-mask',
+        paint: { 'fill-color': tokens.bgDeep, 'fill-opacity': 1 },
+      });
+    }
+
     map.addSource('districts', { type: 'geojson', data: geo, generateId: true });
 
     // Fill colour is driven by a feature-state score, so re-scoring never

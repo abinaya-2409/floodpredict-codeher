@@ -291,7 +291,7 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
                 ) : (
                   <span className="px-2 py-0.5 rounded-full text-mini font-mono font-bold bg-amber-500/15 border border-amber-400/30 text-amber-300 flex items-center gap-1">
                     <Activity className="w-3 h-3" />
-                    <span>{isSimMode ? 'Simulated Lab Mode' : 'Web Standard'}</span>
+                    <span>{isSimMode ? 'Simulated demo' : 'Browser - no radio'}</span>
                   </span>
                 )}
               </div>
@@ -468,18 +468,48 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
                   <div className="w-12 h-12 rounded-full bg-surface-2 flex items-center justify-center text-muted">
                     <BluetoothOff className="w-6 h-6" />
                   </div>
+                  {/*
+                    What the empty state says depends on whether there is a
+                    radio to talk to at all. It used to say "make sure nearby
+                    Android phones have Bluetooth turned ON" in every case,
+                    including in a browser - where no amount of switching
+                    Bluetooth on can help, because a web page has no way to
+                    reach the adapter. Telling someone to keep trying
+                    something that cannot work is worse than saying nothing.
+                  */}
                   <div className="flex flex-col gap-1">
-                    <span className="text-xs font-bold text-fg">No Nearby Floody Devices Detected</span>
-                    <span className="text-[11px] text-muted max-w-xs leading-relaxed">
-                      Make sure nearby Android phones have Bluetooth turned ON and FloodyPredict open.
-                    </span>
+                    {isNative ? (
+                      <>
+                        <span className="text-xs font-bold text-fg">
+                          No nearby FloodyPredict devices detected
+                        </span>
+                        <span className="text-[11px] text-muted max-w-sm leading-relaxed">
+                          Make sure nearby Android phones have Bluetooth and Location
+                          switched on, with FloodyPredict open on this screen. Android
+                          requires Location to be enabled for Bluetooth scanning.
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-xs font-bold text-fg">
+                          This browser cannot reach a Bluetooth radio
+                        </span>
+                        <span className="text-[11px] text-muted max-w-sm leading-relaxed">
+                          Peer-to-peer chat pairs two phones directly, which needs the
+                          installed Android app on both. A web page has no API that can
+                          discover or connect to another phone over Bluetooth, so nothing
+                          will appear here however long you scan &mdash; this is a limit of
+                          the browser, not a fault in the pairing.
+                        </span>
+                      </>
+                    )}
                   </div>
                   {!isSimMode && (
                     <button
                       onClick={handleToggleSimulation}
                       className="text-mini font-mono text-cyan-400 hover:underline mt-1 cursor-pointer"
                     >
-                      Enable Lab Simulation to test peer mock responses
+                      Run the simulated two-device demo instead
                     </button>
                   )}
                 </div>

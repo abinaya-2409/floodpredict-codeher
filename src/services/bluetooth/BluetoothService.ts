@@ -1,6 +1,14 @@
 /**
  * FloodyPredict - Unified Bluetooth Emergency Service
- * Orchestrates Native Android Capacitor Bridge, Web Bluetooth, and Secure Local Simulation.
+ * Orchestrates the native Android Capacitor bridge and a local simulation.
+ *
+ * There is no Web Bluetooth path, and this comment used to claim one. There
+ * cannot be a useful one: Web Bluetooth only connects to BLE GATT
+ * peripherals chosen by the user from a browser chooser, it has no classic
+ * Bluetooth discovery and no peripheral mode, and a phone running a browser
+ * does not advertise itself as a connectable GATT peripheral. Phone-to-phone
+ * chat therefore needs the installed Android app on both devices; in a
+ * browser the only honest options are to say so and to offer a simulation.
  * Implements end-to-end peer discovery, direct messaging, SOS broadcasting, delivery verification,
  * ping-pong heartbeat loop, and automated diagnostic self-test loop.
  */
