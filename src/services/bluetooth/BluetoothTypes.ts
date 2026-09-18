@@ -151,3 +151,26 @@ export interface BLETransportPacket {
   total: number;    // Total chunks
   data: string;     // Chunk segment
 }
+
+export interface DiagnosticCheckResult {
+  id: string;
+  name: string;
+  status: 'passed' | 'failed' | 'pending';
+  details: string;
+  durationMs?: number;
+}
+
+export interface DiagnosticSummary {
+  timestamp: number;
+  overallHealthy: boolean;
+  checks: DiagnosticCheckResult[];
+  summary: string;
+}
+
+export interface ConnectionHealthMetrics {
+  lastPingTime: number;
+  lastPongTime: number;
+  rttMs: number;
+  missedPings: number;
+  linkQuality: 'excellent' | 'good' | 'fair' | 'poor' | 'offline';
+}

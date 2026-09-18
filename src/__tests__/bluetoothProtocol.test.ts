@@ -2,7 +2,9 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { MessageProtocol } from '../services/bluetooth/MessageProtocol';
 import { MessageTransport } from '../services/bluetooth/MessageTransport';
 import { OfflineStorage } from '../services/bluetooth/OfflineStorage';
-import { StoredMessage } from '../services/bluetooth/BluetoothTypes';
+import { ConnectionManager } from '../services/bluetooth/ConnectionManager';
+import { BluetoothService } from '../services/bluetooth/BluetoothService';
+import { BluetoothDevicePeer, StoredMessage } from '../services/bluetooth/BluetoothTypes';
 
 describe('MessageProtocol', () => {
   it('should create valid emergency chat message', () => {
@@ -60,9 +62,28 @@ describe('MessageProtocol', () => {
     // Second encounter -> duplicate detected
     expect(MessageProtocol.isDuplicate(testId)).toBe(true);
   });
+
+  // Automated Stress Loop: 50 cycles
+  it('should reliably execute continuous message generation & verification loop (50 cycles)', () => {
+    for (let i = 0; i < 50; i++) {
+      const msg = MessageProtocol.createMessage({
+        type: i % 5 === 0 ? 'sos' : 'msg',
+        senderId: `sender-${i}`,
+        senderNick: `Node-${i}`,
+        content: `Telemetry payload index #${i} - water elevation status`,
+        priority: i % 5 === 0 ? 'emergency' : 'normal',
+      });
+      const serialized = MessageProtocol.serialize(msg);
+      const restored = MessageProtocol.deserialize(serialized);
+      expect(restored).not.toBeNull();
+      expect(restored?.id).toBe(msg.id);
+      expect(restored?.content).toBe(msg.content);
+      expect(restored?.priority).toBe(msg.priority);
+    }
+  });
 });
 
-describe('MessageTransport Chunking & Reassembly', () => {
+describe('MessageTransport Chunking & Reassembly Loop', () => {
   it('should chunk large payloads and reassemble them accurately', () => {
     const longContent = 'Flood warning payload '.repeat(15); // ~330 chars (< 500 MAX_MESSAGE_LENGTH, > 160 CHUNK_SIZE)
     const msg = MessageProtocol.createMessage({
@@ -90,6 +111,86 @@ describe('MessageTransport Chunking & Reassembly', () => {
     expect(receivedPayload).not.toBeNull();
     expect(receivedPayload.id).toBe(msg.id);
     expect(receivedPayload.content).toBe(longContent);
+  });
+
+  // Variable payload size loop test
+  it('should reassemble variable-sized payloads in a stress loop', () => {
+    const testSizes = [80, 160, 200, 320, 450];
+    for (const size of testSizes) {
+      const content = 'X'.repeat(size);
+      const testMsg = MessageProtocol.createMessage({
+        type: 'msg',
+        senderId: 'dev-stress',
+        senderNick: 'Tester',
+        content,
+      });
+      const serialized = MessageProtocol.serialize(testMsg);
+      const chunks = MessageTransport.chunkPayload(testMsg.id, serialized);
+
+      let assembled: any = null;
+      MessageTransport.onMessageReceived((p) => {
+        assembled = p;
+      });
+
+      for (const chunk of chunks) {
+        MessageTransport.handleIncomingRawPacket(JSON.stringify(chunk));
+      }
+
+      expect(assembled).not.toBeNull();
+      expect(assembled.content).toBe(content);
+    }
+  });
+});
+
+describe('Ping-Pong Heartbeat Watchdog Loop', () => {
+  const dummyPeer: BluetoothDevicePeer = {
+    id: 'peer-heartbeat-test',
+    name: 'Peer Node Alpha',
+    lastSeen: Date.now(),
+    isConnected: true,
+  };
+
+  it('should record pong and calculate RTT latency correctly', () => {
+    ConnectionManager.setState('connected', dummyPeer);
+
+    let health = ConnectionManager.getHealthMetrics();
+    expect(health.linkQuality).toBe('good');
+
+    // Simulate sending ping at t0 and receiving pong after 45ms
+    const t0 = Date.now() - 45;
+    ConnectionManager.recordPongReceived(t0);
+
+    health = ConnectionManager.getHealthMetrics();
+    expect(health.rttMs).toBeGreaterThanOrEqual(40);
+    expect(health.missedPings).toBe(0);
+    expect(health.linkQuality).toBe('excellent');
+
+    // Clean up
+    ConnectionManager.setState('disconnected', null);
+  });
+});
+
+describe('Diagnostic Self-Test Loop', () => {
+  it('should run full end-to-end diagnostic loop and pass all multi-layer checks', async () => {
+    await BluetoothService.initialize();
+    const summary = await BluetoothService.runDiagnosticLoop();
+
+    expect(summary).toBeDefined();
+    expect(summary.checks.length).toBe(6);
+    expect(summary.overallHealthy).toBe(true);
+    expect(summary.summary).toContain('100% operational');
+
+    const checkIds = summary.checks.map((c) => c.id);
+    expect(checkIds).toContain('radio_status');
+    expect(checkIds).toContain('local_identity');
+    expect(checkIds).toContain('protocol_integrity');
+    expect(checkIds).toContain('mtu_chunking');
+    expect(checkIds).toContain('offline_storage');
+    expect(checkIds).toContain('link_health');
+
+    for (const check of summary.checks) {
+      expect(check.status).toBe('passed');
+    }
   });
 });
 

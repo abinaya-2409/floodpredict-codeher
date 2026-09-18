@@ -3,7 +3,9 @@ import {
   BluetoothDevicePeer,
   BluetoothState,
   BluetoothUserIdentity,
+  ConnectionHealthMetrics,
   ConnectionState,
+  DiagnosticSummary,
   EMERGENCY_QUICK_PRESETS,
   StoredMessage,
 } from '../services/bluetooth/BluetoothTypes';
@@ -33,6 +35,11 @@ import {
   Zap,
   Info,
   Smartphone,
+  CheckCircle2,
+  XCircle,
+  Cpu,
+  Layers,
+  Gauge,
 } from 'lucide-react';
 
 interface Props {
@@ -47,6 +54,7 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
   const [bluetoothState, setBluetoothState] = useState<BluetoothState>('unknown');
   const [connState, setConnState] = useState<ConnectionState>('disconnected');
   const [connectedPeer, setConnectedPeer] = useState<BluetoothDevicePeer | null>(null);
+  const [healthMetrics, setHealthMetrics] = useState<ConnectionHealthMetrics>(() => ConnectionManager.getHealthMetrics());
 
   const [discoveredDevices, setDiscoveredDevices] = useState<BluetoothDevicePeer[]>([]);
   const [isScanning, setIsScanning] = useState(false);
@@ -59,6 +67,11 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
   const [showSosModal, setShowSosModal] = useState(false);
   const [sosHoldProgress, setSosHoldProgress] = useState(0);
   const sosHoldTimer = useRef<any>(null);
+
+  const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
+  const [diagnosticSummary, setDiagnosticSummary] = useState<DiagnosticSummary | null>(null);
+  const [isRunningDiagnostic, setIsRunningDiagnostic] = useState(false);
+  const [isContinuousLoopActive, setIsContinuousLoopActive] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -83,12 +96,44 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
       setIsScanning(DeviceDiscovery.getIsScanning());
     });
 
+    const unsubHealth = ConnectionManager.addHealthListener((metrics) => {
+      setHealthMetrics(metrics);
+    });
+
     return () => {
       unsubBT();
       unsubConn();
       unsubDiscovery();
+      unsubHealth();
+      BluetoothService.stopContinuousHealthLoop();
     };
   }, []);
+
+  // Diagnostic Loop Execution
+  const handleRunDiagnosticLoop = async () => {
+    setIsRunningDiagnostic(true);
+    setShowDiagnosticModal(true);
+    try {
+      const summary = await BluetoothService.runDiagnosticLoop();
+      setDiagnosticSummary(summary);
+    } catch (err) {
+      console.error('[OfflineChat] Diagnostic execution error:', err);
+    } finally {
+      setIsRunningDiagnostic(false);
+    }
+  };
+
+  const handleToggleContinuousLoop = () => {
+    if (isContinuousLoopActive) {
+      BluetoothService.stopContinuousHealthLoop();
+      setIsContinuousLoopActive(false);
+    } else {
+      setIsContinuousLoopActive(true);
+      BluetoothService.startContinuousHealthLoop(15000, (summary) => {
+        setDiagnosticSummary(summary);
+      });
+    }
+  };
 
   // Poll / sync messages on connection or message updates
   const loadMessagesForPeer = (peerId: string) => {
@@ -313,6 +358,40 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
                 </span>
               </div>
             </div>
+
+            {/* Live Link Quality & Latency RTT */}
+            {connState === 'connected' && (
+              <div className="border-l border-line-strong/60 pl-3 ml-1 flex flex-col justify-center">
+                <span className="text-[10px] font-mono text-muted uppercase">Heartbeat Latency</span>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      healthMetrics.linkQuality === 'excellent'
+                        ? 'bg-emerald-400'
+                        : healthMetrics.linkQuality === 'good'
+                        ? 'bg-cyan-400'
+                        : healthMetrics.linkQuality === 'fair'
+                        ? 'bg-amber-400'
+                        : 'bg-rose-400'
+                    }`}
+                  />
+                  <span className="text-xs font-mono font-bold text-fg">
+                    {healthMetrics.rttMs > 0 ? `${healthMetrics.rttMs}ms RTT` : '<50ms'} ({healthMetrics.linkQuality.toUpperCase()})
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Diagnostic Loop Self-Test Button */}
+            <button
+              onClick={handleRunDiagnosticLoop}
+              disabled={isRunningDiagnostic}
+              className="text-[11px] font-mono px-3 py-1.5 rounded-full border border-cyan-500/40 bg-gradient-to-r from-cyan-950/80 to-blue-950/80 hover:from-cyan-900/90 hover:to-blue-900/90 text-cyan-300 font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm hover:shadow-cyan-500/20"
+              title="Run Automated Diagnostic Self-Test Loop to verify Bluetooth radio, chunking, and persistence"
+            >
+              <Activity className={`w-3.5 h-3.5 text-cyan-400 ${isRunningDiagnostic ? 'animate-spin' : ''}`} />
+              <span>{isRunningDiagnostic ? 'Testing Loops...' : 'Diagnostic Loop'}</span>
+            </button>
 
             {/* Simulation Toggle */}
             <button
@@ -743,6 +822,139 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
                 Confirm &amp; Send SOS
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Automated Diagnostic Self-Test Loop Modal */}
+      {showDiagnosticModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+          <div className="glass max-w-2xl w-full p-5 sm:p-6 rounded-panel border border-cyan-500/50 shadow-[0_0_50px_rgba(6,182,212,0.25)] space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between border-b border-line-strong/60 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300">
+                  <Activity className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-extrabold text-fg flex items-center gap-2">
+                    <span>Bluetooth Diagnostic Self-Test Loop</span>
+                  </h3>
+                  <p className="text-xs text-muted">
+                    Automated loop verification for adapter radio, serialization, 160-byte chunking, and storage.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowDiagnosticModal(false)}
+                className="text-muted hover:text-fg text-sm font-mono px-2 py-1 rounded-md hover:bg-surface-2 transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Diagnostic Control Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5 bg-bg/80 border border-line-strong/60 rounded-card p-3">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleRunDiagnosticLoop}
+                  disabled={isRunningDiagnostic}
+                  className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer shadow-md"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isRunningDiagnostic ? 'animate-spin' : ''}`} />
+                  <span>{isRunningDiagnostic ? 'Running Loops...' : 'Run Test Loop Again'}</span>
+                </button>
+
+                <button
+                  onClick={handleToggleContinuousLoop}
+                  className={`px-3 py-1.5 rounded-full text-xs font-mono font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isContinuousLoopActive
+                      ? 'bg-emerald-950/80 border-emerald-500/50 text-emerald-300'
+                      : 'bg-surface border-line text-muted hover:text-fg'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${isContinuousLoopActive ? 'bg-emerald-400 animate-ping' : 'bg-muted'}`} />
+                  <span>Auto-Loop (15s): {isContinuousLoopActive ? 'ACTIVE' : 'OFF'}</span>
+                </button>
+              </div>
+
+              {diagnosticSummary && (
+                <span className="text-[11px] font-mono text-cyan-300">
+                  Last checked: {new Date(diagnosticSummary.timestamp).toLocaleTimeString()}
+                </span>
+              )}
+            </div>
+
+            {/* Diagnostic Check Cards */}
+            <div className="space-y-2.5">
+              {isRunningDiagnostic && !diagnosticSummary && (
+                <div className="p-8 text-center space-y-3">
+                  <RefreshCw className="w-8 h-8 animate-spin text-cyan-400 mx-auto" />
+                  <p className="text-xs font-mono text-cyan-300">Executing multi-layer diagnostic loops...</p>
+                </div>
+              )}
+
+              {diagnosticSummary &&
+                diagnosticSummary.checks.map((check) => (
+                  <div
+                    key={check.id}
+                    className={`p-3 rounded-xl border flex items-start justify-between gap-3 transition-all ${
+                      check.status === 'passed'
+                        ? 'bg-emerald-950/20 border-emerald-500/30'
+                        : 'bg-rose-950/20 border-rose-500/40'
+                    }`}
+                  >
+                    <div className="flex items-start gap-2.5">
+                      {check.status === 'passed' ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      ) : (
+                        <XCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                      )}
+                      <div>
+                        <h4 className="text-xs font-bold text-fg">{check.name}</h4>
+                        <p className="text-[11px] text-muted mt-0.5 leading-relaxed">{check.details}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-end shrink-0">
+                      <span
+                        className={`text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded ${
+                          check.status === 'passed'
+                            ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                            : 'bg-rose-500/15 text-rose-300 border border-rose-500/30'
+                        }`}
+                      >
+                        {check.status}
+                      </span>
+                      {typeof check.durationMs === 'number' && (
+                        <span className="text-[10px] font-mono text-muted mt-1">{check.durationMs}ms</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+            {/* Summary Banner */}
+            {diagnosticSummary && (
+              <div
+                className={`p-3.5 rounded-xl border flex items-center justify-between text-xs font-semibold ${
+                  diagnosticSummary.overallHealthy
+                    ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200'
+                    : 'bg-rose-500/15 border-rose-500/40 text-rose-200'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-400" />
+                  <span>{diagnosticSummary.summary}</span>
+                </div>
+                <button
+                  onClick={() => setShowDiagnosticModal(false)}
+                  className="px-3 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white text-[11px] transition-colors cursor-pointer shrink-0 ml-2"
+                >
+                  Close
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
