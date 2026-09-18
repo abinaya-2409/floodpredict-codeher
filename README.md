@@ -47,6 +47,38 @@ Delhi, Kolkata, Hyderabad, Guwahati and Kochi are still in `mockData.ts`,
 still typed and still exercised by the test suite; widening the app again is
 a one-line change to `ACTIVE_STATE`.
 
+**A live weather field over the whole state.** The map tab opens on a
+Windy-style animated field: rain, wind and temperature straight from
+Open-Meteo across a 20x25 grid, scrubbable and playable across 48 hours, with
+wind drawn as particles advected through the vector field.
+
+The fourth layer is the one worth having. Every weather map shows where rain
+falls; this runs each cell's hourly rainfall through that cell's own terrain
+and shows **where the water ends up standing**. Terrain is precomputed from
+Mapzen/AWS terrarium elevation tiles - each 27km cell sampled on a 10x10
+lattice and represented by its low ground, because that is where water
+collects and people are flooded.
+
+Two constraints shaped it, and both are visible in the result:
+
+- **Open-Meteo bills per coordinate**, 600 a minute and 10,000 a day. A
+  browser fetching 500 cells directly would burn a user's daily allowance in
+  about twenty page loads, so the forecast is fetched by `/api/weather-grid`
+  instead and cached at the CDN for half an hour. One upstream request serves
+  everyone. The 0.25-degree cell size is set by that minute limit, not by
+  cartography.
+- **Tamil Nadu is dry most of the year**, so the flood layer is correctly
+  empty most days - and an empty flagship layer is indistinguishable from a
+  broken one. It says so, in the same words the model would use ("the
+  forecast peaks at 2.6mm/hr, under the drainage threshold of most of the
+  state"), and offers x2/x4/x8 scenarios that re-run the model on scaled
+  rainfall. Those are labelled as scenarios on the map itself, not as
+  forecasts.
+
+The field is rendered by painting one pixel per cell into a 20x25 offscreen
+canvas and scaling it up with smoothing on, which buys bilinear interpolation
+across the whole map for the cost of 500 pixels.
+
 **Click anywhere to predict there.** The map is an instrument rather than a
 viewer: click any coordinate in India and it samples terrain as a nine-point
 ring around the click and pulls that point's hourly rainfall forecast, then
@@ -330,7 +362,8 @@ All of it keyless, and fetched on demand rather than vendored:
 
 | Source | Used for | Licence |
 |---|---|---|
-| [Open-Meteo](https://open-meteo.com/) | Live rainfall forecast, terrain elevation | CC-BY 4.0, free for non-commercial use |
+| [Open-Meteo](https://open-meteo.com/) | Live rainfall, wind and temperature forecast | CC-BY 4.0, free for non-commercial use |
+| [Mapzen / AWS terrain tiles](https://registry.opendata.aws/terrain-tiles/) | Elevation raster for the weather grid and state terrain | Public domain / ODbL depending on source tile |
 | [Nominatim / OpenStreetMap](https://www.openstreetmap.org/copyright) | Place search, district boundaries | ODbL |
 | [Esri ArcGIS Online](https://www.esri.com/) | Basemap, satellite and topographic tiles | Free with attribution |
 | [datameet/maps](https://github.com/datameet/maps) | Census 2011 district boundaries (641 districts) | MIT |

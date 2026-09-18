@@ -7,6 +7,7 @@ import { recommendResources } from './utils/dispatch';
 import { CITY_LANGUAGE, Language, TRANSLATIONS } from './utils/translations';
 import { Navbar } from './components/Navbar';
 import { LeafletFloodMap } from './components/LeafletFloodMap';
+import { TamilNaduWeatherMap } from './components/TamilNaduWeatherMap';
 import { HydrologicalMap } from './components/HydrologicalMap';
 import { StreetLevelVulnerability } from './components/StreetLevelVulnerability';
 import { WhatIfScenarioSandbox } from './components/WhatIfScenarioSandbox';
@@ -33,7 +34,15 @@ export default function App() {
   });
   const [selectedCity, setSelectedCity] = useState<CityData>(CITIES[0]); // Default Chennai
   const [activeTab, setActiveTab] = useState<string>('map');
-  const [mapRenderMode, setMapRenderMode] = useState<'leaflet' | 'schematic'>('leaflet');
+  /**
+   * The live weather field leads, because it is the view that answers "what
+   * is coming" for the whole state. The ward map keeps the surveyed detail
+   * for Chennai - drains, shelters, evacuation routes - which the grid is far
+   * too coarse to carry, so neither replaces the other.
+   */
+  const [mapRenderMode, setMapRenderMode] = useState<'weather' | 'leaflet' | 'schematic'>(
+    'weather'
+  );
   const [userRole, setUserRole] = useState<'authority' | 'citizen'>('authority');
   const [language, setLanguage] = useState<Language>('en');
   const [isOfflineSimulated, setIsOfflineSimulated] = useState(false);
@@ -472,6 +481,22 @@ export default function App() {
             <div className="glass rounded-panel p-3 flex flex-wrap items-center justify-between gap-3 border border-line-strong/60">
               <div className="flex items-center p-1 rounded-full bg-bg/80 border border-line-strong/60 shadow-inner">
                 <button
+                  onClick={() => setMapRenderMode('weather')}
+                  className={`h-8 px-4 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer ${
+                    mapRenderMode === 'weather'
+                      ? 'bg-gradient-to-r from-risk-low to-risk-low text-fg font-bold'
+                      : 'text-muted hover:text-fg'
+                  }`}
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
+                    <path d="M2 12c3-4 6-4 9 0s6 4 9 0" />
+                    <path d="M2 17c3-4 6-4 9 0s6 4 9 0" />
+                    <path d="M2 7c3-4 6-4 9 0s6 4 9 0" />
+                  </svg>
+                  <span>Live Weather Field</span>
+                </button>
+
+                <button
                   onClick={() => setMapRenderMode('leaflet')}
                   className={`h-8 px-4 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer ${
                     mapRenderMode === 'leaflet'
@@ -485,7 +510,7 @@ export default function App() {
                     <path d="M2 12h20" />
                     <circle cx="12" cy="12" fill="currentColor" r="2" />
                   </svg>
-                  <span>Leaflet GIS Tile Map</span>
+                  <span>Ward Detail</span>
                 </button>
 
                 <button
@@ -501,7 +526,7 @@ export default function App() {
                     <path d="M3 9h18" />
                     <path d="M9 21V9" />
                   </svg>
-                  <span>Architectural Schematic Basin</span>
+                  <span>Schematic Basin</span>
                 </button>
               </div>
 
@@ -513,8 +538,13 @@ export default function App() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Map Rendering Container */}
-              <div className="lg:col-span-8">
-                {mapRenderMode === 'leaflet' ? (
+              <div className={mapRenderMode === 'weather' ? 'lg:col-span-12' : 'lg:col-span-8'}>
+                {mapRenderMode === 'weather' ? (
+                  <TamilNaduWeatherMap
+                    simulationParams={simulationParams}
+                    onUpdateParams={setSimulationParams}
+                  />
+                ) : mapRenderMode === 'leaflet' ? (
                   <LeafletFloodMap
               resources={resourcePlan}
                     city={selectedCity}
@@ -540,7 +570,11 @@ export default function App() {
               </div>
 
               {/* Side Action Panel */}
-              <div className="lg:col-span-4 flex flex-col gap-5">
+              <div
+                className={`flex flex-col gap-5 ${
+                  mapRenderMode === 'weather' ? 'lg:col-span-12' : 'lg:col-span-4'
+                }`}
+              >
                 {/* TOP CARD: SELECTED CATCHMENT FOCUS */}
                 {selectedZone && (
                   <div className="glass rounded-panel p-5 shadow-2xl flex flex-col gap-4 border border-accent/25 relative overflow-hidden">

@@ -211,6 +211,155 @@ function buildBroadcastSample(body: any = {}) {
  * Routes
  * ------------------------------------------------------------------------ */
 
+/* ---------------------------------------------------------------------------
+ * Weather grid
+ *
+ * The map needs 48 hours of forecast for every cell in a 720-cell grid. Open-
+ * Meteo bills that as 720 calls against a 10,000-a-day free allowance, so a
+ * browser fetching it directly would exhaust a user's quota in about thirteen
+ * page loads - and every user would pay that cost again.
+ *
+ * Fetching it here instead makes it one upstream request that the CDN caches
+ * for everyone. s-maxage keeps the edge copy for half an hour, which matches
+ * how often the underlying forecast actually changes, and
+ * stale-while-revalidate means the refresh never lands in a user's wait.
+ * ------------------------------------------------------------------------ */
+
+const WX_SOUTH = 7.9;
+const WX_WEST = 76.0;
+const WX_STEP = 0.25;
+const WX_ROWS = 25;
+const WX_COLS = 20;
+/**
+ * Open-Meteo caps a request at 400 coordinates before the URL is too long,
+ * and 600 coordinates a minute however they are split. 250 gives two paced
+ * requests for the whole state, inside both limits.
+ */
+const WX_BATCH = 250;
+/** Space the batches: the minute limit counts coordinates, not requests. */
+const WX_BATCH_GAP_MS = 1200;
+const WX_HOURS = 48;
+
+interface OpenMeteoHourly {
+  time: string[];
+  precipitation: number[];
+  wind_speed_10m: number[];
+  wind_direction_10m: number[];
+  temperature_2m: number[];
+}
+
+let wxCache: { at: number; body: unknown } | null = null;
+
+app.get('/api/weather-grid', async (_req, res) => {
+  // A warm lambda can answer without going upstream at all; the CDN handles
+  // the rest. Half an hour matches the s-maxage below.
+  if (wxCache && Date.now() - wxCache.at < 30 * 60 * 1000) {
+    res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=3600');
+    res.setHeader('X-Grid-Cache', 'lambda');
+    res.json(wxCache.body);
+    return;
+  }
+
+  const coords: [number, number][] = [];
+  for (let r = 0; r < WX_ROWS; r++) {
+    for (let c = 0; c < WX_COLS; c++) {
+      coords.push([
+        Number((WX_SOUTH + r * WX_STEP).toFixed(3)),
+        Number((WX_WEST + c * WX_STEP).toFixed(3)),
+      ]);
+    }
+  }
+
+  const cells = coords.length;
+  // Columnar and rounded. The same data as nested per-location objects is
+  // roughly four times the bytes, almost all of it punctuation and keys.
+  const rain = new Array<number>(cells * WX_HOURS).fill(0);
+  const speed = new Array<number>(cells * WX_HOURS).fill(0);
+  const dir = new Array<number>(cells * WX_HOURS).fill(0);
+  const temp = new Array<number>(cells * WX_HOURS).fill(0);
+  let hours: string[] = [];
+
+  try {
+    for (let start = 0; start < cells; start += WX_BATCH) {
+      const chunk = coords.slice(start, start + WX_BATCH);
+      const params = new URLSearchParams({
+        latitude: chunk.map((p) => p[0].toFixed(3)).join(','),
+        longitude: chunk.map((p) => p[1].toFixed(3)).join(','),
+        hourly: 'precipitation,wind_speed_10m,wind_direction_10m,temperature_2m',
+        forecast_days: '3',
+        timezone: 'Asia/Kolkata',
+      });
+
+      if (start > 0) await new Promise((r) => setTimeout(r, WX_BATCH_GAP_MS));
+
+      /*
+       * The minute limit counts coordinates, so a redeploy or a burst of cold
+       * lambdas can trip it even when this request is well behaved. One wait
+       * clears it; anything worse falls through to the stale copy below
+       * rather than spending a user's patience on a retry loop.
+       */
+      let upstream = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+      if (upstream.status === 429) {
+        await new Promise((r) => setTimeout(r, 61_000));
+        upstream = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+      }
+      if (!upstream.ok) {
+        throw new Error(`Open-Meteo ${upstream.status}: ${(await upstream.text()).slice(0, 160)}`);
+      }
+      const body = (await upstream.json()) as
+        | { hourly: OpenMeteoHourly }
+        | { hourly: OpenMeteoHourly }[];
+      const list = Array.isArray(body) ? body : [body];
+
+      list.forEach((loc, i) => {
+        const cell = start + i;
+        const h = loc.hourly;
+        if (!hours.length) hours = h.time.slice(0, WX_HOURS);
+        for (let t = 0; t < WX_HOURS; t++) {
+          const idx = t * cells + cell;
+          rain[idx] = Math.round((h.precipitation?.[t] ?? 0) * 10) / 10;
+          speed[idx] = Math.round((h.wind_speed_10m?.[t] ?? 0) * 10) / 10;
+          dir[idx] = Math.round(h.wind_direction_10m?.[t] ?? 0);
+          temp[idx] = Math.round((h.temperature_2m?.[t] ?? 0) * 10) / 10;
+        }
+      });
+    }
+
+    const payload = {
+      generatedAt: new Date().toISOString(),
+      source: 'https://open-meteo.com/',
+      rows: WX_ROWS,
+      cols: WX_COLS,
+      south: WX_SOUTH,
+      west: WX_WEST,
+      step: WX_STEP,
+      hours,
+      rain,
+      speed,
+      dir,
+      temp,
+    };
+    wxCache = { at: Date.now(), body: payload };
+
+    res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=3600');
+    res.setHeader('X-Grid-Cache', 'miss');
+    res.json(payload);
+  } catch (err) {
+    // A stale grid beats no map: the forecast moves slowly enough that an
+    // hour-old copy is still worth drawing, and the client says how old it is.
+    if (wxCache) {
+      res.setHeader('X-Grid-Cache', 'stale');
+      res.json(wxCache.body);
+      return;
+    }
+    console.warn('Weather grid upstream failed:', err);
+    res.status(502).json({
+      error: 'weather_upstream_failed',
+      message: (err as Error).message,
+    });
+  }
+});
+
 app.get('/api/health', (_req, res) => {
   const key = readApiKey();
   res.json({
