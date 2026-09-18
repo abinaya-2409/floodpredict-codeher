@@ -42,6 +42,15 @@ export interface LiveRainfall {
   /** Highest hourly probability of precipitation in the window, 0-100. */
   maxProbabilityPercent: number;
   observedAt: string;
+  /**
+   * The raw hourly series from now, 48 entries.
+   *
+   * The collapsed figures above answer "how bad"; this answers "when", which
+   * is what a timeline simulation needs. Keeping it means the map can drive a
+   * real forecast through the depth model hour by hour instead of holding one
+   * intensity flat and calling the result a prediction.
+   */
+  series: { time: string; mm: number; probability: number }[];
 }
 
 /**
@@ -87,5 +96,10 @@ export async function fetchRainfall(
     hoursToPeak: Math.max(0, next24.indexOf(peak)),
     maxProbabilityPercent: Math.max(0, ...prob.slice(startIdx, startIdx + 24)),
     observedAt: times[startIdx] ?? new Date().toISOString(),
+    series: next48.map((mm, i) => ({
+      time: times[startIdx + i] ?? '',
+      mm: Number((mm ?? 0).toFixed(2)),
+      probability: prob[startIdx + i] ?? 0,
+    })),
   };
 }

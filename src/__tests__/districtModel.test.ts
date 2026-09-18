@@ -10,6 +10,7 @@ const rain = (over: Partial<LiveRainfall> = {}): LiveRainfall => ({
   hoursToPeak: 6,
   maxProbabilityPercent: 80,
   observedAt: '2026-09-17T18:00',
+  series: [],
   ...over,
 });
 

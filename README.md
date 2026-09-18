@@ -38,6 +38,26 @@ for geographic spread (Yamuna floodplain, Hooghly tidal lock, Musi basin,
 Brahmaputra bank, Kerala backwaters). Every feature works in every city; the
 map itself reaches any district in India through keyless place search.
 
+**Click anywhere to predict there.** The map is an instrument rather than a
+viewer: click any coordinate in India and it samples terrain as a nine-point
+ring around the click and pulls that point's hourly rainfall forecast, then
+runs a 48-hour storage simulation. The result is a timeline, not a single
+figure - scrub or play it and the water on the map rises and recedes with the
+curve.
+
+The terrain ring is what makes it more than a guess. One elevation reading
+says nothing, because 4m above sea level is a death sentence in a delta and
+unremarkable on a plateau; what decides ponding is the height of a point
+*relative to the ground immediately around it*. The model reports a
+**drainage threshold** - the rainfall intensity above which water starts to
+stand at that spot - so a quiet forecast returns an answer ("peaks at 9mm/hr
+against a 12.4mm/hr threshold") rather than a blank.
+
+Two sources, switchable in the panel: the live Open-Meteo forecast, or a
+what-if storm you set. Switching between them and dragging the intensity
+recompute locally from the reading already in hand, so the map redraws on the
+same frame instead of waiting on the network.
+
 **Any other district:** search a district outside those eight and the map
 draws its real OSM boundary and returns a *reconnaissance read* - a 0-100
 hazard score built from live rainfall and a 3x3 terrain sample, both fetched
@@ -179,6 +199,13 @@ Read this before quoting any number from this application.
 - **Hydrology** uses a Modified Rational Formula with a micro-topography
   factor. The coefficients are calibrated by judgement, not against gauge
   records, and the model has not been validated against observed flood extent.
+- **The point prediction is a terrain-and-rainfall read, not hydraulics.** It
+  carries no surveyed drain network, no culvert capacities and no river
+  routing, and its terrain comes from a 90m DEM sampled at nine points, so it
+  cannot see a blocked culvert or a bund. It answers "does water tend to stand
+  here, and above what rainfall" - not "how deep will this street be". Its
+  storage and drainage coefficients are pinned by behaviour in
+  `src/__tests__/pointForecast.test.ts` rather than validated against gauges.
 - **Weather and gauge readings are fixtures for the eight modelled cities.**
   The reconnaissance path for other districts uses live Open-Meteo rainfall
   and elevation; folding that feed back into the modelled cities is the next

@@ -2,12 +2,20 @@ import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { CityData, ZoneData, SimulationParams, ReliefShelter, ResourcePrepositioning } from '../types';
 import { CHENNAI_HISTORICAL_OVERLAYS } from '../data/mockData';
-import { Sliders, Layers, Search, MapPin, AlertTriangle, ShieldCheck, Navigation, Eye, EyeOff, RotateCcw, Loader2 } from 'lucide-react';
+import { Sliders, Layers, Search, MapPin, AlertTriangle, ShieldCheck, Navigation, Eye, EyeOff, RotateCcw, Loader2, Maximize2, Minimize2, Crosshair } from 'lucide-react';
 import { PlaceResult, fetchBoundary, searchPlaces } from '../utils/geocode';
 import { fetchElevations, fetchRainfall } from '../utils/openMeteo';
 import { DistrictReconnaissance, assessDistrict, sampleGrid } from '../utils/districtModel';
 import { Facility, fetchFacilities } from '../utils/facilities';
 import { DistrictReconPanel } from './DistrictReconPanel';
+import { PointPredictionPanel } from './PointPredictionPanel';
+import {
+  ForecastMode,
+  PointForecast,
+  bandForDepth,
+  forecastPoint,
+  recomputeForecast,
+} from '../utils/pointForecast';
 import {
   availableBasemaps,
   basemapById,
@@ -69,6 +77,23 @@ export const LeafletFloodMap: React.FC<Props> = ({
    */
   const [zoomLevel, setZoomLevel] = useState(12);
 
+  /**
+   * Point prediction: the map's own forecast for wherever the user clicked.
+   *
+   * The modelled wards cover eight cities. Everywhere else - which is to say
+   * almost all of India - had nothing to click on, so the map was a viewer
+   * rather than an instrument. This makes any coordinate answerable.
+   */
+  const [prediction, setPrediction] = useState<PointForecast | null>(null);
+  const [predicting, setPredicting] = useState(false);
+  const [predictError, setPredictError] = useState<string | null>(null);
+  const [simHour, setSimHour] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [forecastMode, setForecastMode] = useState<ForecastMode>('scenario');
+  const [expanded, setExpanded] = useState(false);
+  const floodLayerRef = useRef<L.LayerGroup | null>(null);
+  const predictAbortRef = useRef<AbortController | null>(null);
+
   /** Mirrors the thresholds in calculateZoneHydrology. */
   const DEPTH_BANDS = [
     { key: 'low', label: 'Passable', color: tokens.risk.low },
@@ -98,10 +123,17 @@ export const LeafletFloodMap: React.FC<Props> = ({
    * imagery instead of grey gaps. updateWhenZooming stops Leaflet firing a
    * request storm mid-pinch. maxNativeZoom lets the map keep zooming past the
    * provider's deepest tile by upscaling, so zoom never dead-ends on blank.
+   *
+   * detectRetina fetches one zoom level deeper on high-density displays and
+   * draws it at half size. On the laptop screens this is actually used on it
+   * is the difference between satellite imagery that reads as terrain and
+   * imagery that reads as green smear, because the browser is otherwise
+   * upscaling a 256px tile across 512 physical pixels.
    */
   const tileOptions = (maxZoom: number, maxNativeZoom: number) => ({
     maxZoom,
     maxNativeZoom,
+    detectRetina: true,
     keepBuffer: 4,
     updateWhenZooming: false,
     updateWhenIdle: false,
@@ -244,6 +276,166 @@ export const LeafletFloodMap: React.FC<Props> = ({
     }
   }, [basemapId]);
 
+  /**
+   * Click anywhere to predict there.
+   *
+   * Bound once and reading the handler through a ref, because rebinding on
+   * every render of a component this size means adding and removing a
+   * listener dozens of times a second while the slider moves.
+   */
+  const predictRef = useRef<(lat: number, lon: number, label?: string) => void>(() => {});
+  // Assigned in an effect, not during render: predictAt is declared further
+  // down the body, so reading it here would hit the temporal dead zone.
+  useEffect(() => {
+    predictRef.current = predictAt;
+  });
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const onClick = (e: L.LeafletMouseEvent) => {
+      // Leaflet propagates a layer click up to the map, so selecting a ward
+      // would fire a point prediction underneath it too. Leaflet marks every
+      // interactive layer in the DOM, so asking what was actually clicked
+      // covers wards, shelters, drains and anything added later - which a
+      // per-layer guard would not.
+      const target = e.originalEvent?.target as HTMLElement | null;
+      if (target?.closest?.('.leaflet-interactive, .leaflet-marker-icon, .leaflet-popup')) {
+        return;
+      }
+      void predictRef.current(e.latlng.lat, e.latlng.lng);
+    };
+
+    map.on('click', onClick);
+    return () => {
+      map.off('click', onClick);
+    };
+  }, []);
+
+  /**
+   * Re-runs the model when the source or the storm changes.
+   *
+   * Local and synchronous. The terrain sample and the hourly forecast are
+   * already on the prediction, and neither depends on where the rainfall
+   * slider sits, so there is nothing to fetch - dragging the slider moves the
+   * water on the same frame instead of a second later.
+   */
+  useEffect(() => {
+    setPrediction((p) =>
+      p
+        ? recomputeForecast(p, {
+            mode: forecastMode,
+            scenarioMmHr: simulationParams.rainfallIntensityMmHr,
+            scenarioHours: Math.max(1, Math.round(simulationParams.durationHours)),
+          })
+        : p
+    );
+  }, [
+    forecastMode,
+    simulationParams.rainfallIntensityMmHr,
+    simulationParams.durationHours,
+  ]);
+
+  /** Playback. One hour every 220ms is fast enough to read as motion. */
+  useEffect(() => {
+    if (!playing || !prediction) return;
+    const id = window.setInterval(() => {
+      setSimHour((h) => {
+        if (h >= 47) {
+          setPlaying(false);
+          return h;
+        }
+        return h + 1;
+      });
+    }, 220);
+    return () => window.clearInterval(id);
+  }, [playing, prediction]);
+
+  /**
+   * Draws the predicted water.
+   *
+   * Concentric rings rather than one disc: the deepest water sits at the
+   * point and shallows towards the edge, which is how a hollow actually
+   * fills. A single flat polygon in one colour claims uniform depth across
+   * the whole footprint, which is both wrong and the reason the old overlay
+   * looked like a sticker rather than water.
+   */
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (!floodLayerRef.current) {
+      floodLayerRef.current = L.layerGroup().addTo(map);
+    }
+    const group = floodLayerRef.current;
+    group.clearLayers();
+    if (!prediction) return;
+
+    const step = prediction.curve[Math.min(simHour, prediction.curve.length - 1)];
+    const centre: [number, number] = [prediction.lat, prediction.lon];
+
+    // Shallow water spreads little; deep water spreads to the full footprint.
+    const spread = Math.min(1, step.depthCm / Math.max(1, prediction.peakDepthCm));
+    const outerM = Math.max(120, prediction.footprintRadiusM * (0.35 + 0.65 * spread));
+
+    if (step.depthCm > 0) {
+      // Outside in, so the deepest ring is drawn last and sits on top.
+      [1, 0.74, 0.5, 0.28].forEach((frac, i) => {
+        // Depth at this ring: the rim is shallow, the centre is the full read.
+        const ringDepth = step.depthCm * (0.3 + 0.7 * (1 - frac));
+        const colour = tokens.risk[bandForDepth(ringDepth)];
+        L.circle(centre, {
+          radius: outerM * frac,
+          // Every ring carries a waterline, not just the outer one. Over
+          // satellite imagery a fill alone has nothing to read against.
+          color: colour,
+          weight: i === 0 ? 2 : 1,
+          opacity: i === 0 ? 0.9 : 0.55,
+          fillColor: colour,
+          fillOpacity: 0.26 + i * 0.09,
+          interactive: false,
+          className: `flood-water flood-water-${i}`,
+        }).addTo(group);
+      });
+    }
+
+    // The pin stays put whether or not there is water, so the point the user
+    // asked about never disappears from under them.
+    const colour = tokens.risk[step.band];
+    L.marker(centre, {
+      interactive: false,
+      icon: L.divIcon({
+        className: '',
+        html:
+          `<div class="predict-pin" style="--pin:${colour}">` +
+          `<span class="predict-pin-dot"></span>` +
+          `<span class="predict-pin-label">${step.depthCm}cm</span>` +
+          `</div>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+      }),
+    }).addTo(group);
+  }, [prediction, simHour, tokens]);
+
+  /** Leaflet needs telling when its container changes size. */
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    const id = window.setTimeout(() => map.invalidateSize(), 260);
+    return () => window.clearTimeout(id);
+  }, [expanded]);
+
+  /** Escape leaves fullscreen, which is what every fullscreen does. */
+  useEffect(() => {
+    if (!expanded) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setExpanded(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [expanded]);
+
 
   // Update Layers on Map whenever simulation or toggles change
   useEffect(() => {
@@ -265,7 +457,10 @@ export const LeafletFloodMap: React.FC<Props> = ({
           weight: isSelected ? 3 : 1.75,
           fillColor: riskColor,
           // Depth drives opacity, so deeper water simply looks heavier.
-          fillOpacity: Math.min(0.62, 0.28 + (zone.predictedInundationDepthCm / 100) * 0.34),
+          // Capped well below opaque. At extreme rainfall every ward
+          // saturates to the critical colour, and at 0.62 they rendered as
+          // flat magenta blocks that hid the city underneath them.
+          fillOpacity: Math.min(0.42, 0.2 + (zone.predictedInundationDepthCm / 100) * 0.22),
           opacity: isSelected ? 1 : 0.85,
           dashArray: isSelected ? undefined : '5, 5',
           className: zone.currentRisk === 'critical' ? 'zone-critical' : undefined,
@@ -695,6 +890,68 @@ export const LeafletFloodMap: React.FC<Props> = ({
     setFacilities([]);
   };
 
+  /**
+   * Runs a forecast for one coordinate and draws it.
+   *
+   * Aborts any in-flight request first: clicking around the map quickly used
+   * to leave several reads racing, and the slowest to return won regardless
+   * of which point the user actually meant.
+   */
+  const predictAt = async (lat: number, lon: number, label?: string) => {
+    predictAbortRef.current?.abort();
+    const controller = new AbortController();
+    predictAbortRef.current = controller;
+
+    setPredicting(true);
+    setPredictError(null);
+    setPlaying(false);
+    setSimHour(0);
+
+    try {
+      const f = await forecastPoint(lat, lon, {
+        label: label ?? 'Dropped pin',
+        mode: forecastMode,
+        scenarioMmHr: simulationParams.rainfallIntensityMmHr,
+        scenarioHours: Math.max(1, Math.round(simulationParams.durationHours)),
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted) return;
+      setPrediction(f);
+
+      // A footprint is a few hundred metres across. Viewed at the zoom that
+      // frames a whole city it is a handful of pixels, so the prediction
+      // renders as an invisible dot next to its own label. Close in far
+      // enough for the water to be legible - but only when already zoomed
+      // out, so someone comparing two nearby points is not yanked around.
+      const map = mapInstanceRef.current;
+      if (map && map.getZoom() < 13) {
+        map.flyTo([lat, lon], 13, { duration: 0.9 });
+      }
+      // Open on the peak rather than on hour zero: the useful frame is the
+      // worst one, and starting at "0cm, no rain yet" reads as a failure.
+      setSimHour(f.peakAtHour);
+    } catch (err) {
+      if ((err as Error)?.name === 'AbortError') return;
+      console.warn('Point prediction failed:', err);
+      setPredictError(
+        'Could not read terrain or forecast for that point. Check the connection and try again.'
+      );
+      setPrediction(null);
+    } finally {
+      if (!controller.signal.aborted) setPredicting(false);
+    }
+  };
+
+  const clearPrediction = () => {
+    predictAbortRef.current?.abort();
+    setPrediction(null);
+    setPredicting(false);
+    setPredictError(null);
+    setPlaying(false);
+    setSimHour(0);
+    floodLayerRef.current?.clearLayers();
+  };
+
   const focusFacility = (f: Facility) => {
     mapInstanceRef.current?.flyTo([f.lat, f.lon], 16, { duration: 0.9 });
   };
@@ -722,7 +979,14 @@ export const LeafletFloodMap: React.FC<Props> = ({
   };
 
   return (
-    <div className="glass rounded-panel overflow-hidden relative shadow-[0_24px_50px_rgba(0,0,0,0.65)] border border-accent/25 flex flex-col" id="leaflet-flood-map-wrapper">
+    <div
+      id="leaflet-flood-map-wrapper"
+      className={
+        expanded
+          ? 'fixed inset-0 z-[9000] flex flex-col overflow-hidden bg-bg-deep'
+          : 'glass rounded-panel overflow-hidden relative shadow-[0_24px_50px_rgba(0,0,0,0.65)] border border-accent/25 flex flex-col'
+      }
+    >
       {/* Top Map Control Bar */}
       <div className="p-3 sm:p-4 bg-bg/70 border-b border-line/80 flex flex-col lg:flex-row lg:items-start justify-between gap-3">
         {/* Search Input */}
@@ -884,11 +1148,29 @@ export const LeafletFloodMap: React.FC<Props> = ({
             <ShieldCheck className="w-3.5 h-3.5 text-accent" />
             <span>Relief Camps</span>
           </button>
+
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            aria-pressed={expanded}
+            title={expanded ? 'Exit fullscreen (Esc)' : 'Expand map to fullscreen'}
+            className="h-8 px-3.5 rounded-full border border-line-strong/60 bg-surface-2/60 text-xs font-semibold text-fg-soft flex items-center gap-2 transition-colors hover:bg-surface-3/80 hover:text-fg whitespace-nowrap cursor-pointer shadow-sm"
+          >
+            {expanded ? (
+              <Minimize2 className="w-3.5 h-3.5" aria-hidden="true" />
+            ) : (
+              <Maximize2 className="w-3.5 h-3.5" aria-hidden="true" />
+            )}
+            <span>{expanded ? 'Exit' : 'Expand'}</span>
+          </button>
         </div>
       </div>
 
       {/* Map Container */}
-      <div className="relative w-full h-[clamp(24rem,58vh,40rem)] bg-bg-deep">
+      <div
+        className={`relative w-full bg-bg-deep ${
+          expanded ? 'flex-1 min-h-0' : 'h-[clamp(30rem,72vh,54rem)]'
+        }`}
+      >
         {/*
           The element Leaflet owns must keep a constant className.
           Leaflet writes its own classes (leaflet-container, leaflet-touch,
@@ -946,7 +1228,11 @@ export const LeafletFloodMap: React.FC<Props> = ({
             Thresholds are the ones calculateZoneHydrology actually uses - the
             previous legend claimed "Critical >60cm" and omitted Severe
             entirely, so it disagreed with the model it was labelling. */}
-        <div className="absolute bottom-8 right-3 z-[500] hidden lg:block">
+        <div
+          className={`absolute bottom-8 right-3 z-[500] ${
+            prediction || predicting || predictError ? 'hidden' : 'hidden lg:block'
+          }`}
+        >
           <div className="glass rounded-card px-3 py-2.5 shadow-xl border border-line-strong/40">
             <div className="mb-1.5 flex items-baseline gap-2">
               <span className="font-mono text-nano uppercase tracking-[0.14em] text-muted">
@@ -1000,6 +1286,47 @@ export const LeafletFloodMap: React.FC<Props> = ({
               onFocusFacility={focusFacility}
               onDismiss={dismissRecon}
             />
+          </div>
+        )}
+
+        {/* Point prediction, docked right. */}
+        {(prediction || predicting || predictError) && (
+          <div className="absolute inset-x-3 bottom-3 top-[42%] z-[700] md:inset-x-auto md:right-3 md:top-3 md:w-[21rem]">
+            <PointPredictionPanel
+              forecast={prediction}
+              loading={predicting}
+              error={predictError}
+              hour={simHour}
+              playing={playing}
+              mode={forecastMode}
+              scenarioMmHr={simulationParams.rainfallIntensityMmHr}
+              scenarioHours={Math.max(1, Math.round(simulationParams.durationHours))}
+              onScenarioChange={(mmHr, hours) =>
+                onUpdateParams({
+                  ...simulationParams,
+                  rainfallIntensityMmHr: mmHr,
+                  durationHours: hours,
+                })
+              }
+              onHourChange={(h) => {
+                setPlaying(false);
+                setSimHour(h);
+              }}
+              onTogglePlay={() => setPlaying((v) => !v)}
+              onModeChange={setForecastMode}
+              onDismiss={clearPrediction}
+            />
+          </div>
+        )}
+
+        {/* The invitation. Without it the map looks like every other map, and
+            nothing suggests that clicking it does anything. */}
+        {!prediction && !predicting && !predictError && (
+          <div className="pointer-events-none absolute right-3 top-3 z-[600] hidden items-center gap-2 rounded-full border border-accent/30 bg-bg/80 px-3 py-1.5 shadow-lg backdrop-blur md:flex">
+            <Crosshair className="h-3.5 w-3.5 animate-pulse text-accent" aria-hidden="true" />
+            <span className="text-mini font-semibold text-fg-soft">
+              Click anywhere to predict flooding there
+            </span>
           </div>
         )}
 

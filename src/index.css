@@ -354,6 +354,110 @@
 }
 
 /* ===========================================================================
+   Predicted water
+
+   The old inundation overlay was a flat translucent disc, which reads as a
+   sticker laid on the map rather than as water sitting in the ground. Three
+   things fix that, and none of them need a raster: the fill is blurred at
+   the edge so the waterline is soft, the whole body drifts on a slow cycle
+   so it is not perfectly still, and the rings are composited so overlapping
+   depths deepen rather than simply stack.
+   =========================================================================== */
+
+.leaflet-interactive.flood-water {
+  animation: floodSwell 7s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+  /* No blend mode. `screen` lightens towards white, which looks right over
+     the dark canvas and erases the water entirely over satellite imagery -
+     68cm of flooding rendered as nothing at all on the one basemap where you
+     most want to see what is underneath it. */
+  filter: blur(1px);
+}
+
+/* Each ring offsets so they breathe against each other instead of in step,
+   which is what stops it looking like one pulsing blob. Indexed by class
+   rather than :nth-of-type, because Leaflet puts every path - ward polygons
+   included - in one <g>, so positional selectors would pick arbitrary rings. */
+.flood-water-1 {
+  animation-delay: -1.8s;
+}
+.flood-water-2 {
+  animation-delay: -3.6s;
+}
+.flood-water-3 {
+  animation-delay: -5.4s;
+}
+
+@keyframes floodSwell {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.92;
+  }
+  50% {
+    transform: scale(1.022);
+    opacity: 1;
+  }
+}
+
+/* The clicked point. Never swallows a click: the next click must land on the
+   map, not on the answer to the last one. */
+.predict-pin {
+  position: relative;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.predict-pin-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--pin);
+  border: 2px solid var(--color-bg-deep);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--pin) 55%, transparent);
+  animation: predictPing 2.4s ease-out infinite;
+}
+
+.predict-pin-label {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  padding: 3px 6px;
+  border-radius: 999px;
+  color: var(--color-fg);
+  background: color-mix(in oklab, var(--color-bg-deep) 88%, transparent);
+  border: 1px solid color-mix(in oklab, var(--pin) 60%, transparent);
+}
+
+@keyframes predictPing {
+  0% {
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--pin) 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 14px color-mix(in oklab, var(--pin) 0%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--pin) 0%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The depth is the information; the motion is not. Hold the water still
+     and keep the blurred edge, which carries no motion at all. */
+  .leaflet-interactive.flood-water,
+  .predict-pin-dot {
+    animation: none;
+  }
+}
+
+/* ===========================================================================
    Range sliders
    The scenario slider referenced .fluid-slider, which was never defined, so
    it rendered as a raw browser control.
