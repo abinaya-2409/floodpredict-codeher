@@ -1,9 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { LogoMark } from './Logo';
-import { 
-  Activity, 
+import {
+  Activity,
+  ArrowRight,
+  CloudRain,
+  Cpu,
   Radio,
-  ArrowRight
+  Satellite,
+  ShieldCheck,
+  Waves,
 } from 'lucide-react';
 
 interface LoadingStep {
