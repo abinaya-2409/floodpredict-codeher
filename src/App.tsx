@@ -22,6 +22,7 @@ import { RiskBadge } from './components/ui/Badge';
 import { VantaBackground } from './components/VantaBackground';
 import { VulnerabilityIndexPanel } from './components/VulnerabilityIndexPanel';
 import { EvacuationPriorityQueue } from './components/EvacuationPriorityQueue';
+import { JalRakshakLoginModal, AuthSession } from './components/JalRakshakLoginModal';
 import { AlertTriangle, ShieldCheck, Waves, Users, Clock, ArrowUpRight, Gauge, Cpu, CloudRain, Radio, WifiOff, Map as MapIcon, Sliders } from 'lucide-react';
 import { useThemeTokens } from './theme/useThemeTokens';
 
@@ -35,6 +36,24 @@ export default function App() {
   const [isOfflineSimulated, setIsOfflineSimulated] = useState(false);
   const [isExplainerOpen, setIsExplainerOpen] = useState(false);
   const [citizenReports, setCitizenReports] = useState<CitizenReport[]>(INITIAL_CITIZEN_REPORTS);
+
+  // JalRakshak AI Auth Session State
+  const [authSession, setAuthSession] = useState<AuthSession | null>(() => {
+    try {
+      const cached = localStorage.getItem('jalrakshak_session');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+  // Default modal opens if user has never logged in/chosen guest mode
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(() => {
+    try {
+      return !localStorage.getItem('jalrakshak_session');
+    } catch {
+      return true;
+    }
+  });
 
   const t = TRANSLATIONS[language];
 
@@ -181,6 +200,23 @@ export default function App() {
     document.documentElement.lang = language;
   }, [language]);
 
+  const handleLoginSuccess = (session: AuthSession) => {
+    setAuthSession(session);
+    localStorage.setItem('jalrakshak_session', JSON.stringify(session));
+    setIsAuthModalOpen(false);
+
+    if (session.mode === 'authority') {
+      setUserRole('authority');
+      setActiveTab('map');
+    } else {
+      setUserRole('citizen');
+      if (session.wardId) {
+        setSelectedZoneId(session.wardId);
+      }
+      setActiveTab('map');
+    }
+  };
+
   return (
     <div className="relative min-h-screen bg-bg text-fg flex flex-col font-sans selection:bg-risk-low/30 selection:text-risk-low overflow-x-hidden">
       <a href="#main-content" className="sr-only-focusable">Skip to main content</a>
@@ -227,6 +263,8 @@ export default function App() {
         onSetLanguage={handleSetLanguage}
         isOfflineSimulated={isOfflineSimulated}
         onToggleOffline={() => setIsOfflineSimulated(!isOfflineSimulated)}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+        session={authSession}
       />
 
       {/* Offline Mode Emergency Banner (If active) */}
@@ -710,6 +748,16 @@ export default function App() {
         isOpen={isExplainerOpen}
         onClose={() => setIsExplainerOpen(false)}
       />
+
+      {/* JalRakshak AI Login Modal */}
+      {isAuthModalOpen && (
+        <JalRakshakLoginModal
+          selectedCity={selectedCity}
+          zones={computedZones}
+          initialSession={authSession}
+          onLoginSuccess={handleLoginSuccess}
+        />
+      )}
     </div>
   );
 }

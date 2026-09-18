@@ -36,6 +36,14 @@ interface Props {
   onSetLanguage: (l: Language) => void;
   isOfflineSimulated: boolean;
   onToggleOffline: () => void;
+  onOpenAuthModal?: () => void;
+  session?: {
+    mode: 'citizen' | 'authority';
+    isGuest: boolean;
+    contact?: string;
+    roleLabel?: string;
+    wardName: string;
+  } | null;
 }
 
 export const Navbar: React.FC<Props> = ({
@@ -51,6 +59,8 @@ export const Navbar: React.FC<Props> = ({
   onSetLanguage,
   isOfflineSimulated,
   onToggleOffline,
+  onOpenAuthModal,
+  session,
 }) => {
   const tokens = useThemeTokens();
   const t = TRANSLATIONS[language];
@@ -181,6 +191,26 @@ export const Navbar: React.FC<Props> = ({
             >
               Concept
             </button>
+
+            {/* JalRakshak Login / Persona Modal CTA */}
+            {onOpenAuthModal && (
+              <button
+                onClick={onOpenAuthModal}
+                className="h-9 px-3.5 rounded-full bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                title="JalRakshak AI Login / Switch Mode"
+              >
+                <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                <span>
+                  {session
+                    ? session.isGuest
+                      ? 'Guest Mode'
+                      : session.mode === 'authority'
+                      ? 'Admin Active'
+                      : 'Citizen Logged In'
+                    : 'Sign In / Modes'}
+                </span>
+              </button>
+            )}
 
             {/* Authority Hub CTA */}
             <button
