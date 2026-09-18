@@ -8,6 +8,7 @@ import { fetchElevations, fetchRainfall } from '../utils/openMeteo';
 import { DistrictReconnaissance, assessDistrict, sampleGrid } from '../utils/districtModel';
 import { Facility, fetchFacilities } from '../utils/facilities';
 import { DistrictReconPanel } from './DistrictReconPanel';
+import { Select } from './ui/Select';
 import { PointPredictionPanel } from './PointPredictionPanel';
 import {
   ForecastMode,
@@ -1249,36 +1250,22 @@ export const LeafletFloodMap: React.FC<Props> = ({
             <span>Evacuation Routes</span>
           </button>
 
-          {/* Basemap selector. Every option here is keyless - no signup,
-              no quota. Satellite and elevation are not decoration: one shows
-              what is built on the floodplain, the other shows where water
-              collects. */}
-          <div
-            role="radiogroup"
-            aria-label="Base map"
-            className="flex items-center gap-0.5 rounded-full border border-line bg-surface-2/70 p-0.5"
-          >
-            {basemaps.map((b) => {
-              const active = basemapId === b.id;
-              return (
-                <button
-                  key={b.id}
-                  role="radio"
-                  aria-checked={active}
-                  aria-label={`${b.label} base map. ${b.description}`}
-                  title={b.description}
-                  onClick={() => setBasemapId(b.id)}
-                  className={`h-7 rounded-full px-2.5 text-mini font-semibold transition-colors whitespace-nowrap cursor-pointer ${
-                    active
-                      ? 'bg-accent text-on-accent'
-                      : 'text-muted hover:bg-surface-3 hover:text-fg'
-                  }`}
-                >
-                  {b.label}
-                </button>
-              );
-            })}
-          </div>
+          {/* Basemap. Every option is keyless - no signup, no quota. Satellite
+              and elevation are not decoration: one shows what is built on the
+              floodplain, the other shows where water collects. Collapsed to a
+              menu because only one can be active and the row cost four slots
+              in a bar that had nine. */}
+          <Select
+            label="Map style"
+            value={basemapId}
+            onChange={setBasemapId}
+            size="md"
+            options={basemaps.map((b) => ({
+              value: b.id,
+              label: b.label,
+              hint: b.description,
+            }))}
+          />
 
           <button
             onClick={() => setShowShelters(!showShelters)}
@@ -1330,42 +1317,12 @@ export const LeafletFloodMap: React.FC<Props> = ({
           <div ref={mapContainerRef} className="w-full h-full z-10" />
         </div>
 
-        {/* Real-time Scenario Slider (Floating Hydro Wave Slider) */}
-        <div className="absolute bottom-9 left-3 right-3 md:right-auto md:w-[24rem] z-[500] glass rounded-card p-3.5 shadow-xl border border-line-strong/40 space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-card bg-accent/12 border border-accent/30 flex items-center justify-center text-accent">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24">
-                  <path d="M2 12c3-4 6-4 9 0s6 4 9 0M2 17c3-4 6-4 9 0s6 4 9 0" />
-                </svg>
-              </div>
-              <span className="text-xs font-bold text-fg uppercase tracking-wider">Rainfall scenario</span>
-            </div>
-            <div className="bg-surface/80 border border-accent/30 px-3 py-1 rounded-full flex items-baseline gap-1 shadow-inner">
-              <span className="text-lg text-accent font-bold font-mono">
-                {simulationParams.rainfallIntensityMmHr}
-              </span>
-              <span className="text-mini text-muted">mm/hr</span>
-            </div>
-          </div>
-
-          <div className="space-y-1.5 pt-1">
-            <input
-              type="range"
-              min="20"
-              max="200"
-              step="1"
-              value={simulationParams.rainfallIntensityMmHr}
-              onChange={(e) => onUpdateParams({ ...simulationParams, rainfallIntensityMmHr: Number(e.target.value) })}
-              className="fluid-slider w-full"
-            />
-            <div className="flex justify-between text-micro font-mono text-muted">
-              <span>20 Moderate</span>
-              <span>80 Severe</span>
-              <span>150+ 2015 Deluge</span>
-            </div>
-          </div>
-        </div>
+        {/*
+          The floating rainfall slider that used to sit here has moved up to
+          the map tab's header, where every mode can reach it. Two controls
+          for one number, one of them only visible on one of four maps, was
+          the reason the schematic could not be driven at all.
+        */}
 
         {/* Depth legend.
             Thresholds are the ones calculateZoneHydrology actually uses - the

@@ -15,7 +15,7 @@
 import * as shapefile from 'shapefile';
 import simplify from '@turf/simplify';
 import { writeFileSync, mkdirSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 
 const SRC = process.argv[2];
 const OUT = process.argv[3] ?? 'public/data/india-districts.json';
@@ -97,3 +97,22 @@ console.log(`states / UTs   : ${states.size}`);
 console.log(`vertices       : ${rawVerts.toLocaleString()} -> ${simpVerts.toLocaleString()}`);
 console.log(`output         : ${OUT}  ${(bytes / 1024 / 1024).toFixed(2)} MB`);
 console.log(`sample         : ${features[0]?.properties.district}, ${features[0]?.properties.state}`);
+
+/*
+ * A Tamil Nadu extract alongside the national file.
+ *
+ * The app is scoped to one state, and making the browser download 641
+ * districts to draw 32 meant a 1.2MB fetch and a parse of everything from
+ * Kashmir to the Andamans before the map could show anything. The national
+ * file stays because the build reads from it and because widening the scope
+ * again should not need a new download.
+ */
+const stateOut = join(dirname(OUT), 'tn-districts.json');
+const tn = {
+  type: 'FeatureCollection',
+  features: features.filter((f) => /tamil nadu/i.test(f.properties.state)),
+};
+writeFileSync(stateOut, JSON.stringify(tn));
+console.log(
+  `tamil nadu     : ${stateOut}  ${(JSON.stringify(tn).length / 1024).toFixed(0)} kB (${tn.features.length} districts)`
+);

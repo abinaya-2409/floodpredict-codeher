@@ -8,6 +8,23 @@ import { CITY_LANGUAGE, Language, TRANSLATIONS } from './utils/translations';
 import { Navbar } from './components/Navbar';
 import { LeafletFloodMap } from './components/LeafletFloodMap';
 import { TamilNaduWeatherMap } from './components/TamilNaduWeatherMap';
+import { Select } from './components/ui/Select';
+
+/**
+ * Rainfall in words.
+ *
+ * The slider this replaces went from 20 to 200 mm/hr, which is a number most
+ * people cannot place. These are the same range with names attached, and the
+ * two extremes are anchored to floods Tamil Nadu actually had.
+ */
+const RAIN_STEPS = [
+  { mmHr: 20, label: 'Light rain', hint: '20 mm/hr - an ordinary wet day' },
+  { mmHr: 45, label: 'Steady rain', hint: '45 mm/hr - drains start to fill' },
+  { mmHr: 80, label: 'Heavy rain', hint: '80 mm/hr - roads begin to flood' },
+  { mmHr: 120, label: 'Very heavy', hint: '120 mm/hr - widespread flooding' },
+  { mmHr: 160, label: 'Cyclone rain', hint: '160 mm/hr - like Cyclone Michaung' },
+  { mmHr: 200, label: '2015 flood', hint: '200 mm/hr - the 2015 Chennai deluge' },
+];
 import { HydrologicalMap } from './components/HydrologicalMap';
 import { StreetLevelVulnerability } from './components/StreetLevelVulnerability';
 import { WhatIfScenarioSandbox } from './components/WhatIfScenarioSandbox';
@@ -40,9 +57,9 @@ export default function App() {
    * for Chennai - drains, shelters, evacuation routes - which the grid is far
    * too coarse to carry, so neither replaces the other.
    */
-  const [mapRenderMode, setMapRenderMode] = useState<'weather' | 'leaflet' | 'schematic'>(
-    'weather'
-  );
+  const [mapRenderMode, setMapRenderMode] = useState<
+    'weather' | 'district' | 'leaflet' | 'schematic'
+  >('weather');
   const [userRole, setUserRole] = useState<'authority' | 'citizen'>('authority');
   const [language, setLanguage] = useState<Language>('en');
   const [isOfflineSimulated, setIsOfflineSimulated] = useState(false);
@@ -102,7 +119,7 @@ export default function App() {
   }, [selectedCity, simulationParams]);
 
   /**
-   * Composite Vulnerability Risk Index per zone, plus the auto-ranked
+   * Composite Risk score per zone, plus the auto-ranked
    * dispatch / evacuation queue derived from it. Everything downstream -
    * map colouring, resource priority, the evacuation order - reads from here
    * rather than from hand-authored priority fields.
@@ -324,12 +341,12 @@ export default function App() {
 
         {/* Top KPI Telemetry Banner */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {/* Metric 1: Critical Inundation Zones (Neon Coral / Rose Accent) */}
+          {/* Metric 1: Worst-hit areas (Neon Coral / Rose Accent) */}
           <div className="glass glass-interactive rounded-panel p-5 relative overflow-hidden group border border-risk-critical/25 hover:border-risk-critical/50 shadow-[0_12px_32px_rgba(244,63,94,0.12)]">
             <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-accent-2/15 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
             <div className="flex items-center justify-between">
               <span className="font-mono text-mini text-risk-critical/80 uppercase tracking-wider font-semibold">
-                Critical Inundation Zones
+                Worst-hit areas
               </span>
               <div className="w-10 h-10 rounded-card bg-risk-critical/20 border border-risk-critical/40 flex items-center justify-center text-risk-critical">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
@@ -351,7 +368,7 @@ export default function App() {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-risk-high" />
               </span>
               <span className="text-mini text-risk-high font-medium">
-                {severeOrCriticalZonesCount > 0 ? `${severeOrCriticalZonesCount} Sectors in Pre-Alarm State` : 'All Wards Stable'}
+                {severeOrCriticalZonesCount > 0 ? `${severeOrCriticalZonesCount} Sectors in Pre-Alarm State` : 'All areas safe'}
               </span>
             </div>
           </div>
@@ -361,7 +378,7 @@ export default function App() {
             <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-accent-2/15 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
             <div className="flex items-center justify-between">
               <span className="font-mono text-mini text-risk-high/80 uppercase tracking-wider font-semibold">
-                Shortest Flood Lead-Time
+                Least time to prepare
               </span>
               <div className="w-10 h-10 rounded-card bg-risk-high/20 border border-risk-high/40 flex items-center justify-center text-risk-high">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
@@ -389,12 +406,12 @@ export default function App() {
             </div>
           </div>
 
-          {/* Metric 3: At-Risk Citizens (Electric Violet / Purple Accent) */}
+          {/* Metric 3: People at risk (Electric Violet / Purple Accent) */}
           <div className="glass glass-interactive rounded-panel p-5 relative overflow-hidden group border border-accent-2/25 hover:border-accent-2/50 shadow-[0_12px_32px_rgba(139,92,246,0.12)]">
             <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-accent-2/20 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
             <div className="flex items-center justify-between">
               <span className="font-mono text-mini text-accent-2/80 uppercase tracking-wider font-semibold">
-                At-Risk Citizens
+                People at risk
               </span>
               <div className="w-10 h-10 rounded-card bg-accent-2/20 border border-accent-2/40 flex items-center justify-center text-accent-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
@@ -414,16 +431,16 @@ export default function App() {
               <svg className="w-3.5 h-3.5 text-accent-2 animate-pulse" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M4.93 19.07A10 10 0 0 1 19.07 4.93M7.76 16.24A6 6 0 0 1 16.24 7.76M12 12h.01" />
               </svg>
-              <span className="text-mini font-medium">Cellular Geo-Cast Armed</span>
+              <span className="text-mini font-medium">Phone alerts ready</span>
             </div>
           </div>
 
-          {/* Metric 4: Choked Drainage Canals (Bright Electric Turquoise / Cyan Accent) */}
+          {/* Metric 4: Blocked drains (Bright Electric Turquoise / Cyan Accent) */}
           <div className="glass glass-interactive rounded-panel p-5 relative overflow-hidden group border border-accent/25 hover:border-accent/50 shadow-[0_12px_32px_rgba(6,182,212,0.12)]">
             <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-accent/20 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
             <div className="flex items-center justify-between">
               <span className="font-mono text-mini text-accent-soft/80 uppercase tracking-wider font-semibold">
-                Choked Drainage Canals
+                Blocked drains
               </span>
               <div className="w-10 h-10 rounded-card bg-accent/20 border border-accent/40 flex items-center justify-center text-accent-soft">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24">
@@ -441,7 +458,7 @@ export default function App() {
               <span className="text-3xl font-extrabold text-accent-soft tracking-tight font-sans">
                 {simulationParams.blockedDrainIds.length}
               </span>
-              <span className="text-xs text-muted font-medium">Hydraulic Bottlenecks</span>
+              <span className="text-xs text-muted font-medium">Blocked points</span>
             </div>
             <div className="mt-3 flex items-center gap-1.5 pt-2 border-t border-accent/20 text-fg-soft text-mini truncate">
               <svg className="w-3.5 h-3.5 text-accent shrink-0" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24">
@@ -479,56 +496,82 @@ export default function App() {
 
             {/* Map Mode Toggle Capsule with Bespoke Vector Icons */}
             <div className="glass rounded-panel p-3 flex flex-wrap items-center justify-between gap-3 border border-line-strong/60">
-              <div className="flex items-center p-1 rounded-full bg-bg/80 border border-line-strong/60 shadow-inner">
-                <button
-                  onClick={() => setMapRenderMode('weather')}
-                  className={`h-8 px-4 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer ${
-                    mapRenderMode === 'weather'
-                      ? 'bg-gradient-to-r from-risk-low to-risk-low text-fg font-bold'
-                      : 'text-muted hover:text-fg'
-                  }`}
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-                    <path d="M2 12c3-4 6-4 9 0s6 4 9 0" />
-                    <path d="M2 17c3-4 6-4 9 0s6 4 9 0" />
-                    <path d="M2 7c3-4 6-4 9 0s6 4 9 0" />
-                  </svg>
-                  <span>Live Weather Field</span>
-                </button>
+              {/* Three modes, one at a time: a menu, not a row of three. */}
+              <Select
+                label="What to show"
+                value={mapRenderMode}
+                onChange={(v) => setMapRenderMode(v as typeof mapRenderMode)}
+                size="md"
+                options={[
+                  {
+                    value: 'weather',
+                    label: 'Live Weather Field',
+                    hint: 'Rain, wind and flooding across the state',
+                  },
+                  {
+                    value: 'district',
+                    label: 'District Impact',
+                    hint: 'Pick a storm centre, see which districts are hit',
+                  },
+                  {
+                    value: 'leaflet',
+                    label: 'Ward Detail',
+                    hint: 'Drains, shelters and escape routes in Chennai',
+                  },
+                  {
+                    value: 'schematic',
+                    label: 'Schematic Basin',
+                    hint: 'Simple diagram of how water flows',
+                  },
+                ]}
+              />
 
-                <button
-                  onClick={() => setMapRenderMode('leaflet')}
-                  className={`h-8 px-4 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer ${
-                    mapRenderMode === 'leaflet'
-                      ? 'bg-gradient-to-r from-risk-low to-risk-low text-fg font-bold'
-                      : 'text-muted hover:text-fg'
-                  }`}
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
-                    <path d="M2 12h20" />
-                    <circle cx="12" cy="12" fill="currentColor" r="2" />
-                  </svg>
-                  <span>Ward Detail</span>
-                </button>
-
-                <button
-                  onClick={() => setMapRenderMode('schematic')}
-                  className={`h-8 px-4 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer ${
-                    mapRenderMode === 'schematic'
-                      ? 'bg-gradient-to-r from-risk-low to-risk-low text-fg font-bold'
-                      : 'text-muted hover:text-fg'
-                  }`}
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-                    <rect height="18" rx="2" width="18" x="3" y="3" />
-                    <path d="M3 9h18" />
-                    <path d="M9 21V9" />
-                  </svg>
-                  <span>Schematic Basin</span>
-                </button>
-              </div>
+              {/*
+                One rainfall control for the whole tab.
+                It used to live inside the ward map as a floating slider,
+                which meant the schematic - whose entire purpose is to show
+                the simulation - had no way to change the storm at all. Named
+                steps rather than a raw slider: "Heavy" is a thing people can
+                picture and 80mm/hr is not.
+              */}
+              {mapRenderMode !== 'weather' && mapRenderMode !== 'district' && (
+                <Select
+                  label="How much rain"
+                  prefix="Rain"
+                  value={String(simulationParams.rainfallIntensityMmHr)}
+                  onChange={(v) =>
+                    setSimulationParams({
+                      ...simulationParams,
+                      rainfallIntensityMmHr: Number(v),
+                    })
+                  }
+                  /*
+                   * The What-If tab can set any intensity it likes, so the
+                   * current value is not always one of these steps. Carrying
+                   * it as an extra entry keeps the control honest: it shows
+                   * the number in force rather than falling back to a preset
+                   * the user never chose.
+                   */
+                  options={[
+                    ...RAIN_STEPS.map((r) => ({
+                      value: String(r.mmHr),
+                      label: r.label,
+                      hint: r.hint,
+                    })),
+                    ...(RAIN_STEPS.some(
+                      (r) => r.mmHr === simulationParams.rainfallIntensityMmHr
+                    )
+                      ? []
+                      : [
+                          {
+                            value: String(simulationParams.rainfallIntensityMmHr),
+                            label: `${simulationParams.rainfallIntensityMmHr} mm/hr`,
+                            hint: 'Set in the What-If tab',
+                          },
+                        ]),
+                  ]}
+                />
+              )}
 
               <div className="text-xs text-muted font-mono hidden md:flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
@@ -538,12 +581,20 @@ export default function App() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Map Rendering Container */}
-              <div className={mapRenderMode === 'weather' ? 'lg:col-span-12' : 'lg:col-span-8'}>
+              <div
+                className={
+                  mapRenderMode === 'weather' || mapRenderMode === 'district'
+                    ? 'lg:col-span-12'
+                    : 'lg:col-span-8'
+                }
+              >
                 {mapRenderMode === 'weather' ? (
                   <TamilNaduWeatherMap
                     simulationParams={simulationParams}
                     onUpdateParams={setSimulationParams}
                   />
+                ) : mapRenderMode === 'district' ? (
+                  <NationalGridMap />
                 ) : mapRenderMode === 'leaflet' ? (
                   <LeafletFloodMap
               resources={resourcePlan}
@@ -572,7 +623,9 @@ export default function App() {
               {/* Side Action Panel */}
               <div
                 className={`flex flex-col gap-5 ${
-                  mapRenderMode === 'weather' ? 'lg:col-span-12' : 'lg:col-span-4'
+                  mapRenderMode === 'weather' || mapRenderMode === 'district'
+                    ? 'lg:col-span-12'
+                    : 'lg:col-span-4'
                 }`}
               >
                 {/* TOP CARD: SELECTED CATCHMENT FOCUS */}
@@ -581,7 +634,7 @@ export default function App() {
                     <div className="flex items-start justify-between">
                       <div className="flex flex-col">
                         <span className="font-mono text-micro text-muted uppercase tracking-wider font-semibold">
-                          Selected Catchment Focus
+                          Area selected
                         </span>
                         <h2 className="text-xl font-bold text-fg tracking-tight mt-0.5">{selectedZone.name}</h2>
                       </div>
@@ -602,7 +655,7 @@ export default function App() {
                         permanently green. */}
                     <div className="grid grid-cols-2 gap-3">
                       <StatTile
-                        label="Est. inundation"
+                        label="Water depth"
                         value={selectedZone.predictedInundationDepthCm}
                         unit="cm"
                         level={selectedZone.currentRisk}
@@ -613,20 +666,20 @@ export default function App() {
                         label="Elevation (MSL)"
                         value={selectedZone.averageElevationM}
                         unit="m"
-                        note={selectedZone.averageElevationM < 5 ? 'Depression basin' : 'Above basin floor'}
+                        note={selectedZone.averageElevationM < 5 ? 'Depression basin' : 'Above the lowest ground'}
                         icon={<Gauge className="h-3.5 w-3.5" />}
                       />
                       <StatTile
-                        label="Catchment area"
+                        label="Area"
                         value={selectedZone.catchmentAreaSqKm}
                         unit="km2"
-                        note={`${selectedZone.predictedFloodedAreaPercent}% currently inundated`}
+                        note={`${selectedZone.predictedFloodedAreaPercent}% under water now`}
                         icon={<MapIcon className="h-3.5 w-3.5" />}
                       />
                       <StatTile
                         label="Population"
                         value={selectedZone.population.toLocaleString('en-IN')}
-                        note={`${assessmentById[selectedZoneId]?.assistedEvacuationNeeded.toLocaleString('en-IN') ?? '-'} need assistance`}
+                        note={`${assessmentById[selectedZoneId]?.assistedEvacuationNeeded.toLocaleString('en-IN') ?? '-'} need help`}
                         icon={<Users className="h-3.5 w-3.5" />}
                       />
                     </div>

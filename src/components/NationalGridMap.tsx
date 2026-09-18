@@ -15,10 +15,11 @@ import { useThemeTokens } from '../theme/useThemeTokens';
 /**
  * Tamil Nadu district view.
  *
- * The bundled file carries all 641 Indian districts; this filters it to the
- * state the application is scoped to, because a footprint drawn over
- * districts whose flood record the app does not hold is a footprint it
- * cannot say anything useful about.
+ * Draws Tamil Nadu's 32 districts from a state-only extract. It used to pull
+ * the full 641-district national file and filter in the browser, which meant
+ * downloading 1.2MB and parsing every district from Kashmir to the Andamans
+ * to draw 32 of them - and on a slow machine the map sat on "Loading" for the
+ * best part of a minute. The extract is 64KB.
  *
  * MapLibre rather than Leaflet, because district polygons repainted on
  * every epicentre move is a GPU job: Leaflet would put every SVG path in the
@@ -103,21 +104,11 @@ export function NationalGridMap({
       try {
         const [{ default: maplibregl }, res] = await Promise.all([
           import('maplibre-gl'),
-          fetch('/data/india-districts.json'),
+          fetch('/data/tn-districts.json'),
         ]);
         if (!res.ok) throw new Error(`District boundaries unavailable (${res.status})`);
-        const all = (await res.json()) as GeoJSON.FeatureCollection;
+        const geo = (await res.json()) as GeoJSON.FeatureCollection;
         if (cancelled || !hostRef.current) return;
-
-        // One state, from the national file. Filtering here rather than
-        // shipping a separate Tamil Nadu extract keeps a single source of
-        // truth for the geometry and one build script to regenerate it.
-        const geo: GeoJSON.FeatureCollection = {
-          type: 'FeatureCollection',
-          features: all.features.filter((f) =>
-            /tamil nadu/i.test(String((f.properties as { state?: string })?.state ?? ''))
-          ),
-        };
 
         geojsonRef.current = geo;
 

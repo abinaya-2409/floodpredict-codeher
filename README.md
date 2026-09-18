@@ -244,6 +244,35 @@ different people, and only one of them is contestable on engineering grounds.
 
 ---
 
+## Keeping it simple
+
+The map screen was showing 54 controls at once, ten of them tabs in a strip
+that overflowed on anything narrower than a laptop. Rows of pills where only
+one option can be chosen are menus that have been unrolled across the screen,
+so the ones past three options are now menus again:
+
+| | Before | After |
+|---|---|---|
+| Controls on screen | 54 | 41 |
+| Top-level tabs | 10 | 2, plus 2 menus |
+| Weather map toolbar | 13 | 5 |
+
+Nothing was removed to get there except genuine duplication: the rainfall
+slider existed in two places at once and was missing from a third, and the
+national district map was a whole tab for something that is a mode of the
+flood map. Every menu entry carries a line saying what it is, which the pill
+rows never had room for.
+
+The wording changed too. "Inundation Map" is now "Flood Map", "Choked
+Drainage Canals" is "Blocked drains", and rainfall is chosen as "Heavy rain -
+80 mm/hr, roads begin to flood" rather than as a number on a slider from 20
+to 200. The other eight languages still carry translations of the older,
+heavier English and want a native-speaker pass.
+
+One claim was deleted rather than reworded: the header carried "87.4% High
+Confidence", "based on 14 Automatic Weather Stations, S-Band Doppler Radar
+and CartoDEM 10m Elevation Grid". The application uses none of those.
+
 ## Offline Bluetooth chat: what works and what does not
 
 **It cannot work in a browser, and it cannot currently be built as an app.**

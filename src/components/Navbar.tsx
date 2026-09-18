@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { CityData, WeatherForecast } from '../types';
 import { CITIES } from '../data/mockData';
+import { Select } from './ui/Select';
 import { Language, TRANSLATIONS } from '../utils/translations';
-import { Wifi, WifiOff, LogIn, LogOut, User, ShieldCheck, Bluetooth, Radio } from 'lucide-react';
+import { Wifi, WifiOff, LogIn, LogOut, User, ShieldCheck, Bluetooth, Radio, Sun, Moon } from 'lucide-react';
 import { useThemeTokens } from '../theme/useThemeTokens';
 import { LogoMark } from './Logo';
 import { LanguagePicker } from './LanguagePicker';
@@ -14,17 +15,46 @@ import { BluetoothDevicePeer, ConnectionState } from '../services/bluetooth/Blue
  * navigation actually changes language with everything else. It did not
  * before: switching language left the tab strip in English.
  */
-const TABS: { id: string; key: keyof typeof TRANSLATIONS.en }[] = [
+/**
+ * Sections, in two ranks.
+ *
+ * Ten tabs in one strip is a menu that has been unrolled: it overflowed on
+ * anything narrower than a laptop, and the scroll hid whichever sections did
+ * not fit. The three that get opened constantly stay as tabs; the other seven
+ * group into two dropdowns, which also gives each one room for a line saying
+ * what it is - something the strip never had space for.
+ */
+type TabKey = keyof typeof TRANSLATIONS.en;
+
+const PRIMARY_TABS: { id: string; key: TabKey }[] = [
   { id: 'map', key: 'tabMap' },
-  { id: 'national', key: 'tabNational' },
-  { id: 'streets', key: 'tabStreets' },
-  { id: 'whatif', key: 'tabWhatIf' },
   { id: 'alerts', key: 'tabAlerts' },
-  { id: 'resources', key: 'tabResources' },
-  { id: 'fourinputs', key: 'tabFourInputs' },
-  { id: 'timeline', key: 'tabTimeline' },
-  { id: 'citizen', key: 'tabCitizen' },
-  { id: 'offline-chat', key: 'tabOfflineChat' },
+];
+
+const TAB_GROUPS: {
+  id: string;
+  label: string;
+  items: { id: string; key: TabKey; hint: string }[];
+}[] = [
+  {
+    id: 'analyse',
+    label: 'Look into',
+    items: [
+      { id: 'streets', key: 'tabStreets', hint: 'Which streets flood first' },
+      { id: 'whatif', key: 'tabWhatIf', hint: 'Change the rain, see what happens' },
+      { id: 'fourinputs', key: 'tabFourInputs', hint: 'Live data and past floods' },
+      { id: 'timeline', key: 'tabTimeline', hint: 'The next 3 days, hour by hour' },
+    ],
+  },
+  {
+    id: 'respond',
+    label: 'Take action',
+    items: [
+      { id: 'resources', key: 'tabResources', hint: 'Where to send pumps, boats and crews' },
+      { id: 'citizen', key: 'tabCitizen', hint: 'What people are reporting' },
+      { id: 'offline-chat', key: 'tabOfflineChat', hint: 'Talk phone-to-phone with no network' },
+    ],
+  },
 ];
 
 interface Props {
@@ -35,6 +65,14 @@ interface Props {
   userRole: 'authority' | 'citizen';
   onToggleRole: () => void;
   onOpenExplainer: () => void;
+  /**
+   * The theme controls arrived in App but never reached here, so the app
+   * passed two props that this component neither declared nor rendered -
+   * which meant a light/OLED switch with no way to operate it, and a
+   * typecheck failure on main.
+   */
+  themeMode?: 'light' | 'oled';
+  onToggleTheme?: () => void;
   weather: WeatherForecast;
   language: Language;
   onSetLanguage: (l: Language) => void;
@@ -59,6 +97,8 @@ export const Navbar: React.FC<Props> = ({
   userRole,
   onToggleRole,
   onOpenExplainer,
+  themeMode,
+  onToggleTheme,
   weather,
   language,
   onSetLanguage,
@@ -111,7 +151,7 @@ export const Navbar: React.FC<Props> = ({
                 <span className="absolute w-1.5 h-1.5 rounded-full bg-accent-2 animate-ping" />
                 <span className="absolute w-1 h-1 rounded-full bg-accent-2" />
               </div>
-              <span className="text-fg">LIVE HYDRO-TELEMETRY</span>
+              <span className="text-fg">LIVE READINGS</span>
             </div>
           </div>
 
@@ -154,10 +194,6 @@ export const Navbar: React.FC<Props> = ({
                     <strong className="font-bold uppercase text-risk-critical">
                       {weather.dopplerRadarTrend}
                     </strong>
-                  </span>
-                  <span className="text-subtle">&bull;</span>
-                  <span className="font-mono text-muted">
-                    {t.confidenceScore}
                   </span>
                 </div>
               ))}
@@ -262,6 +298,23 @@ export const Navbar: React.FC<Props> = ({
               </select>
             </div>
 
+            {onToggleTheme && (
+              <button
+                onClick={onToggleTheme}
+                aria-label={
+                  themeMode === 'oled' ? 'Switch to light theme' : 'Switch to OLED theme'
+                }
+                title={themeMode === 'oled' ? 'Light theme' : 'OLED theme'}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-line-strong/60 bg-surface-2/70 text-fg-soft transition-colors hover:bg-surface-3 hover:text-fg cursor-pointer"
+              >
+                {themeMode === 'oled' ? (
+                  <Sun className="h-3.5 w-3.5" aria-hidden="true" />
+                ) : (
+                  <Moon className="h-3.5 w-3.5" aria-hidden="true" />
+                )}
+              </button>
+            )}
+
             {/* Concept Link */}
             <button
               onClick={onOpenExplainer}
@@ -355,9 +408,12 @@ export const Navbar: React.FC<Props> = ({
         <nav
           role="tablist"
           aria-label="Dashboard sections"
-          className="flex items-center gap-1.5 overflow-x-auto rounded-full glass px-3 py-1.5 border border-line-strong/50"
+          className="flex flex-wrap items-center gap-1.5 rounded-full glass px-3 py-1.5 border border-line-strong/50"
+          // No overflow-x-auto: it clipped the section menus, which open
+          // downwards out of this strip. With five controls instead of ten
+          // there is nothing left to scroll anyway.
         >
-          {TABS.map((tab) => {
+          {PRIMARY_TABS.map((tab) => {
             const selected = activeTab === tab.id;
             return (
               <button
@@ -381,6 +437,30 @@ export const Navbar: React.FC<Props> = ({
                 )}
                 <span>{t[tab.key]}</span>
               </button>
+            );
+          })}
+
+          {TAB_GROUPS.map((group) => {
+            const current = group.items.find((i) => i.id === activeTab);
+            return (
+              <Select
+                key={group.id}
+                label={group.label}
+                // The trigger carries the open section when one of this
+                // group's is active, so collapsing the strip never costs the
+                // user the answer to "where am I".
+                value={current ? current.id : ''}
+                options={group.items.map((i) => ({
+                  value: i.id,
+                  label: t[i.key],
+                  hint: i.hint,
+                }))}
+                onChange={onChangeTab}
+                size="md"
+                className={current ? 'ring-1 ring-accent/45 rounded-full' : ''}
+                placeholder={group.label}
+                prefix={group.label}
+              />
             );
           })}
         </nav>

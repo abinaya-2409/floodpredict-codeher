@@ -25,7 +25,9 @@ export const HydrologicalMap: React.FC<Props> = ({
   const tokens = useThemeTokens();
   const [showRadarOverlay, setShowRadarOverlay] = useState(true);
   const [showDrainageLines, setShowDrainageLines] = useState(true);
-  const [showElevationContours, setShowElevationContours] = useState(true);
+  // Always drawn. This was useState with a setter nothing ever called, which
+  // reads as a toggle somebody forgot to wire rather than a deliberate choice.
+  const showElevationContours = true;
   const [showPumps, setShowPumps] = useState(true);
   const [hoveredZone, setHoveredZone] = useState<ZoneData | null>(null);
 

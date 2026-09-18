@@ -20,6 +20,7 @@ import { availableBasemaps, basemapById, useThemeTokens } from '../theme/useThem
 import { ForecastMode, PointForecast, forecastPoint, recomputeForecast } from '../utils/pointForecast';
 import { PointPredictionPanel } from './PointPredictionPanel';
 import { SimulationParams } from '../types';
+import { Select } from './ui/Select';
 
 /**
  * Tamil Nadu, the way a weather map should work.
@@ -517,28 +518,18 @@ export const TamilNaduWeatherMap: React.FC<Props> = ({
         <div className="flex flex-wrap items-center gap-2">
           {/* Scenario multiplier, only where it means anything. */}
           {field === 'flood' && (
-            <div
-              role="radiogroup"
-              aria-label="Rainfall scenario"
-              className="flex items-center gap-0.5 rounded-full border border-line bg-surface-2/70 p-0.5"
-              title="Scale the forecast rainfall before the flood model runs"
-            >
-              {[1, 2, 4, 8].map((m) => (
-                <button
-                  key={m}
-                  role="radio"
-                  aria-checked={stormFactor === m}
-                  onClick={() => setStormFactor(m)}
-                  className={`h-7 rounded-full px-2.5 text-mini font-semibold transition-colors cursor-pointer ${
-                    stormFactor === m
-                      ? 'bg-accent text-on-accent'
-                      : 'text-muted hover:bg-surface-3 hover:text-fg'
-                  }`}
-                >
-                  {m === 1 ? 'Live' : `×${m}`}
-                </button>
-              ))}
-            </div>
+            <Select
+              label="How much rain"
+              value={String(stormFactor)}
+              onChange={(v) => setStormFactor(Number(v))}
+              size="md"
+              options={[
+                { value: '1', label: 'Real forecast', hint: 'What the weather service expects' },
+                { value: '2', label: 'Rain ×2', hint: 'Pretend: twice as much rain' },
+                { value: '4', label: 'Rain ×4', hint: 'Pretend: four times as much rain' },
+                { value: '8', label: 'Rain ×8', hint: 'Pretend: like a cyclone' },
+              ]}
+            />
           )}
 
           <button
@@ -555,27 +546,18 @@ export const TamilNaduWeatherMap: React.FC<Props> = ({
             Wind
           </button>
 
-          <div
-            role="radiogroup"
-            aria-label="Base map"
-            className="flex items-center gap-0.5 rounded-full border border-line bg-surface-2/70 p-0.5"
-          >
-            {availableBasemaps().map((b) => (
-              <button
-                key={b.id}
-                role="radio"
-                aria-checked={basemapId === b.id}
-                onClick={() => setBasemapId(b.id)}
-                className={`h-7 rounded-full px-2.5 text-mini font-semibold transition-colors cursor-pointer ${
-                  basemapId === b.id
-                    ? 'bg-accent text-on-accent'
-                    : 'text-muted hover:bg-surface-3 hover:text-fg'
-                }`}
-              >
-                {b.label}
-              </button>
-            ))}
-          </div>
+          <Select
+            label="Map style"
+            value={basemapId}
+            onChange={setBasemapId}
+            size="md"
+            align="right"
+            options={availableBasemaps().map((b) => ({
+              value: b.id,
+              label: b.label,
+              hint: b.description,
+            }))}
+          />
 
           <button
             onClick={() => setExpanded((v) => !v)}
