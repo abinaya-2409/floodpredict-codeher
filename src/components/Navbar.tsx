@@ -380,21 +380,12 @@ export const Navbar: React.FC<Props> = ({
             {/* Authority Hub CTA */}
             <button
               onClick={onToggleRole}
-              className={`relative h-9 px-4 rounded-full font-bold text-xs tracking-wide transition-colors flex items-center gap-2 border cursor-pointer shadow-lg ${
+              className={`relative h-9 px-4 rounded-full font-bold text-xs tracking-wide transition-colors flex items-center justify-center border cursor-pointer shadow-lg ${
                 userRole === 'authority'
                   ? 'bg-gradient-to-r from-risk-critical to-risk-critical hover:brightness-110 text-fg border-risk-critical/40'
                   : 'bg-gradient-to-r from-accent to-accent-deep hover:brightness-110 text-on-accent border-accent/50'
               }`}
             >
-              <span className="relative flex h-4 w-4 items-center justify-center">
-                <svg className="w-4 h-4 text-fg" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-                  <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" />
-                  <circle cx="12" cy="11.5" r="2.5" fill="currentColor" />
-                </svg>
-                {userRole === 'authority' && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-accent-2 animate-ping" />
-                )}
-              </span>
               <span>{userRole === 'authority' ? 'Authority Hub' : 'Citizen Portal'}</span>
             </button>
           </div>

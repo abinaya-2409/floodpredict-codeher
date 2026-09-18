@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CityData, ZoneData, ReliefShelter, CitizenReport } from '../types';
-import { ShieldCheck, Navigation, MapPin, AlertTriangle, Phone, CheckCircle2, Send, Plus, Users, Zap, HeartPulse, Building } from 'lucide-react';
+import { Navigation, MapPin, AlertTriangle, Phone, CheckCircle2, Send, Users, Zap, HeartPulse } from 'lucide-react';
 
 interface Props {
   city: CityData;
@@ -59,7 +59,6 @@ export const CitizenPortal: React.FC<Props> = ({
       <div className="p-5 md:p-6 bg-surface border border-line rounded-card shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2 text-accent font-bold text-xs uppercase tracking-wider">
-            <ShieldCheck className="w-4 h-4" />
             <span>Citizen Safe Zone & Dry Route Portal</span>
           </div>
           <h2 className="text-xl md:text-2xl font-bold text-fg mt-1">
@@ -138,7 +137,6 @@ export const CitizenPortal: React.FC<Props> = ({
         <div className="lg:col-span-7 bg-surface border border-line rounded-card p-5 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-line">
             <div className="flex items-center space-x-2 text-accent font-bold text-xs uppercase tracking-wider">
-              <Building className="w-4 h-4" />
               <span>Verified Elevated Relief Camps & Shelters</span>
             </div>
             <span className="text-micro text-risk-low font-mono">● High Ground (Dry Guaranteed)</span>
@@ -192,7 +190,6 @@ export const CitizenPortal: React.FC<Props> = ({
         {/* Right Column: Crowdsource Waterlogging Beacon */}
         <div className="lg:col-span-5 bg-surface border border-line rounded-card p-5 space-y-4">
           <div className="flex items-center space-x-2 text-accent font-bold text-xs uppercase tracking-wider pb-3 border-b border-line">
-            <Plus className="w-4 h-4" />
             <span>Crowdsource Street Waterlogging Beacon</span>
           </div>
 
