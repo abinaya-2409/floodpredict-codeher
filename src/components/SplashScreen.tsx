@@ -1,11 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { LogoMark } from './Logo';
 import { 
-  Satellite, 
-  Waves, 
-  Cpu, 
-  ShieldCheck, 
-  CloudRain, 
   Activity, 
   Radio,
   ArrowRight
@@ -266,34 +261,6 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
           </div>
         </div>
 
-        {/* Diagnostic Steps Feed */}
-        <div className="w-full max-w-md bg-black/80 border border-slate-800/60 rounded-xl p-3.5 backdrop-blur-md text-left shadow-lg">
-          <div className="space-y-2.5">
-            {STEPS.map((s, idx) => {
-              const isCurrent = idx === currentStep;
-              const isPassed = completedSteps.includes(idx);
-              const Icon = s.icon;
-
-              return (
-                <div 
-                  key={s.code}
-                  className={`flex items-center gap-2.5 text-xs transition-all duration-300 ${
-                    isCurrent 
-                      ? 'text-cyan-200 font-semibold scale-[1.01] translate-x-0.5' 
-                      : isPassed 
-                        ? 'text-slate-500' 
-                        : 'text-slate-700'
-                  }`}
-                >
-                  <Icon className={`w-3.5 h-3.5 shrink-0 ${
-                    isCurrent ? 'text-cyan-400 animate-spin' : isPassed ? 'text-emerald-500/70' : 'text-slate-700'
-                  }`} />
-                  <span className="truncate">{s.label}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
       </main>
 
       {/* BOTTOM ACTION BAR */}
