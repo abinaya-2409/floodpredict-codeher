@@ -75,14 +75,8 @@ export default function App() {
       return null;
     }
   });
-  // Default modal opens if user has never logged in/chosen guest mode
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(() => {
-    try {
-      return !localStorage.getItem('floodypredict_session');
-    } catch {
-      return true;
-    }
-  });
+  // Auth modal closed by default
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
 
   const t = TRANSLATIONS[language];
 
