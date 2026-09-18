@@ -1,8 +1,30 @@
 import express from 'express';
+import crypto from 'crypto';
 import { sendOtpEmail } from './emailService.js';
 
 export const app = express();
 app.use(express.json());
+
+const OTP_SECRET = process.env.OTP_SECRET || 'jalrakshak-chennai-2026-secure-secret';
+
+function createOtpToken(contact: string, otp: string, expiresAt: number): string {
+  const payload = `${contact.toLowerCase()}:${otp}:${expiresAt}`;
+  const hmac = crypto.createHmac('sha256', OTP_SECRET).update(payload).digest('hex');
+  return `${hmac}.${expiresAt}`;
+}
+
+function verifyOtpToken(contact: string, otp: string, token: string): boolean {
+  try {
+    const [hmac, expiresAtStr] = token.split('.');
+    const expiresAt = Number(expiresAtStr);
+    if (!hmac || !expiresAt || Date.now() > expiresAt) return false;
+    const payload = `${contact.toLowerCase()}:${otp}:${expiresAt}`;
+    const expectedHmac = crypto.createHmac('sha256', OTP_SECRET).update(payload).digest('hex');
+    return crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(expectedHmac));
+  } catch {
+    return false;
+  }
+}
 
 /* ---------------------------------------------------------------------------
  * In-memory OTP Store for Citizen & Authority Verification
@@ -246,6 +268,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
     // Generate cryptographic 4-digit OTP (1000–9999)
     const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
     const expiresAt = now + 5 * 60 * 1000; // 5-minute validity
+    const otpToken = createOtpToken(normalizedContact, otpCode, expiresAt);
 
     otpStore.set(normalizedContact, {
       code: otpCode,
@@ -270,6 +293,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
           success: true,
           channel: 'email',
           delivered: true,
+          otpToken,
           message: `✅ OTP email sent to ${normalizedContact}. Please check your inbox and spam folder.`,
         });
       } else if (emailResult.success && emailResult.channel === 'ethereal') {
@@ -279,6 +303,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
           channel: 'email',
           delivered: false,
           ethereal: true,
+          otpToken,
           previewUrl: emailResult.previewUrl,
           devOtp: otpCode,
           message: `OTP dispatched via Ethereal test capture for ${normalizedContact}. Your code: ${otpCode}`,
@@ -289,6 +314,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
           success: true,
           channel: 'email',
           delivered: false,
+          otpToken,
           devOtp: otpCode,
           message: `Email delivery error: ${emailResult.error}. Use code: ${otpCode}`,
         });
@@ -299,6 +325,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
         success: true,
         channel: 'sms',
         delivered: false,
+        otpToken,
         devOtp: otpCode,
         message: `OTP for ${normalizedContact}: ${otpCode} (SMS gateway active in dev mode).`,
       });
@@ -312,18 +339,37 @@ app.post('/api/auth/send-otp', async (req, res) => {
 // Verify OTP
 app.post('/api/auth/verify-otp', (req, res) => {
   try {
-    const { contact, otp } = req.body ?? {};
+    const { contact, otp, otpToken } = req.body ?? {};
     if (!contact || !otp) {
       return res.status(400).json({ success: false, message: 'Contact and OTP code are required.' });
     }
 
     const normalizedContact = contact.trim().toLowerCase();
+    const enteredOtp = String(otp).trim();
+
+    // 1. Stateless token verification (critical for Vercel Serverless Functions)
+    if (otpToken && typeof otpToken === 'string') {
+      const isValid = verifyOtpToken(normalizedContact, enteredOtp, otpToken);
+      if (isValid) {
+        otpStore.delete(normalizedContact);
+        return res.json({
+          success: true,
+          message: 'OTP verified successfully.',
+          session: {
+            contact: normalizedContact,
+            verifiedAt: new Date().toISOString(),
+          },
+        });
+      }
+    }
+
+    // 2. In-memory fallback verification
     const stored = otpStore.get(normalizedContact);
 
     if (!stored) {
       return res.status(400).json({
         success: false,
-        message: 'No active OTP found for this address. Please click "Resend OTP Code".',
+        message: 'No active OTP found or code expired. Please click "Resend OTP Code".',
       });
     }
 
@@ -343,7 +389,6 @@ app.post('/api/auth/verify-otp', (req, res) => {
       });
     }
 
-    const enteredOtp = String(otp).trim();
     if (enteredOtp !== stored.code) {
       stored.attempts += 1;
       const remaining = 5 - stored.attempts;

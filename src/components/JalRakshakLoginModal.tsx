@@ -51,6 +51,7 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
   const [otpError, setOtpError] = useState<string | null>(null);
   const [otpStatusMsg, setOtpStatusMsg] = useState<string | null>(null);
   const [devOtpHint, setDevOtpHint] = useState<string | null>(null);
+  const [otpToken, setOtpToken] = useState<string | null>(null);
   const [emailDelivered, setEmailDelivered] = useState(false);
   const [etherealPreviewUrl, setEtherealPreviewUrl] = useState<string | null>(null);
   const [isEthereal, setIsEthereal] = useState(false);
@@ -112,6 +113,7 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
     setIsSendingOtp(true);
     setOtpError(null);
     setDevOtpHint(null);
+    setOtpToken(null);
     setEtherealPreviewUrl(null);
     setIsEthereal(false);
 
@@ -141,6 +143,7 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
       setOtpCountdown(30);
       setEmailDelivered(Boolean(data.delivered));
       setOtpStatusMsg(data.message);
+      if (data.otpToken) setOtpToken(data.otpToken);
       if (data.devOtp) setDevOtpHint(data.devOtp);
       if (data.previewUrl) setEtherealPreviewUrl(data.previewUrl);
       if (data.ethereal) setIsEthereal(true);
@@ -187,6 +190,7 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
         body: JSON.stringify({
           contact: contactInput.trim(),
           otp: entered,
+          otpToken: otpToken || undefined,
         }),
       });
 
