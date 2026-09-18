@@ -1,14 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { LogoMark } from './Logo';
 import { 
-  Radar, 
   Satellite, 
   Waves, 
   Cpu, 
   ShieldCheck, 
   CloudRain, 
   Activity, 
-  CheckCircle2, 
   Radio,
   ArrowRight
 } from 'lucide-react';
@@ -118,7 +116,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
       aria-live="polite"
       aria-label="Loading FloodyLink"
       onClick={handleFinish}
-      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-between overflow-hidden bg-[#070d14] text-slate-100 select-none cursor-pointer transition-all duration-700 ${
+      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-between overflow-hidden bg-black text-slate-100 select-none cursor-pointer transition-all duration-700 ${
         isLeaving ? 'opacity-0 scale-[1.03] pointer-events-none' : 'opacity-100 scale-100'
       }`}
     >
@@ -269,8 +267,8 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         </div>
 
         {/* Diagnostic Steps Feed */}
-        <div className="w-full max-w-md bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5 backdrop-blur-md text-left shadow-lg">
-          <div className="space-y-2">
+        <div className="w-full max-w-md bg-black/80 border border-slate-800/60 rounded-xl p-3.5 backdrop-blur-md text-left shadow-lg">
+          <div className="space-y-2.5">
             {STEPS.map((s, idx) => {
               const isCurrent = idx === currentStep;
               const isPassed = completedSteps.includes(idx);
@@ -279,33 +277,18 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
               return (
                 <div 
                   key={s.code}
-                  className={`flex items-center justify-between text-xs transition-all duration-300 ${
+                  className={`flex items-center gap-2.5 text-xs transition-all duration-300 ${
                     isCurrent 
-                      ? 'text-cyan-200 font-medium scale-[1.01] pl-1' 
+                      ? 'text-cyan-200 font-semibold scale-[1.01] translate-x-0.5' 
                       : isPassed 
-                        ? 'text-slate-400' 
-                        : 'text-slate-600'
+                        ? 'text-slate-500' 
+                        : 'text-slate-700'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 truncate">
-                    <Icon className={`w-3.5 h-3.5 shrink-0 ${
-                      isCurrent ? 'text-cyan-400 animate-spin' : isPassed ? 'text-emerald-400' : 'text-slate-600'
-                    }`} />
-                    <span className="truncate">{s.label}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2 font-mono text-[10px] shrink-0">
-                    {isPassed ? (
-                      <span className="flex items-center gap-1 text-emerald-400">
-                        <CheckCircle2 className="w-3 h-3" />
-                        <span>READY</span>
-                      </span>
-                    ) : isCurrent ? (
-                      <span className="text-cyan-400 animate-pulse font-semibold">LOADING...</span>
-                    ) : (
-                      <span className="text-slate-600">WAITING</span>
-                    )}
-                  </div>
+                  <Icon className={`w-3.5 h-3.5 shrink-0 ${
+                    isCurrent ? 'text-cyan-400 animate-spin' : isPassed ? 'text-emerald-500/70' : 'text-slate-700'
+                  }`} />
+                  <span className="truncate">{s.label}</span>
                 </div>
               );
             })}
