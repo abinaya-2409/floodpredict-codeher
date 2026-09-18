@@ -4,7 +4,7 @@ import { CityData, ZoneData, SimulationParams, CitizenReport, StreetVulnerabilit
 import { calculateZoneHydrology, calculateStreetHydrology } from './utils/floodEngine';
 import { assessZone, rankByPriority } from './utils/riskIndex';
 import { recommendResources } from './utils/dispatch';
-import { Language, TRANSLATIONS } from './utils/translations';
+import { CITY_LANGUAGE, Language, TRANSLATIONS } from './utils/translations';
 import { Navbar } from './components/Navbar';
 import { LeafletFloodMap } from './components/LeafletFloodMap';
 import { HydrologicalMap } from './components/HydrologicalMap';
@@ -102,8 +102,23 @@ export default function App() {
   const [selectedZoneId, setSelectedZoneId] = useState<string>(computedZones[0]?.id || 'velachery');
   const selectedZone = computedZones.find(z => z.id === selectedZoneId) || computedZones[0];
 
+  /**
+   * Once someone picks a language deliberately, it stays picked. Before that,
+   * switching city offers the language that city actually reads - which is the
+   * difference between a warning and a notice you cannot parse.
+   */
+  const [languageChosen, setLanguageChosen] = useState(false);
+
+  const handleSetLanguage = (l: Language) => {
+    setLanguage(l);
+    setLanguageChosen(true);
+  };
+
   const handleSelectCity = (newCity: CityData) => {
     setSelectedCity(newCity);
+    if (!languageChosen) {
+      setLanguage(CITY_LANGUAGE[newCity.id] ?? 'en');
+    }
     setSimulationParams({
       rainfallIntensityMmHr: newCity.weather.currentRainfallMmHr,
       durationHours: 3.0,
@@ -209,7 +224,7 @@ export default function App() {
         onOpenExplainer={() => setIsExplainerOpen(true)}
         weather={selectedCity.weather}
         language={language}
-        onToggleLanguage={() => setLanguage(language === 'en' ? 'ta' : 'en')}
+        onSetLanguage={handleSetLanguage}
         isOfflineSimulated={isOfflineSimulated}
         onToggleOffline={() => setIsOfflineSimulated(!isOfflineSimulated)}
       />

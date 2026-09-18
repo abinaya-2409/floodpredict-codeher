@@ -46,6 +46,15 @@ network, no demographics, not for dispatch decisions. Nothing is bundled to
 make this work, which is the point - a national district boundary set is
 4-34MB, while one district's boundary is about 80KB.
 
+**Languages:** English plus one per modelled city - Hindi, Bengali, Marathi,
+Telugu, Tamil, Kannada, Malayalam and Assamese. Switching city offers that
+city's language until you choose one deliberately, after which your choice
+stands. A flood warning in a language you cannot read is not a warning, and
+the residents this app weights toward are the least likely to be reading
+English.
+
+These translations need review by native speakers before operational use.
+
 **Also included:** street-level inundation depth with per-street rainfall
 thresholds, a what-if hydraulic sandbox (drain blockages, pumping, tide),
 tiered alert drafting, citizen reporting, and Gemini-assisted executive

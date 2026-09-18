@@ -5,17 +5,22 @@ import { Language, TRANSLATIONS } from '../utils/translations';
 import { Wifi, WifiOff } from 'lucide-react';
 import { useThemeTokens } from '../theme/useThemeTokens';
 import { LogoMark } from './Logo';
+import { LanguagePicker } from './LanguagePicker';
 
-/** Section tabs, in the order they appear. */
-const TABS: { id: string; label: string }[] = [
-  { id: 'map', label: 'Inundation Map' },
-  { id: 'streets', label: 'Street Vulnerability' },
-  { id: 'whatif', label: 'What-If Sandbox' },
-  { id: 'alerts', label: 'Early Warning' },
-  { id: 'resources', label: 'Resource Dispatch' },
-  { id: 'fourinputs', label: 'Data Streams' },
-  { id: 'timeline', label: '72h Timeline' },
-  { id: 'citizen', label: 'Citizen Portal' },
+/**
+ * Section tabs, keyed to the translation table rather than hardcoded, so the
+ * navigation actually changes language with everything else. It did not
+ * before: switching language left the tab strip in English.
+ */
+const TABS: { id: string; key: keyof typeof TRANSLATIONS.en }[] = [
+  { id: 'map', key: 'tabMap' },
+  { id: 'streets', key: 'tabStreets' },
+  { id: 'whatif', key: 'tabWhatIf' },
+  { id: 'alerts', key: 'tabAlerts' },
+  { id: 'resources', key: 'tabResources' },
+  { id: 'fourinputs', key: 'tabFourInputs' },
+  { id: 'timeline', key: 'tabTimeline' },
+  { id: 'citizen', key: 'tabCitizen' },
 ];
 
 interface Props {
@@ -28,7 +33,7 @@ interface Props {
   onOpenExplainer: () => void;
   weather: WeatherForecast;
   language: Language;
-  onToggleLanguage: () => void;
+  onSetLanguage: (l: Language) => void;
   isOfflineSimulated: boolean;
   onToggleOffline: () => void;
 }
@@ -43,7 +48,7 @@ export const Navbar: React.FC<Props> = ({
   onOpenExplainer,
   weather,
   language,
-  onToggleLanguage,
+  onSetLanguage,
   isOfflineSimulated,
   onToggleOffline,
 }) => {
@@ -141,19 +146,7 @@ export const Navbar: React.FC<Props> = ({
 
           {/* Controls: Language, Ward/City Picker, Concept, Authority Hub CTA */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Translation Button */}
-            <button
-              onClick={onToggleLanguage}
-              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line bg-surface-2 px-3.5 text-xs font-semibold text-fg-soft transition-colors hover:border-line-strong hover:bg-surface-3 hover:text-fg cursor-pointer"
-              title="Switch Language"
-            >
-              <svg className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="2" y1="12" x2="22" y2="12" />
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-              </svg>
-              <span>{language === 'en' ? 'தமிழ் / EN' : 'EN / தமிழ்'}</span>
-            </button>
+            <LanguagePicker language={language} onChange={onSetLanguage} />
 
             {/* City / Ward Selector */}
             <div className="flex items-center bg-surface-2/80 border border-line-strong/60 hover:border-accent/50 rounded-full px-3.5 h-9 gap-2 text-fg-soft text-xs font-medium transition-colors shadow-sm">
@@ -244,7 +237,7 @@ export const Navbar: React.FC<Props> = ({
                     aria-hidden="true"
                   />
                 )}
-                <span>{tab.label}</span>
+                <span>{t[tab.key]}</span>
               </button>
             );
           })}
