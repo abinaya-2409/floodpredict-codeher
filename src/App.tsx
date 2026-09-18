@@ -794,7 +794,7 @@ export default function App() {
           <div className="flex items-center gap-2">
             <span className="text-risk-low font-semibold flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-risk-low animate-pulse" />
-              FloodyPredict
+              FloodyLink
             </span>
             <span className="text-subtle">•</span>
             <span>S-34 AI-Based Flood Risk Prediction &amp; Tiered Early Warning System</span>

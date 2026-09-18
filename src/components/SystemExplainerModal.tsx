@@ -30,7 +30,7 @@ export const SystemExplainerModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </div>
           <div>
             <div className="text-xs font-mono uppercase tracking-widest text-accent">System Architecture & Concept</div>
-            <h2 className="text-2xl font-bold text-fg">How FloodyPredict Predicts Floods Before They Happen</h2>
+            <h2 className="text-2xl font-bold text-fg">How FloodyLink Predicts Floods Before They Happen</h2>
           </div>
         </div>
 
@@ -38,7 +38,7 @@ export const SystemExplainerModal: React.FC<Props> = ({ isOpen, onClose }) => {
         <div className="p-4 bg-surface-2/80 border border-line-strong/80 rounded-card mb-6">
           <p className="text-fg-soft text-sm md:text-base leading-relaxed">
             <strong className="text-fg">In plain terms:</strong> Instead of waiting for 911/1070 calls when roads are already underwater (reactive), 
-            FloodyPredict combines upcoming weather forecasts, terrain elevations, drain blockage levels, and past flood records to predict 
+            FloodyLink combines upcoming weather forecasts, terrain elevations, drain blockage levels, and past flood records to predict 
             <span className="text-accent-soft font-semibold"> exactly which streets will flood, at what rainfall threshold, how many hours in advance</span>, 
             and sends tiered warnings so citizens can move vehicles and families before water rises.
           </p>
