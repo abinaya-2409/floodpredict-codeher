@@ -102,7 +102,7 @@
 
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Plus Jakarta Sans", "Inter", ui-sans-serif, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-mono: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 /* ===========================================================================
@@ -401,6 +401,24 @@
   .storm-lightning { animation: none; }
   .storm-rain { opacity: .12; }
 }
+
+/* Brand and load state: quiet, legible, and brief. */
+.brand { gap: 11px; }
+.brand-mark { width: 40px; height: 40px; border-radius: 8px; background: linear-gradient(145deg, #0f5067, #167e9e); box-shadow: 0 5px 14px rgb(0 38 53 / .2); }
+.brand strong { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; letter-spacing: 0; }
+.brand small { margin-top: 4px; font-size: .7rem; text-transform: none; letter-spacing: .01em; }
+.icon-control { transition: background-color .16s ease, color .16s ease, border-color .16s ease; }
+.icon-control:hover { color: var(--color-accent); background: color-mix(in oklab, var(--color-accent) 9%, var(--color-surface)); border-color: color-mix(in oklab, var(--color-accent) 35%, var(--color-line)); }
+.app-nav button { font-family: var(--font-sans); letter-spacing: 0; }
+.splash-screen { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; background: #02080c; transition: opacity .28s ease; }
+.splash-screen::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 85%, rgb(10 92 121 / .32), transparent 46%); }
+.splash-content { position: relative; display: grid; justify-items: center; gap: 15px; width: min(100% - 48px, 320px); color: #effaff; text-align: center; }
+.splash-logo { display: grid; place-items: center; width: 60px; height: 60px; border: 1px solid rgb(123 218 241 / .2); border-radius: 14px; color: #65d1eb; background: rgb(11 46 60 / .7); box-shadow: 0 10px 30px rgb(0 0 0 / .3); }
+.splash-content h1 { margin: 0; font-family: var(--font-display); font-size: 1.45rem; font-weight: 700; letter-spacing: 0; }
+.splash-content p { margin: 5px 0 0; color: #9cb5c0; font-size: .78rem; letter-spacing: 0; }
+.splash-loader { display: block; width: 96px; height: 3px; overflow: hidden; border-radius: 999px; background: rgb(136 185 201 / .18); }
+.splash-loader i { display: block; width: 42%; height: 100%; border-radius: inherit; background: #4cc8e5; animation: splashLoad .78s ease-in-out infinite alternate; }
+@keyframes splashLoad { from { transform: translateX(-10%); } to { transform: translateX(155%); } }
 
 /* Critical catchments pulse gently so they are findable without hunting. */
 .leaflet-interactive.zone-critical {
