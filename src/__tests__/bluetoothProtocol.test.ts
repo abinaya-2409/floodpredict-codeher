@@ -7,7 +7,7 @@ import { StoredMessage } from '../services/bluetooth/BluetoothTypes';
 describe('MessageProtocol', () => {
   it('should create valid emergency chat message', () => {
     const msg = MessageProtocol.createMessage({
-      type: 'chat',
+      type: 'msg',
       senderId: 'sender-123',
       senderNick: 'Alice',
       content: 'Flood rising at Junction 4',
@@ -35,7 +35,7 @@ describe('MessageProtocol', () => {
 
   it('should serialize and deserialize messages with integrity check', () => {
     const msg = MessageProtocol.createMessage({
-      type: 'chat',
+      type: 'msg',
       senderId: 'dev-1',
       senderNick: 'Charlie',
       content: 'Safe on roof',
@@ -66,7 +66,7 @@ describe('MessageTransport Chunking & Reassembly', () => {
   it('should chunk large payloads and reassemble them accurately', () => {
     const longContent = 'Flood warning payload '.repeat(15); // ~330 chars (< 500 MAX_MESSAGE_LENGTH, > 160 CHUNK_SIZE)
     const msg = MessageProtocol.createMessage({
-      type: 'chat',
+      type: 'msg',
       senderId: 'dev-long',
       senderNick: 'Dave',
       content: longContent,
@@ -109,6 +109,8 @@ describe('OfflineStorage', () => {
       status: 'sent',
       isSelf: false,
       priority: 'emergency',
+      type: 'msg',
+      retryCount: 0,
     };
 
     OfflineStorage.saveMessage(msg);
