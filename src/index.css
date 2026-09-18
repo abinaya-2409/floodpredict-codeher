@@ -460,3 +460,68 @@
   content: '...';
   animation: splashDots 1.2s steps(1, end) infinite;
 }
+
+/* ===========================================================================
+   Telemetry ticker
+   The label stays put; the readings scroll past it.
+   =========================================================================== */
+
+@keyframes telemetryScroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    /* Exactly half the track, which is one full copy of the readings, so the
+       second copy lands where the first began and the loop has no seam. */
+    transform: translateX(-50%);
+  }
+}
+
+.telemetry-track {
+  animation: telemetryScroll calc(38s / var(--motion-scale)) linear infinite;
+  will-change: transform;
+}
+
+/* Reading a figure is more useful than watching it move. */
+.telemetry-ticker:hover .telemetry-track,
+.telemetry-ticker:focus-within .telemetry-track {
+  animation-play-state: paused;
+}
+
+/* Fade the ends so readings enter and leave rather than being chopped off. */
+.telemetry-ticker {
+  --fade: 28px;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--fade),
+    #000 calc(100% - var(--fade)),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--fade),
+    #000 calc(100% - var(--fade)),
+    transparent 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The global reduced-motion rule stops the animation, which would leave the
+     readings frozen mid-slide and half of them unreachable. Hand the strip
+     back to the user as something they can scroll themselves. */
+  .telemetry-track {
+    animation: none;
+    transform: none;
+  }
+  .telemetry-ticker {
+    overflow-x: auto;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+  /* The duplicate copy is decorative; without motion it is just repetition. */
+  .telemetry-track > [aria-hidden='true'] {
+    display: none;
+  }
+}

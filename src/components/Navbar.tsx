@@ -69,8 +69,9 @@ export const Navbar: React.FC<Props> = ({
     <header className="sticky top-0 z-50 w-full px-3 sm:px-6 pt-3 pb-2 backdrop-blur-md bg-transparent">
       <div className="max-w-7xl mx-auto flex flex-col gap-2">
         {/* Top Live Telemetry Pill Strip */}
-        <div className="glass rounded-full px-4 py-1.5 flex items-center justify-between text-xs overflow-x-auto whitespace-nowrap shadow-[0_4px_24px_rgba(0,0,0,0.5)] border border-line">
-          <div className="flex items-center gap-3">
+        <div className="glass flex items-center gap-3 overflow-hidden rounded-full border border-line px-4 py-1.5 text-xs whitespace-nowrap shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
+          {/* Static label. */}
+          <div className="flex shrink-0 items-center gap-3">
             {/* Radar Animated Pulse & Sweep Icon */}
             <div className="flex items-center gap-2 text-positive font-mono tracking-wider font-bold">
               <div className="relative w-4 h-4 flex items-center justify-center">
@@ -95,31 +96,69 @@ export const Navbar: React.FC<Props> = ({
               </div>
               <span className="text-fg">LIVE HYDRO-TELEMETRY</span>
             </div>
-            <span className="text-subtle">•</span>
-            <span className="font-mono text-fg-soft">{selectedCity.name} AWS Doppler Radar</span>
-            <span className="text-subtle">•</span>
-            <span className="font-mono text-muted">
-              Rainfall: <strong className="text-accent font-bold">{weather.currentRainfallMmHr} mm/hr</strong>
-            </span>
-            <span className="text-subtle">•</span>
-            <span className="font-mono text-muted">
-              24h Outlook: <strong className="text-risk-high font-bold">+{weather.forecast24hMm} mm</strong>
-            </span>
-            <span className="text-subtle">•</span>
-            <span className="font-mono text-muted">
-              Tide: <strong className="text-accent-soft font-semibold">{weather.stormSurgeTideM}m MSL</strong>
-            </span>
-            <span className="text-subtle">•</span>
-            <span className="font-mono text-muted">
-              Doppler Trend: <strong className="text-risk-critical font-bold uppercase">{weather.dopplerRadarTrend}</strong>
-            </span>
-            <span className="text-subtle">•</span>
-            <span className="font-mono text-muted">
-              Confidence: <strong className="text-accent-2 font-bold">87.4%</strong>
-            </span>
           </div>
 
-          <div className="flex items-center gap-2 pl-4">
+          {/*
+            Readings scroll; the label does not.
+
+            "LIVE HYDRO-TELEMETRY" is the one thing that must stay put - it
+            says what the strip is, and a label that slides away leaves the
+            numbers unexplained. Everything after it is a ticker: the track
+            carries two identical copies and translates by exactly half its
+            width, so the loop closes with no visible seam or reset.
+          */}
+          <div className="telemetry-ticker relative min-w-0 flex-1 overflow-hidden" aria-live="off">
+            <div className="telemetry-track flex w-max items-center">
+              {[0, 1].map((copy) => (
+                <div
+                  key={copy}
+                  className="flex shrink-0 items-center gap-3 pr-3"
+                  // The duplicate exists only to make the loop seamless, so
+                  // screen readers and search should see the readings once.
+                  aria-hidden={copy === 1 ? 'true' : undefined}
+                >
+                  <span className="text-subtle">&bull;</span>
+                  <span className="font-mono text-fg-soft">
+                    {selectedCity.name} AWS Doppler Radar
+                  </span>
+                  <span className="text-subtle">&bull;</span>
+                  <span className="font-mono text-muted">
+                    {t.rainfall}:{' '}
+                    <strong className="font-bold text-accent">
+                      {weather.currentRainfallMmHr} mm/hr
+                    </strong>
+                  </span>
+                  <span className="text-subtle">&bull;</span>
+                  <span className="font-mono text-muted">
+                    {t.forecast24h}:{' '}
+                    <strong className="font-bold text-risk-high">
+                      +{weather.forecast24hMm} mm
+                    </strong>
+                  </span>
+                  <span className="text-subtle">&bull;</span>
+                  <span className="font-mono text-muted">
+                    {t.tide}:{' '}
+                    <strong className="font-semibold text-accent-soft">
+                      {weather.stormSurgeTideM}m MSL
+                    </strong>
+                  </span>
+                  <span className="text-subtle">&bull;</span>
+                  <span className="font-mono text-muted">
+                    {t.dopplerTrend}:{' '}
+                    <strong className="font-bold uppercase text-risk-critical">
+                      {weather.dopplerRadarTrend}
+                    </strong>
+                  </span>
+                  <span className="text-subtle">&bull;</span>
+                  <span className="font-mono text-muted">
+                    {t.confidenceScore}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-2 pl-2">
             <button
               onClick={onToggleOffline}
               className="inline-flex items-center gap-1.5 bg-positive/12 border border-positive/35 px-3 py-0.5 rounded-full text-positive font-mono text-mini font-semibold hover:bg-positive/20 transition-colors cursor-pointer"
