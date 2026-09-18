@@ -216,7 +216,7 @@ app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
     time: new Date().toISOString(),
-    platform: 'JalRakshak AI',
+    platform: 'Floody predict',
     aiConfigured: Boolean(key),
     // Shape check only - it never proves Google will accept the key, but it
     // catches the common paste errors without spending a request.
@@ -249,7 +249,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
       if (!AUTHORIZED_EMAILS.has(normalizedContact)) {
         return res.status(403).json({
           success: false,
-          message: `Access restricted. The email "${normalizedContact}" is not registered in the JalRakshak AI system. Please contact your GCC zone administrator.`,
+          message: `Access restricted. The email "${normalizedContact}" is not registered in the Floody predict system. Please contact your GCC zone administrator.`,
         });
       }
     }

@@ -187,7 +187,7 @@ export const Navbar: React.FC<Props> = ({
             <LogoMark className="h-8 w-8 shrink-0 text-accent" />
             <div className="flex flex-col leading-none">
               <span className="font-display text-base sm:text-lg font-extrabold tracking-tight text-fg">
-                JalRakshak
+                Floody predict
               </span>
               <span className="mt-1 text-micro font-medium uppercase tracking-[0.18em] text-subtle">
                 Flood Intelligence

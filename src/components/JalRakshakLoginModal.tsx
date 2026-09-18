@@ -303,7 +303,7 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
             </div>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            JalRakshak AI
+            Floody predict
           </h2>
           <p className="text-xs text-cyan-400 font-mono tracking-wider mt-1 uppercase">
             {selectedCity.name} Flood Alert &amp; Inundation Defense System

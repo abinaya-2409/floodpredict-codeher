@@ -54,7 +54,7 @@ export const CITY_LANGUAGE: Record<string, Language> = {
 
 export const TRANSLATIONS = {
   en: {
-    appTitle: 'JalRakshak',
+    appTitle: 'Floody predict',
     tagline: 'Urban flood risk prediction and tiered early warning',
     liveTelemetry: 'LIVE TELEMETRY',
     rainfall: 'Rainfall',
