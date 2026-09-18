@@ -1,14 +1,9 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FloodyPredict">
   <rect width="512" height="512" rx="112" fill="#080f1c"/>
-  <defs>
-    <clipPath id="s">
-      <path d="M256 74 432 135v131c0 114-101 197-176 237-75-40-176-123-176-237V135z"/>
-    </clipPath>
-  </defs>
-  <g clip-path="url(#s)">
-    <path d="M16 298c43 0 43-35 86-35s43 35 86 35 43-35 86-35 43 35 86 35 43-35 86-35v214H16z" fill="#4f9cf9" fill-opacity="0.3"/>
-    <path d="M16 298c43 0 43-35 86-35s43 35 86 35 43-35 86-35 43 35 86 35 43-35 86-35" stroke="#4f9cf9" stroke-width="30" stroke-linecap="round" fill="none"/>
+  <g stroke="#eaf1fa" stroke-width="42" stroke-linecap="round" fill="none">
+    <path d="M192 54v404"/>
+    <path d="M192 128h128M192 202h75M192 277h128M192 351h75"/>
   </g>
-  <path d="M256 74 432 135v131c0 114-101 197-176 237-75-40-176-123-176-237V135z" stroke="#eaf1fa" stroke-width="35" stroke-linejoin="round" fill="none"/>
-  <circle cx="256" cy="179" r="37" fill="#4f9cf9"/>
+  <path d="M43 387c39 0 39-32 79-32s39 32 79 32 39-32 79-32 39 32 79 32 39-32 79-32"
+        stroke="#4f9cf9" stroke-width="36" stroke-linecap="round" fill="none"/>
 </svg>

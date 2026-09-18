@@ -17,6 +17,7 @@ import { HydrologicalTimelineView } from './components/HydrologicalTimelineView'
 import { CitizenPortal } from './components/CitizenPortal';
 import { GeminiExecutiveReport } from './components/GeminiExecutiveReport';
 import { SystemExplainerModal } from './components/SystemExplainerModal';
+import { NationalGridMap } from './components/NationalGridMap';
 import { StatTile } from './components/ui/StatTile';
 import { RiskBadge } from './components/ui/Badge';
 import { VantaBackground } from './components/VantaBackground';
@@ -652,6 +653,10 @@ export default function App() {
         )}
 
         {/* Tab 2: Street-Level Vulnerability & Thresholds */}
+        {/* National district view. Its map library and the 641 boundary
+            polygons load only when this tab is opened. */}
+        {activeTab === 'national' && <NationalGridMap />}
+
         {activeTab === 'streets' && (
           <StreetLevelVulnerability
             city={selectedCity}

@@ -55,6 +55,17 @@ English.
 
 These translations need review by native speakers before operational use.
 
+**National Grid:** a second map covering all 641 Indian districts. Place a
+flood origin anywhere, pick a severity level, and the impact footprint and
+ranked district list recompute live. It is a distance-decay footprint, not
+hydrology - selecting a district hands off to the reconnaissance read, which
+uses real terrain and rainfall for that one place.
+
+Built on MapLibre GL rather than Leaflet: 641 polygons restyled on every
+epicentre move is a GPU job, and feature-state updates keep the geometry on
+the card. Both the library and the boundaries load only when the tab is
+opened.
+
 **Also included:** street-level inundation depth with per-street rainfall
 thresholds, a what-if hydraulic sandbox (drain blockages, pumping, tide),
 tiered alert drafting, citizen reporting, and Gemini-assisted executive
@@ -143,6 +154,9 @@ src/
     districtModel.ts Reconnaissance scoring for unmodelled districts
     geocode.ts       Nominatim place search and on-demand boundaries
     facilities.ts    Shelter-capable facilities for any Indian district
+    nationalModel.ts District impact scoring for the national grid
+tools/
+  build-districts.mjs  Rebuilds the district boundary file from the shapefile
   data/mockData.ts    Ward, drain, shelter and demographic fixtures
 tools/
   audit.mjs           Walks every city against every tab, reports what renders
@@ -183,6 +197,8 @@ All of it keyless, and fetched on demand rather than vendored:
 | [Open-Meteo](https://open-meteo.com/) | Live rainfall forecast, terrain elevation | CC-BY 4.0, free for non-commercial use |
 | [Nominatim / OpenStreetMap](https://www.openstreetmap.org/copyright) | Place search, district boundaries | ODbL |
 | [Esri ArcGIS Online](https://www.esri.com/) | Basemap, satellite and topographic tiles | Free with attribution |
+| [datameet/maps](https://github.com/datameet/maps) | Census 2011 district boundaries (641 districts) | MIT |
+| [CARTO GL basemaps](https://carto.com/attributions) | Vector styles for the national map | Free with attribution |
 | [Nominatim / OpenStreetMap](https://www.openstreetmap.org/copyright) | Relief camp candidates (schools, halls, hospitals) nationwide | ODbL |
 
 Nominatim asks for at most one request per second; every lookup here is

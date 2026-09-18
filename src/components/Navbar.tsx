@@ -14,6 +14,7 @@ import { LanguagePicker } from './LanguagePicker';
  */
 const TABS: { id: string; key: keyof typeof TRANSLATIONS.en }[] = [
   { id: 'map', key: 'tabMap' },
+  { id: 'national', key: 'tabNational' },
   { id: 'streets', key: 'tabStreets' },
   { id: 'whatif', key: 'tabWhatIf' },
   { id: 'alerts', key: 'tabAlerts' },

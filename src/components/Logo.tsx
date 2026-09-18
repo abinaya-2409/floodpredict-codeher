@@ -1,19 +1,21 @@
 import React from 'react';
 
 /**
- * FloodyPredict mark.
+ * FloodyPredict mark: a staff gauge.
  *
- * A shield whose lower half is held by water, crossed by a level line.
- * Three ideas in one silhouette: protection, water, and a measured level -
- * which is precisely what the application does.
+ * The staff gauge is the oldest instrument in flood measurement - the
+ * graduated post set into a river bank or bridge pier, read by eye, still
+ * standing at gauging stations across India. It is the literal object this
+ * software replaces.
  *
- * The previous mark was a circle with two wave lines: readable, but generic
- * enough to belong to any water utility, and the lower wave collapsed into
- * mush below about 20px. A shield holds its silhouette at favicon size and
- * says "protection" before any detail resolves.
+ * It was chosen over the shield it replaces because a shield says "security
+ * product" and could belong to any of a thousand apps; a graduated post with
+ * a waterline against it says one thing only. Three elements, no gradients,
+ * no enclosure - the things that make a mark read as drawn rather than
+ * generated.
  *
- * Drawn on a 32-unit grid in currentColor, so it inherits its colour from
- * whatever it sits in.
+ * The waterline crosses below the midpoint: a gauge reading near the top is
+ * the emergency, not the resting state.
  */
 export function LogoMark({
   className = '',
@@ -22,45 +24,34 @@ export function LogoMark({
   className?: string;
   title?: string;
 }) {
-  // Two instances on one page must not share a clip path id.
-  const clipId = React.useId();
-  const shield = 'M16 2.6 27 6.4v8.2c0 7.1-6.3 12.3-11 14.8-4.7-2.5-11-7.7-11-14.8V6.4z';
-
   return (
     <svg
-      viewBox="0 0 32 32"
+      viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
       aria-label={title}
       className={className}
     >
-      <defs>
-        <clipPath id={clipId}>
-          <path d={shield} />
-        </clipPath>
-      </defs>
+      {/* The post. */}
+      <path d="M9 2.5v19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
 
-      {/* Water, clipped to the shield and held at its midpoint. */}
-      <g clipPath={`url(#${clipId})`}>
-        <path
-          d="M1 18.6c2.7 0 2.7-2.2 5.4-2.2s2.7 2.2 5.4 2.2 2.7-2.2 5.4-2.2 2.7 2.2 5.4 2.2 2.7-2.2 5.4-2.2V32H1z"
-          fill="currentColor"
-          fillOpacity="0.26"
-        />
-        <path
-          d="M1 18.6c2.7 0 2.7-2.2 5.4-2.2s2.7 2.2 5.4 2.2 2.7-2.2 5.4-2.2 2.7 2.2 5.4 2.2 2.7-2.2 5.4-2.2"
-          stroke="currentColor"
-          strokeWidth="1.9"
-          strokeLinecap="round"
-        />
-      </g>
+      {/* Graduations: long, short, long, short - how a gauge is numbered. */}
+      <path
+        d="M9 6h6M9 9.5h3.5M9 13h6M9 16.5h3.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
 
-      {/* Shield outline, drawn last so the water never crosses it. */}
-      <path d={shield} stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
-
-      {/* The ward under watch. */}
-      <circle cx="16" cy="11.2" r="2.3" fill="currentColor" />
+      {/* The waterline, reading against the post. */}
+      <path
+        d="M2 18.2c1.85 0 1.85-1.5 3.7-1.5s1.85 1.5 3.7 1.5 1.85-1.5 3.7-1.5 1.85 1.5 3.7 1.5 1.85-1.5 3.7-1.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        opacity="0.6"
+      />
     </svg>
   );
 }
