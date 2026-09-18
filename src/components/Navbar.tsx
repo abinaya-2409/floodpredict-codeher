@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { CityData, WeatherForecast } from '../types';
 import { CITIES } from '../data/mockData';
 import { Language, TRANSLATIONS } from '../utils/translations';
-import { Bluetooth, Sun, Moon } from 'lucide-react';
+import { Bluetooth, Moon, Sun, WifiOff } from 'lucide-react';
 import { useThemeTokens } from '../theme/useThemeTokens';
 import { LogoMark } from './Logo';
 import { LanguagePicker } from './LanguagePicker';
+import { Select } from './ui/Select';
 import { ConnectionManager } from '../services/bluetooth/ConnectionManager';
 import { BluetoothDevicePeer, ConnectionState } from '../services/bluetooth/BluetoothTypes';
 
