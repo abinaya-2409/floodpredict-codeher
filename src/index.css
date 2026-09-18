@@ -354,6 +354,55 @@
   pointer-events: none !important;
 }
 
+/* The storm is atmospheric context, not content: dense surfaces stay readable
+   while the weather remains visible through the page perimeter. */
+.storm-background { position: fixed; inset: 0; z-index: 0; overflow: hidden; background: #2d4f63; }
+.storm-rain { position: absolute; inset: -30% 0; opacity: .3; background-image: repeating-linear-gradient(105deg, transparent 0 13px, rgb(226 243 250 / .75) 14px 15px, transparent 16px 27px); background-size: 180px 240px; animation: stormRain 1.1s linear infinite; }
+.storm-lightning { position: absolute; inset: 0; opacity: 0; background: rgb(191 224 243 / .35); mix-blend-mode: screen; animation: stormLightning 12s infinite; }
+@keyframes stormRain { from { transform: translate3d(0, -120px, 0); } to { transform: translate3d(-40px, 120px, 0); } }
+@keyframes stormLightning { 0%, 86%, 89%, 100% { opacity: 0; } 87%, 88% { opacity: .46; } 90% { opacity: .16; } }
+
+:root[data-theme="oled"] {
+  --color-bg: #000000;
+  --color-bg-deep: #000000;
+  --color-surface: #070a0d;
+  --color-surface-2: #0d1318;
+  --color-surface-3: #16212a;
+  --color-line: #1e303b;
+  --color-line-strong: #2b4656;
+  --color-fg: #e7f1f4;
+  --color-fg-soft: #b7c9d1;
+  --color-muted: #8198a4;
+  --color-subtle: #5d7380;
+  --color-accent: #49b7d2;
+  --color-accent-soft: #8ad8e8;
+  --color-accent-deep: #1d819b;
+  --color-accent-2: #7b9ab0;
+  --color-on-accent: #021014;
+  --glass-bg: rgb(7 10 13 / .88);
+  --glass-border: rgb(101 150 171 / .22);
+  --glass-shadow: 0 12px 36px rgb(0 0 0 / .32);
+}
+
+:root[data-theme="light"] {
+  --glass-bg: rgb(255 255 255 / .88);
+  --glass-border: rgb(220 227 235 / .8);
+}
+
+:root[data-theme="oled"] .app-header { background: rgb(7 10 13 / .92); }
+:root[data-theme="oled"] .app-header__utility { background: #07151d; }
+:root[data-theme="oled"] .city-select select,
+:root[data-theme="oled"] .icon-control,
+:root[data-theme="oled"] .auth-panel { background: var(--color-surface); }
+:root[data-theme="oled"] .auth-tabs button.is-active,
+:root[data-theme="oled"] .auth-divider span { background: var(--color-surface); }
+:root[data-theme="oled"] .auth-choice { background: rgb(11 32 40 / .82); border-color: #24596a; }
+
+@media (prefers-reduced-motion: reduce) {
+  .storm-rain, .storm-lightning { animation: none; }
+  .storm-rain { opacity: .12; }
+}
+
 /* Critical catchments pulse gently so they are findable without hunting. */
 .leaflet-interactive.zone-critical {
   filter: drop-shadow(0 0 6px color-mix(in oklab, var(--color-risk-critical) 70%, transparent));

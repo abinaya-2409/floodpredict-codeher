@@ -18,18 +18,14 @@ interface VantaEffect {
   destroy: () => void;
 }
 
-/** CLOUDS2 defaults, as published. */
-const SKY = {
-  backgroundColor: 0x050a14,
-  // Pulled toward the interface's navy so the panels read as sitting in the
-  // scene rather than pasted onto a postcard.
-  skyColor: 0x3f7fb5,
-  cloudColor: 0x233349,
-  lightColor: 0xcfe3f5,
-  speed: 0.9,
+export type ThemeMode = 'light' | 'oled';
+
+const SKY: Record<ThemeMode, Record<string, number>> = {
+  light: { backgroundColor: 0x4d6675, skyColor: 0x2d4f63, cloudColor: 0x132a38, lightColor: 0x95b6c6, speed: 0.65 },
+  oled: { backgroundColor: 0x050a14, skyColor: 0x102b3b, cloudColor: 0x02070c, lightColor: 0x6f98ac, speed: 0.55 },
 };
 
-export function VantaBackground() {
+export function VantaBackground({ theme }: { theme: ThemeMode }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const effectRef = useRef<VantaEffect | null>(null);
   const [ready, setReady] = useState(false);
@@ -65,7 +61,7 @@ export function VantaBackground() {
           scale: 1,
           scaleMobile: 1,
           texturePath: '/gallery/noise.png',
-          ...SKY,
+          ...SKY[theme],
         });
         setReady(true);
       } catch (err) {
@@ -79,14 +75,13 @@ export function VantaBackground() {
       effectRef.current?.destroy();
       effectRef.current = null;
     };
-  }, []);
+  }, [theme]);
 
   return (
-    <div
-      ref={hostRef}
-      aria-hidden="true"
-      className="vanta-canvas-host fixed inset-0 z-0 pointer-events-none"
-      style={{ opacity: ready ? 1 : 0, transition: 'opacity 1.2s ease-out' }}
-    />
+    <div className="storm-background" aria-hidden="true">
+      <div ref={hostRef} className="vanta-canvas-host fixed inset-0 z-0 pointer-events-none" style={{ opacity: ready ? 1 : 0, transition: 'opacity 1.2s ease-out' }} />
+      <div className="storm-rain" />
+      <div className="storm-lightning" />
+    </div>
   );
 }

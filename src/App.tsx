@@ -24,11 +24,13 @@ import { VulnerabilityIndexPanel } from './components/VulnerabilityIndexPanel';
 import { EvacuationPriorityQueue } from './components/EvacuationPriorityQueue';
 import { LoginModal, AuthSession } from './components/LoginModal';
 import { OfflineEmergencyChat } from './components/OfflineEmergencyChat';
+import { VantaBackground, ThemeMode } from './components/VantaBackground';
 import { AlertTriangle, ShieldCheck, Waves, Users, Clock, ArrowUpRight, Gauge, Cpu, CloudRain, Radio, WifiOff, Map as MapIcon, Sliders, Bluetooth } from 'lucide-react';
-import { useThemeTokens } from './theme/useThemeTokens';
 
 export default function App() {
-  useThemeTokens();
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    try { return localStorage.getItem('floodypredict_theme') === 'oled' ? 'oled' : 'light'; } catch { return 'light'; }
+  });
   const [selectedCity, setSelectedCity] = useState<CityData>(CITIES[0]); // Default Chennai
   const [activeTab, setActiveTab] = useState<string>('map');
   const [mapRenderMode, setMapRenderMode] = useState<'leaflet' | 'schematic'>('leaflet');
@@ -201,6 +203,12 @@ export default function App() {
     document.documentElement.lang = language;
   }, [language]);
 
+  useEffect(() => {
+    document.documentElement.dataset.theme = themeMode;
+    localStorage.setItem('floodypredict_theme', themeMode);
+    window.dispatchEvent(new Event('floodypredict-theme-change'));
+  }, [themeMode]);
+
   const handleLoginSuccess = (session: AuthSession) => {
     setAuthSession(session);
     localStorage.setItem('floodypredict_session', JSON.stringify(session));
@@ -230,8 +238,9 @@ export default function App() {
   };
 
   return (
-    <div className="relative min-h-screen bg-bg text-fg flex flex-col font-sans selection:bg-risk-low/30 selection:text-risk-low overflow-x-hidden">
+    <div className="relative min-h-screen bg-transparent text-fg flex flex-col font-sans selection:bg-risk-low/30 selection:text-risk-low overflow-x-hidden">
       <a href="#main-content" className="sr-only-focusable">Skip to main content</a>
+      <VantaBackground theme={themeMode} />
 
 
       {/* Navigation Header */}
@@ -251,6 +260,8 @@ export default function App() {
         onOpenAuthModal={() => setIsAuthModalOpen(true)}
         onSignOut={handleSignOut}
         session={authSession}
+        themeMode={themeMode}
+        onToggleTheme={() => setThemeMode(themeMode === 'light' ? 'oled' : 'light')}
       />
 
       {/* Offline Mode Emergency Banner (If active) */}
