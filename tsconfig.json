@@ -22,5 +22,11 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "exclude": [
+    "capacitor.config.ts",
+    "android",
+    "node_modules",
+    "dist"
+  ]
 }

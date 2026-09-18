@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CityData, WeatherForecast } from '../types';
 import { CITIES } from '../data/mockData';
 import { Language, TRANSLATIONS } from '../utils/translations';
-import { Wifi, WifiOff, LogIn, LogOut, User, ShieldCheck } from 'lucide-react';
+import { Wifi, WifiOff, LogIn, LogOut, User, ShieldCheck, Bluetooth, Radio } from 'lucide-react';
 import { useThemeTokens } from '../theme/useThemeTokens';
 import { LogoMark } from './Logo';
 import { LanguagePicker } from './LanguagePicker';
+import { ConnectionManager } from '../services/bluetooth/ConnectionManager';
+import { BluetoothDevicePeer, ConnectionState } from '../services/bluetooth/BluetoothTypes';
 
 /**
  * Section tabs, keyed to the translation table rather than hardcoded, so the
@@ -22,6 +24,7 @@ const TABS: { id: string; key: keyof typeof TRANSLATIONS.en }[] = [
   { id: 'fourinputs', key: 'tabFourInputs' },
   { id: 'timeline', key: 'tabTimeline' },
   { id: 'citizen', key: 'tabCitizen' },
+  { id: 'offline-chat', key: 'tabOfflineChat' },
 ];
 
 interface Props {
@@ -68,6 +71,17 @@ export const Navbar: React.FC<Props> = ({
   const tokens = useThemeTokens();
   const t = TRANSLATIONS[language];
 
+  const [btState, setBtState] = useState<ConnectionState>('disconnected');
+  const [btPeer, setBtPeer] = useState<BluetoothDevicePeer | null>(null);
+
+  useEffect(() => {
+    const unsub = ConnectionManager.addListener((state, peer) => {
+      setBtState(state);
+      setBtPeer(peer);
+    });
+    return () => unsub();
+  }, []);
+
   return (
     <header className="sticky top-0 z-50 w-full px-3 sm:px-6 pt-3 pb-2 backdrop-blur-md bg-transparent">
       <div className="max-w-7xl mx-auto flex flex-col gap-2">
@@ -101,23 +115,12 @@ export const Navbar: React.FC<Props> = ({
             </div>
           </div>
 
-          {/*
-            Readings scroll; the label does not.
-
-            "LIVE HYDRO-TELEMETRY" is the one thing that must stay put - it
-            says what the strip is, and a label that slides away leaves the
-            numbers unexplained. Everything after it is a ticker: the track
-            carries two identical copies and translates by exactly half its
-            width, so the loop closes with no visible seam or reset.
-          */}
           <div className="telemetry-ticker relative min-w-0 flex-1 overflow-hidden" aria-live="off">
             <div className="telemetry-track flex w-max items-center">
               {[0, 1].map((copy) => (
                 <div
                   key={copy}
                   className="flex shrink-0 items-center gap-3 pr-3"
-                  // The duplicate exists only to make the loop seamless, so
-                  // screen readers and search should see the readings once.
                   aria-hidden={copy === 1 ? 'true' : undefined}
                 >
                   <span className="text-subtle">&bull;</span>
@@ -161,23 +164,37 @@ export const Navbar: React.FC<Props> = ({
             </div>
           </div>
 
+          {/* Connectivity Status Badges: Online, Offline, Bluetooth Connected */}
           <div className="flex shrink-0 items-center gap-2 pl-2">
-            <button
-              onClick={onToggleOffline}
-              className="inline-flex items-center gap-1.5 bg-positive/12 border border-positive/35 px-3 py-0.5 rounded-full text-positive font-mono text-mini font-semibold hover:bg-positive/20 transition-colors cursor-pointer"
-            >
-              {isOfflineSimulated ? (
-                <>
-                  <WifiOff className="w-3 h-3 text-risk-high" />
-                  <span className="text-risk-high">Offline Simulation</span>
-                </>
-              ) : (
-                <>
-                  <span className="w-1.5 h-1.5 rounded-full bg-positive animate-pulse" />
-                  <span>Telemetry Online</span>
-                </>
-              )}
-            </button>
+            {btState === 'connected' ? (
+              <button
+                onClick={() => onChangeTab('offline-chat')}
+                className="inline-flex items-center gap-1.5 bg-blue-950/80 border border-blue-400/60 px-3 py-0.5 rounded-full text-blue-300 font-mono text-mini font-bold hover:bg-blue-900 transition-all cursor-pointer shadow-[0_0_10px_rgba(59,130,246,0.3)]"
+                title="Bluetooth P2P Mesh Connected"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping" />
+                <Bluetooth className="w-3 h-3 text-blue-400" />
+                <span>🔵 BT: {btPeer?.nickname || btPeer?.name || 'Connected'}</span>
+              </button>
+            ) : isOfflineSimulated ? (
+              <button
+                onClick={onToggleOffline}
+                className="inline-flex items-center gap-1.5 bg-rose-950/70 border border-rose-500/40 px-3 py-0.5 rounded-full text-rose-300 font-mono text-mini font-semibold hover:bg-rose-900 transition-colors cursor-pointer"
+                title="Telemetry Offline Simulation Mode"
+              >
+                <WifiOff className="w-3 h-3 text-rose-400" />
+                <span>🔴 Offline</span>
+              </button>
+            ) : (
+              <button
+                onClick={onToggleOffline}
+                className="inline-flex items-center gap-1.5 bg-positive/12 border border-positive/35 px-3 py-0.5 rounded-full text-positive font-mono text-mini font-semibold hover:bg-positive/20 transition-colors cursor-pointer"
+                title="Telemetry Feed Online"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-positive animate-pulse" />
+                <span>🟢 Online</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -196,9 +213,28 @@ export const Navbar: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Controls: Language, Ward/City Picker, Concept, Authority Hub CTA */}
+          {/* Controls: Language, Ward/City Picker, Offline Chat CTA, Concept, Authority Hub CTA */}
           <div className="flex items-center gap-2 sm:gap-3">
             <LanguagePicker language={language} onChange={onSetLanguage} />
+
+            {/* Quick Access Offline Chat CTA */}
+            <button
+              onClick={() => onChangeTab('offline-chat')}
+              className={`h-9 px-3 sm:px-4 rounded-full border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm ${
+                activeTab === 'offline-chat'
+                  ? 'bg-cyan-500/25 border-cyan-400 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                  : btState === 'connected'
+                  ? 'bg-blue-950/90 border-blue-400 text-blue-300 hover:bg-blue-900 shadow-[0_0_10px_rgba(59,130,246,0.3)]'
+                  : 'bg-surface-2/80 hover:bg-surface-3 text-fg-soft hover:text-cyan-300 border-line-strong/60'
+              }`}
+              title="Open Direct Offline Bluetooth Emergency Chat"
+            >
+              <Bluetooth className={`w-3.5 h-3.5 ${btState === 'connected' ? 'text-blue-400 animate-pulse' : 'text-cyan-400'}`} />
+              <span className="hidden md:inline">Offline Chat</span>
+              {btState === 'connected' && (
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+              )}
+            </button>
 
             {/* City / Ward Selector */}
             <div className="flex items-center bg-surface-2/80 border border-line-strong/60 hover:border-accent/50 rounded-full px-3.5 h-9 gap-2 text-fg-soft text-xs font-medium transition-colors shadow-sm">

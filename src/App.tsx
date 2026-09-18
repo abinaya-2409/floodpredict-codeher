@@ -24,7 +24,8 @@ import { VantaBackground } from './components/VantaBackground';
 import { VulnerabilityIndexPanel } from './components/VulnerabilityIndexPanel';
 import { EvacuationPriorityQueue } from './components/EvacuationPriorityQueue';
 import { LoginModal, AuthSession } from './components/LoginModal';
-import { AlertTriangle, ShieldCheck, Waves, Users, Clock, ArrowUpRight, Gauge, Cpu, CloudRain, Radio, WifiOff, Map as MapIcon, Sliders } from 'lucide-react';
+import { OfflineEmergencyChat } from './components/OfflineEmergencyChat';
+import { AlertTriangle, ShieldCheck, Waves, Users, Clock, ArrowUpRight, Gauge, Cpu, CloudRain, Radio, WifiOff, Map as MapIcon, Sliders, Bluetooth } from 'lucide-react';
 import { useThemeTokens } from './theme/useThemeTokens';
 
 export default function App() {
@@ -299,8 +300,37 @@ export default function App() {
 
       {/* Main Container */}
       <main id="main-content" className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 space-y-6">
+        {/* Offline Emergency Bluetooth Communication Card */}
+        {activeTab === 'map' && (
+          <div className="glass rounded-panel p-4 sm:p-5 border border-cyan-500/30 shadow-[0_8px_32px_rgba(6,182,212,0.12)] relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-cyan-950/40 via-surface/60 to-blue-950/40">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 shadow-inner shrink-0">
+                <Bluetooth className="w-6 h-6 animate-pulse" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-sm text-fg">Offline Emergency Chat</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 font-semibold">
+                    Direct P2P Bluetooth
+                  </span>
+                </div>
+                <p className="text-xs text-fg-soft mt-0.5">
+                  Communicate with nearby FloodyPredict users when internet connectivity is unavailable.
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setActiveTab('offline-chat')}
+              className="h-9 px-5 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md hover:scale-[1.02] active:scale-[0.98] cursor-pointer shrink-0"
+            >
+              <Bluetooth className="w-3.5 h-3.5" />
+              <span>Open Offline Chat</span>
+            </button>
+          </div>
+        )}
+
         {/* Top KPI Telemetry Banner */}
-        {/* Top KPI Telemetry Banner with Multi-Accent Nodes */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {/* Metric 1: Critical Inundation Zones (Neon Coral / Rose Accent) */}
           <div className="glass glass-interactive rounded-panel p-5 relative overflow-hidden group border border-risk-critical/25 hover:border-risk-critical/50 shadow-[0_12px_32px_rgba(244,63,94,0.12)]">
@@ -733,6 +763,11 @@ export default function App() {
             citizenReports={citizenReports}
             onAddCitizenReport={(rep) => setCitizenReports([rep, ...citizenReports])}
           />
+        )}
+
+        {/* Tab: Direct Offline Bluetooth Emergency Chat */}
+        {activeTab === 'offline-chat' && (
+          <OfflineEmergencyChat onBackToDashboard={() => setActiveTab('map')} />
         )}
       </main>
 
