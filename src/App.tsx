@@ -29,7 +29,7 @@ import { AlertTriangle, ShieldCheck, Waves, Users, Clock, ArrowUpRight, Gauge, C
 
 export default function App() {
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
-    try { return localStorage.getItem('floodypredict_theme') === 'oled' ? 'oled' : 'light'; } catch { return 'light'; }
+    try { return localStorage.getItem('floodypredict_theme') === 'light' ? 'light' : 'oled'; } catch { return 'oled'; }
   });
   const [selectedCity, setSelectedCity] = useState<CityData>(CITIES[0]); // Default Chennai
   const [activeTab, setActiveTab] = useState<string>('map');

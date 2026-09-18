@@ -27,6 +27,7 @@ const SKY: Record<ThemeMode, Record<string, number>> = {
 
 export function VantaBackground({ theme }: { theme: ThemeMode }) {
   const hostRef = useRef<HTMLDivElement>(null);
+  const rainRef = useRef<HTMLCanvasElement>(null);
   const effectRef = useRef<VantaEffect | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -77,10 +78,74 @@ export function VantaBackground({ theme }: { theme: ThemeMode }) {
     };
   }, [theme]);
 
+  useEffect(() => {
+    const canvas = rainRef.current;
+    if (!canvas || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    type Drop = { x: number; y: number; length: number; speed: number; alpha: number; drift: number };
+    let width = 0;
+    let height = 0;
+    let frame = 0;
+    let previous = performance.now();
+    let active = !document.hidden;
+    let drops: Drop[] = [];
+
+    const makeDrop = (startAbove = false): Drop => ({
+      x: Math.random() * width,
+      y: startAbove ? -Math.random() * height : Math.random() * height,
+      length: 10 + Math.random() * 16,
+      speed: 360 + Math.random() * 340,
+      alpha: 0.08 + Math.random() * 0.16,
+      drift: -35 - Math.random() * 45,
+    });
+
+    const resize = () => {
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      drops = Array.from({ length: width < 700 ? 58 : 118 }, () => makeDrop());
+    };
+
+    const render = (now: number) => {
+      const delta = Math.min((now - previous) / 1000, 0.05);
+      previous = now;
+      if (active) {
+        context.clearRect(0, 0, width, height);
+        context.lineWidth = 1;
+        context.lineCap = 'round';
+        for (const drop of drops) {
+          drop.x += drop.drift * delta;
+          drop.y += drop.speed * delta;
+          if (drop.y - drop.length > height || drop.x < -20) Object.assign(drop, makeDrop(true));
+          context.strokeStyle = `rgb(210 239 250 / ${drop.alpha})`;
+          context.beginPath();
+          context.moveTo(drop.x, drop.y - drop.length);
+          context.lineTo(drop.x + drop.drift * 0.035, drop.y);
+          context.stroke();
+        }
+      }
+      frame = requestAnimationFrame(render);
+    };
+
+    const onVisibility = () => { active = !document.hidden; previous = performance.now(); };
+    resize();
+    window.addEventListener('resize', resize, { passive: true });
+    document.addEventListener('visibilitychange', onVisibility);
+    frame = requestAnimationFrame(render);
+    return () => { cancelAnimationFrame(frame); window.removeEventListener('resize', resize); document.removeEventListener('visibilitychange', onVisibility); };
+  }, []);
+
   return (
     <div className="storm-background" aria-hidden="true">
       <div ref={hostRef} className="vanta-canvas-host fixed inset-0 z-0 pointer-events-none" style={{ opacity: ready ? 1 : 0, transition: 'opacity 1.2s ease-out' }} />
-      <div className="storm-rain" />
+      <canvas ref={rainRef} className="storm-rain" />
       <div className="storm-lightning" />
     </div>
   );

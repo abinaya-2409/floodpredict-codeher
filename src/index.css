@@ -357,10 +357,9 @@
 /* The storm is atmospheric context, not content: dense surfaces stay readable
    while the weather remains visible through the page perimeter. */
 .storm-background { position: fixed; inset: 0; z-index: 0; overflow: hidden; background: #2d4f63; }
-.storm-rain { position: absolute; inset: -30% 0; opacity: .3; background-image: repeating-linear-gradient(105deg, transparent 0 13px, rgb(226 243 250 / .75) 14px 15px, transparent 16px 27px); background-size: 180px 240px; animation: stormRain 1.1s linear infinite; }
-.storm-lightning { position: absolute; inset: 0; opacity: 0; background: rgb(191 224 243 / .35); mix-blend-mode: screen; animation: stormLightning 12s infinite; }
-@keyframes stormRain { from { transform: translate3d(0, -120px, 0); } to { transform: translate3d(-40px, 120px, 0); } }
-@keyframes stormLightning { 0%, 86%, 89%, 100% { opacity: 0; } 87%, 88% { opacity: .46; } 90% { opacity: .16; } }
+.storm-rain { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: .72; }
+.storm-lightning { position: absolute; inset: 0; opacity: 0; pointer-events: none; background: radial-gradient(circle at 72% 18%, rgb(209 234 245 / .36), transparent 32%); mix-blend-mode: screen; animation: stormLightning 19s ease-in-out infinite; }
+@keyframes stormLightning { 0%, 91%, 93%, 100% { opacity: 0; } 91.4%, 91.7% { opacity: .5; } 92.3% { opacity: .16; } }
 
 :root[data-theme="oled"] {
   --color-bg: #000000;
@@ -399,7 +398,7 @@
 :root[data-theme="oled"] .auth-choice { background: rgb(11 32 40 / .82); border-color: #24596a; }
 
 @media (prefers-reduced-motion: reduce) {
-  .storm-rain, .storm-lightning { animation: none; }
+  .storm-lightning { animation: none; }
   .storm-rain { opacity: .12; }
 }
 
