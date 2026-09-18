@@ -20,7 +20,6 @@ import { SystemExplainerModal } from './components/SystemExplainerModal';
 import { NationalGridMap } from './components/NationalGridMap';
 import { StatTile } from './components/ui/StatTile';
 import { RiskBadge } from './components/ui/Badge';
-import { VantaBackground } from './components/VantaBackground';
 import { VulnerabilityIndexPanel } from './components/VulnerabilityIndexPanel';
 import { EvacuationPriorityQueue } from './components/EvacuationPriorityQueue';
 import { LoginModal, AuthSession } from './components/LoginModal';
@@ -29,7 +28,7 @@ import { AlertTriangle, ShieldCheck, Waves, Users, Clock, ArrowUpRight, Gauge, C
 import { useThemeTokens } from './theme/useThemeTokens';
 
 export default function App() {
-  const tokens = useThemeTokens();
+  useThemeTokens();
   const [selectedCity, setSelectedCity] = useState<CityData>(CITIES[0]); // Default Chennai
   const [activeTab, setActiveTab] = useState<string>('map');
   const [mapRenderMode, setMapRenderMode] = useState<'leaflet' | 'schematic'>('leaflet');
@@ -234,33 +233,6 @@ export default function App() {
     <div className="relative min-h-screen bg-bg text-fg flex flex-col font-sans selection:bg-risk-low/30 selection:text-risk-low overflow-x-hidden">
       <a href="#main-content" className="sr-only-focusable">Skip to main content</a>
 
-      {/* Live sky (Vanta CLOUDS2), lazily loaded after first paint. */}
-      <VantaBackground />
-
-      {/* Ambient Fluid Hydrodynamics Background SVG & Blurs with Multi-Accent Nodes */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        {/* Fluid Glowing Liquid Orbs (Multi-Accent: Emerald, Violet, Cyan, Amber) */}
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-accent/10 blur-[140px] animate-hydro-pulse" />
-        <div className="absolute top-1/3 -right-40 w-[700px] h-[700px] rounded-full bg-accent-2/10 blur-[160px] animate-hydro-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute -bottom-40 left-1/3 w-[650px] h-[650px] rounded-full bg-accent/10 blur-[150px] animate-hydro-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-accent-2/5 blur-[170px]" />
-        
-        {/* Organic Wave Contour Topography Overlay */}
-        <svg className="absolute inset-0 w-full h-full opacity-25 animate-fluid-flow" preserveAspectRatio="none" viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="appWaveGrad" x1="0%" x2="100%" y1="0%" y2="100%">
-              <stop offset="0%" stopColor={tokens.positive} stopOpacity="0.3" />
-              <stop offset="35%" stopColor={tokens.accent} stopOpacity="0.25" />
-              <stop offset="70%" stopColor={tokens.accent2} stopOpacity="0.2" />
-              <stop offset="100%" stopColor={tokens.risk.high} stopOpacity="0.2" />
-            </linearGradient>
-          </defs>
-          <path d="M0,160 C320,300, 420,80, 720,180 C1020,280, 1180,90, 1440,160 L1440,0 L0,0 Z" fill="none" stroke="url(#appWaveGrad)" strokeDasharray="6 8" strokeWidth="1.5" />
-          <path d="M0,320 C280,480, 520,240, 840,360 C1160,480, 1260,260, 1440,340" fill="none" opacity="0.6" stroke="url(#appWaveGrad)" strokeWidth="1" />
-          <path d="M0,560 C360,420, 600,680, 960,540 C1240,420, 1340,620, 1440,580" fill="none" opacity="0.5" stroke="url(#appWaveGrad)" strokeDasharray="4 6" strokeWidth="1.2" />
-          <path d="M0,740 C240,820, 580,680, 900,760 C1180,840, 1360,720, 1440,780" fill="none" opacity="0.4" stroke="url(#appWaveGrad)" strokeWidth="1" />
-        </svg>
-      </div>
 
       {/* Navigation Header */}
       <Navbar
@@ -283,7 +255,7 @@ export default function App() {
 
       {/* Offline Mode Emergency Banner (If active) */}
       {isOfflineSimulated && (
-        <div className="relative z-20 bg-gradient-to-r from-risk-high via-risk-severe to-risk-high text-on-accent px-4 py-2 text-xs font-bold flex items-center justify-between shadow-lg">
+        <div className="relative z-20 bg-risk-high text-on-accent px-4 py-2 text-xs font-bold flex items-center justify-between">
           <div className="flex items-center space-x-2 max-w-7xl mx-auto w-full">
             <WifiOff className="w-4 h-4 shrink-0 animate-bounce" />
             <span>{t.offlineBannerTitle}:</span>
