@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CityData, ZoneData } from '../types';
-import { Shield, ShieldAlert, UserCheck, ArrowRight, Lock, Phone, Mail, MapPin, Building2, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Shield, ShieldAlert, UserCheck, ArrowRight, Lock, Phone, Mail, MapPin, Building2, CheckCircle2, RefreshCw, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 
 export interface AuthSession {
   mode: 'citizen' | 'authority';
@@ -46,6 +46,15 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [otpDigits, setOtpDigits] = useState(['', '', '', '']);
   const [otpCountdown, setOtpCountdown] = useState(30);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [otpStatusMsg, setOtpStatusMsg] = useState<string | null>(null);
+  const [devOtpHint, setDevOtpHint] = useState<string | null>(null);
+  const [emailDelivered, setEmailDelivered] = useState(false);
+  const [etherealPreviewUrl, setEtherealPreviewUrl] = useState<string | null>(null);
+  const [isEthereal, setIsEthereal] = useState(false);
+
 
   // Authority states
   const [authorityRole, setAuthorityRole] = useState(AUTHORITY_ROLES[0].id);
@@ -57,7 +66,7 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3500);
+    setTimeout(() => setToastMsg(null), 4000);
   };
 
   useEffect(() => {
@@ -91,19 +100,64 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
     onLoginSuccess(session);
   };
 
-  // Flow 2: Citizen Send OTP
-  const handleSendOtp = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!contactInput.trim()) {
-      showToast('Please enter your mobile number or email address.');
+  // Flow 2: Citizen Send OTP via Backend API
+  const handleSendOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const contact = contactInput.trim();
+    if (!contact) {
+      showToast('Please enter your email address.');
       return;
     }
-    setIsOtpSent(true);
-    setOtpCountdown(30);
-    showToast(`Verification OTP sent to ${contactInput}!`);
+
+    setIsSendingOtp(true);
+    setOtpError(null);
+    setDevOtpHint(null);
+    setEtherealPreviewUrl(null);
+    setIsEthereal(false);
+
+    const ward = getWardObj(selectedWardId);
+
+    try {
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contact,
+          wardName: ward.wardName,
+          wardId: ward.wardId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        showToast(data.message || 'Unable to send OTP. Please try again.');
+        setOtpError(data.message || 'Failed to dispatch verification code.');
+        setIsSendingOtp(false);
+        return;
+      }
+
+      setIsOtpSent(true);
+      setOtpCountdown(30);
+      setEmailDelivered(Boolean(data.delivered));
+      setOtpStatusMsg(data.message);
+      if (data.devOtp) setDevOtpHint(data.devOtp);
+      if (data.previewUrl) setEtherealPreviewUrl(data.previewUrl);
+      if (data.ethereal) setIsEthereal(true);
+      setOtpDigits(['', '', '', '']);
+      showToast(data.delivered ? `✅ OTP sent to ${contact}!` : `🔑 OTP ready for ${contact}`);
+    } catch (err: any) {
+      console.error('[JalRakshak] OTP request error:', err);
+      showToast('Network error while requesting OTP.');
+      setOtpError('Failed to connect to authentication server.');
+    } finally {
+      setIsSendingOtp(false);
+    }
   };
 
+
   const handleOtpChange = (index: number, val: string) => {
+    setOtpError(null);
     const cleaned = val.slice(-1);
     const updated = [...otpDigits];
     updated[index] = cleaned;
@@ -115,20 +169,52 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
     }
   };
 
-  // Flow 3: Verify OTP
-  const handleVerifyOtp = () => {
-    // Per requirement: any 4-digit code logs in
-    const entered = otpDigits.join('');
-    const ward = getWardObj(selectedWardId);
-    const session: AuthSession = {
-      mode: 'citizen',
-      isGuest: false,
-      contact: contactInput.trim() || '+91 98400 12345',
-      wardId: ward.wardId,
-      wardName: ward.wardName,
-      zoneName: ward.zoneName
-    };
-    onLoginSuccess(session);
+  // Flow 3: Verify OTP via Backend API
+  const handleVerifyOtp = async () => {
+    const entered = otpDigits.join('').trim();
+    if (entered.length < 4) {
+      setOtpError('Please enter all 4 digits of your verification code.');
+      return;
+    }
+
+    setIsVerifyingOtp(true);
+    setOtpError(null);
+
+    try {
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contact: contactInput.trim(),
+          otp: entered,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setOtpError(data.message || 'Invalid or expired OTP code.');
+        setIsVerifyingOtp(false);
+        return;
+      }
+
+      showToast('Verification successful! Welcome to JalRakshak AI.');
+      const ward = getWardObj(selectedWardId);
+      const session: AuthSession = {
+        mode: 'citizen',
+        isGuest: false,
+        contact: contactInput.trim(),
+        wardId: ward.wardId,
+        wardName: ward.wardName,
+        zoneName: ward.zoneName,
+      };
+      onLoginSuccess(session);
+    } catch (err: any) {
+      console.error('[JalRakshak] OTP verification error:', err);
+      setOtpError('Network connection error during verification.');
+    } finally {
+      setIsVerifyingOtp(false);
+    }
   };
 
   // Flow 4: Authority Login
@@ -144,8 +230,7 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
       contact: authorityIdentifier.trim() || 'officer@chennaicorporation.gov.in',
       wardId: ward.wardId,
       wardName: ward.wardName,
-      zoneName: ward.zoneName
-    };
+      };
     onLoginSuccess(session);
   };
 
@@ -281,28 +366,103 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
                       <input
                         type="text"
                         value={contactInput}
-                        onChange={(e) => setContactInput(e.target.value)}
-                        placeholder="+91 98400 12345 or citizen@chennai.in"
+                        onChange={(e) => {
+                          setContactInput(e.target.value);
+                          setOtpError(null);
+                        }}
+                        placeholder="e.g. bhavanasri522@gmail.com or +91 98400 12345"
                         className="w-full h-10 pl-10 pr-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 transition-all"
                       />
                     </div>
                   </div>
 
+                  {otpError && (
+                    <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-[11px] flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                      <span>{otpError}</span>
+                    </div>
+                  )}
+
                   <button
                     type="submit"
-                    className="w-full h-10 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    disabled={isSendingOtp}
+                    className="w-full h-10 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span>Send Verification Code (OTP)</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    {isSendingOtp ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
+                        <span>Connecting to Gateway &amp; Sending OTP...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Send Verification Code (OTP)</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </>
+                    )}
                   </button>
                 </form>
               ) : (
-                /* Mock OTP flow */
+                /* Backend OTP flow */
                 <div className="space-y-3 pt-1">
-                  <div className="p-2.5 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-300 text-[11px] flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 shrink-0 text-teal-400" />
-                    <span>OTP sent to <strong>{contactInput || 'your number'}</strong> (Any 4 digits to log in)</span>
-                  </div>
+                  {/* Delivery Status Banner */}
+                  {emailDelivered ? (
+                    <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[11px] flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
+                      <div className="leading-snug">
+                        <span>Official OTP email dispatched to <strong>{contactInput}</strong>! Check your inbox and spam folder.</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-[11px] space-y-0 overflow-hidden">
+                      <div className="flex items-center gap-2 px-3 py-2.5">
+                        <Sparkles className="w-4 h-4 shrink-0 text-cyan-400" />
+                        <span>OTP dispatched for <strong>{contactInput}</strong></span>
+                      </div>
+
+                      {/* Ethereal email preview link */}
+                      {isEthereal && etherealPreviewUrl && (
+                        <div className="px-3 pb-2.5 pt-0.5 border-t border-cyan-500/20 space-y-1.5">
+                          <p className="text-[10px] text-slate-400 leading-snug">
+                            📧 Email captured by <strong className="text-cyan-300">Ethereal</strong> test server. Open the link below to see the formatted OTP email:
+                          </p>
+                          <a
+                            href={etherealPreviewUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 text-[11px] text-cyan-400 hover:text-cyan-300 underline underline-offset-2 break-all transition-colors"
+                          >
+                            <span>👁 View OTP Email Preview</span>
+                            <ArrowRight className="w-3 h-3 shrink-0" />
+                          </a>
+                        </div>
+                      )}
+
+                      {/* Auto-fill code bar */}
+                      {devOtpHint && (
+                        <div className="flex items-center justify-between px-3 py-2 border-t border-cyan-500/20 bg-slate-900/40">
+                          <span className="font-mono text-xs text-white">Your Code: <strong className="text-cyan-300 tracking-widest text-base">{devOtpHint}</strong></span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const digits = devOtpHint.split('');
+                              setOtpDigits(digits);
+                              setOtpError(null);
+                            }}
+                            className="text-[10px] bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 px-2.5 py-1 rounded-md transition-all cursor-pointer font-semibold"
+                          >
+                            Auto-Fill ↓
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {otpError && (
+                    <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-[11px] flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                      <span>{otpError}</span>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-[10px] font-mono text-slate-400 mb-1.5 text-center">
@@ -317,7 +477,9 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
                           maxLength={1}
                           value={otpDigits[idx]}
                           onChange={(e) => handleOtpChange(idx, e.target.value)}
-                          className="w-12 h-12 text-center text-lg font-bold text-white bg-slate-900 border border-cyan-500/40 rounded-xl focus:border-cyan-400 focus:outline-none transition-all"
+                          className={`w-12 h-12 text-center text-lg font-bold text-white bg-slate-900 border rounded-xl focus:outline-none transition-all ${
+                            otpError ? 'border-rose-500/80 focus:border-rose-400' : 'border-cyan-500/40 focus:border-cyan-400'
+                          }`}
                         />
                       ))}
                     </div>
@@ -326,25 +488,45 @@ export const JalRakshakLoginModal: React.FC<Props> = ({
                   <button
                     type="button"
                     onClick={handleVerifyOtp}
-                    className="w-full h-10 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:brightness-110 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
+                    disabled={isVerifyingOtp}
+                    className="w-full h-10 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:brightness-110 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span>Verify &amp; Enter Portal</span>
-                    <CheckCircle2 className="w-4 h-4" />
+                    {isVerifyingOtp ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-white" />
+                        <span>Verifying Code...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Verify &amp; Enter Portal</span>
+                        <CheckCircle2 className="w-4 h-4" />
+                      </>
+                    )}
                   </button>
 
-                  <div className="text-center text-[11px] text-slate-500">
+                  <div className="flex items-center justify-between text-[11px] px-1 text-slate-500">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsOtpSent(false);
+                        setOtpError(null);
+                        setOtpDigits(['', '', '', '']);
+                      }}
+                      className="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                    >
+                      Change email/phone
+                    </button>
+
                     {otpCountdown > 0 ? (
-                      <span>Resend code in <strong className="text-cyan-400">{otpCountdown}s</strong></span>
+                      <span>Resend in <strong className="text-cyan-400">{otpCountdown}s</strong></span>
                     ) : (
                       <button
                         type="button"
-                        onClick={() => {
-                          setOtpCountdown(30);
-                          showToast('A new 4-digit OTP has been sent.');
-                        }}
-                        className="text-cyan-400 hover:underline cursor-pointer"
+                        disabled={isSendingOtp}
+                        onClick={() => handleSendOtp()}
+                        className="text-cyan-400 hover:underline cursor-pointer disabled:opacity-50"
                       >
-                        Resend OTP Code
+                        {isSendingOtp ? 'Sending...' : 'Resend OTP Code'}
                       </button>
                     )}
                   </div>
