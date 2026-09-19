@@ -38,6 +38,18 @@ const STYLES = [
   { id: 'light', label: 'Light', url: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json' },
 ] as const;
 
+/**
+ * The basemap the view opens on.
+ *
+ * It was always Dark Matter, which under the light theme put a black map in
+ * the middle of a white page - the single most jarring thing in the light
+ * build. Read once at mount; switching afterwards is the user's to do.
+ */
+function defaultStyleId(): (typeof STYLES)[number]['id'] {
+  if (typeof document === 'undefined') return 'dark';
+  return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+}
+
 /** Lon, lat - MapLibre's order. */
 const TN_CENTRE: [number, number] = [78.3, 10.9];
 /** [west, south, east, north], padded. */
@@ -73,7 +85,7 @@ export function NationalGridMap({
    */
   const [epicentre, setEpicentre] = useState<[number, number]>([12.6, 80.19]);
   const [severity, setSeverity] = useState<SeverityLevel>(SEVERITY_LEVELS[2]);
-  const [styleId, setStyleId] = useState<(typeof STYLES)[number]['id']>('dark');
+  const [styleId, setStyleId] = useState<(typeof STYLES)[number]['id']>(defaultStyleId);
   const [placing, setPlacing] = useState(false);
   const [three, setThree] = useState(false);
   const [filter, setFilter] = useState<(typeof SCORE_FILTERS)[number]['id']>('all');
@@ -217,7 +229,10 @@ export function NationalGridMap({
         id: 'tn-mask-fill',
         type: 'fill',
         source: 'tn-mask',
-        paint: { 'fill-color': tokens.bgDeep, 'fill-opacity': 1 },
+        // Not the page colour: the surround is a map surface, and reading
+        // it as the interface's own background made the state look like a
+        // hole cut in the panel rather than a coastline.
+        paint: { 'fill-color': tokens.mapSurround, 'fill-opacity': 1 },
       });
     }
 
@@ -348,7 +363,7 @@ export function NationalGridMap({
         'circle-radius': 5,
         'circle-color': tokens.risk.critical,
         'circle-stroke-width': 2,
-        'circle-stroke-color': tokens.bgDeep,
+        'circle-stroke-color': tokens.mapCanvas,
       },
     });
   }, [epicentre, ready, tokens]);
@@ -370,6 +385,50 @@ export function NationalGridMap({
       map.off('click', onClick);
     };
   }, [placing, ready]);
+
+  /* ---------------------------------------------------- repaint on theme */
+
+  /**
+   * MapLibre paint properties are values, not references: the ramp handed to
+   * `addLayers` is the one the GPU keeps. Without this a theme switch left
+   * the district grid painted in the other theme's colours - which on the
+   * OLED side meant near-black districts on a near-black map.
+   */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+
+    const ramp = (stops: [number, string][]) => [
+      'interpolate',
+      ['linear'],
+      ['coalesce', ['feature-state', 'score'], 0],
+      0, 'rgba(0,0,0,0)',
+      ...stops.flat(),
+    ];
+
+    try {
+      if (map.getLayer('tn-mask-fill')) {
+        map.setPaintProperty('tn-mask-fill', 'fill-color', tokens.mapSurround);
+      }
+      if (map.getLayer('district-fill')) {
+        map.setPaintProperty('district-fill', 'fill-color', ramp([
+          [20, tokens.risk.low], [40, tokens.risk.moderate], [60, tokens.risk.high],
+          [80, tokens.risk.severe], [100, tokens.risk.critical],
+        ]) as never);
+      }
+      if (map.getLayer('district-line')) {
+        map.setPaintProperty('district-line', 'line-color', tokens.line);
+      }
+      if (map.getLayer('district-extrude')) {
+        map.setPaintProperty('district-extrude', 'fill-extrusion-color', ramp([
+          [40, tokens.risk.moderate], [70, tokens.risk.severe], [100, tokens.risk.critical],
+        ]) as never);
+      }
+    } catch {
+      // A style swap can land between the guard and the set; the next render
+      // repaints anyway.
+    }
+  }, [tokens, ready]);
 
   /* ------------------------------------------------------------- 3D toggle */
 
@@ -429,7 +488,7 @@ export function NationalGridMap({
           aria-pressed={placing}
           className={`inline-flex h-8 items-center gap-2 rounded-full border px-3.5 text-xs font-semibold transition-colors cursor-pointer ${
             placing
-              ? 'border-risk-critical bg-risk-critical/20 text-risk-critical'
+              ? 'border-risk-critical bg-risk-critical/20 text-risk-critical-ink'
               : 'border-line bg-surface-2 text-fg-soft hover:bg-surface-3 hover:text-fg'
           }`}
         >

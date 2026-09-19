@@ -60,7 +60,14 @@ export const LeafletFloodMap: React.FC<Props> = ({
   const [showResources, setShowResources] = useState(true);
   const [showEvacRoutes, setShowEvacRoutes] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [basemapId, setBasemapId] = useState('dark');
+  // Opens on the basemap that suits the theme. It was always the dark
+  // Command canvas, which put a black rectangle in the middle of the light
+  // build; switching afterwards is the user's to do.
+  const [basemapId, setBasemapId] = useState(() =>
+    typeof document !== 'undefined' && document.documentElement.dataset.theme === 'light'
+      ? 'streets'
+      : 'dark'
+  );
   const [placeResults, setPlaceResults] = useState<PlaceResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -747,7 +754,7 @@ export const LeafletFloodMap: React.FC<Props> = ({
               justify-content: center;
               font-size: 10px;
               font-weight: bold;
-              box-shadow: 0 0 12px ${isBlocked ? 'rgba(225, 29, 72, 0.8)' : 'rgba(2, 132, 199, 0.5)'};
+              box-shadow: 0 0 12px ${isBlocked ? tokens.risk.severe : tokens.accent};
               cursor: pointer;
             ">
               ${isBlocked ? '✕' : '⚡'}
@@ -1204,11 +1211,11 @@ export const LeafletFloodMap: React.FC<Props> = ({
             onClick={() => setShow2015Historical(!show2015Historical)}
             className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer shadow-sm ${
               show2015Historical
-                ? 'bg-risk-high/25 border-risk-high text-risk-high font-bold'
-                : 'bg-surface-2/60 hover:bg-surface-3/80 text-risk-high/80 border-risk-high/40 hover:text-fg'
+                ? 'bg-risk-high/25 border-risk-high text-risk-high-ink font-bold'
+                : 'bg-surface-2/60 hover:bg-surface-3/80 text-risk-high-ink/80 border-risk-high/40 hover:text-fg'
             }`}
           >
-            <svg className="w-3.5 h-3.5 text-risk-high" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 text-risk-high-ink" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 5a5 5 0 1 1-5 5 5 5 0 0 1 5-5z" />
               <circle cx="12" cy="12" fill="currentColor" r="2" />
             </svg>
@@ -1219,11 +1226,11 @@ export const LeafletFloodMap: React.FC<Props> = ({
             onClick={() => setShow2023Historical(!show2023Historical)}
             className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer shadow-sm ${
               show2023Historical
-                ? 'bg-risk-critical/25 border-risk-critical text-risk-critical font-bold'
-                : 'bg-surface-2/60 hover:bg-surface-3/80 text-risk-critical/80 border-risk-critical/40 hover:text-fg'
+                ? 'bg-risk-critical/25 border-risk-critical text-risk-critical-ink font-bold'
+                : 'bg-surface-2/60 hover:bg-surface-3/80 text-risk-critical-ink/80 border-risk-critical/40 hover:text-fg'
             }`}
           >
-            <svg className="w-3.5 h-3.5 text-risk-critical" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 text-risk-critical-ink" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path d="M12 2a10 10 0 0 1 9.9 8.6c.1.7-.4 1.4-1.1 1.4h-3.8a5 5 0 0 0-5-5V3.2c0-.7-.7-1.2-1.4-1.1A10 10 0 0 1 12 2z" />
               <path d="M12 22a10 10 0 0 1-9.9-8.6c-.1-.7.4-1.4 1.1-1.4h3.8a5 5 0 0 0 5 5v3.8c0 .7.7 1.2 1.4 1.1A10 10 0 0 1 12 22z" />
               <circle cx="12" cy="12" fill="currentColor" r="2.5" />
@@ -1237,11 +1244,11 @@ export const LeafletFloodMap: React.FC<Props> = ({
             onClick={() => setShowEvacRoutes(!showEvacRoutes)}
             className={`h-8 px-3.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer shadow-sm ${
               showEvacRoutes
-                ? 'bg-risk-low/25 border-risk-low text-risk-low font-bold'
-                : 'bg-surface-2/60 hover:bg-surface-3/80 text-risk-low/80 border-risk-low/40 hover:text-fg'
+                ? 'bg-risk-low/25 border-risk-low text-risk-low-ink font-bold'
+                : 'bg-surface-2/60 hover:bg-surface-3/80 text-risk-low-ink/80 border-risk-low/40 hover:text-fg'
             }`}
           >
-            <svg className="w-3.5 h-3.5 text-risk-low" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 text-risk-low-ink" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24">
               <polyline points="18 15 22 15 22 11" />
               <path d="M14 9l8 6" />
               <path d="M4 19h4l4-8V4" />

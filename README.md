@@ -150,35 +150,111 @@ reporting.
 
 ## Look and feel
 
-A live sky renders behind the whole interface (Vanta CLOUDS2, using the
-effect's own palette), with the application sitting on top of it as dark
-glass panels.
+Two themes, and they are genuinely two themes.
+
+**OLED** is a true `#000` page. Nothing in the background is lifted off
+black, so on an OLED panel most of the screen is switched off - which is
+both the battery saving and the reason the accents read as bright as they
+do. The vibrance is carried by three things and never by the page itself:
+electric cyan for anything you can act on, violet as its second note, and
+the severity ramp, which runs at full saturation because on black it can
+afford to. Surfaces sit just off black, far enough that one panel is
+distinguishable from the next and no further.
+
+**Light** is an overcast morning: bright at the horizon, weight at the top,
+rain drawn dark so you can see it. It used to paint the same `#2d4f63` slab
+behind the page that the dark theme did, and hand the cloud effect a palette
+whose three "light" colours were `#4d6675`, `#2d4f63` and `#132a38` - so on
+any machine that ran the effect, light mode rendered as a dark one with
+white cards pasted on it.
+
+The theme is resolved by an inline script in
+[`index.html`](index.html) before the first paint, so the loading screen is
+already the right colour. React only learns the theme once `App` mounts,
+several hundred milliseconds later, which is long enough to see a white
+flash on the way into OLED and a black one on the way into light.
+
+### Colour rules
 
 Every colour resolves through a semantic token defined once in
-[`src/index.css`](src/index.css) - no component references a raw palette
-value, so restyling the interface header-to-footer is an edit to one block.
+[`src/index.css`](src/index.css). No component references a raw palette
+value, and [a test](src/__tests__/theme.test.ts) walks every `.tsx` file to
+keep it that way - a raw `text-cyan-300` is a colour that cannot follow the
+theme, which is how a label ends up invisible on a white card.
 
-The palette enforces one rule: **the five severity colours are data only.**
-They never appear as a button, a border or a brand flourish. Interaction is
-carried by a single azure accent at a hue the severity ramp never enters, and
-system state (telemetry online, connection lost) uses its own status colours.
-Without that separation a green "safe" ward and a green "online" chip mean
-the same thing to the eye, which is what made the earlier build hard to read.
+**The five severity colours are data only.** They never appear as a button,
+a border or a brand flourish. Interaction is carried by a single accent at a
+hue the severity ramp never enters, and system state (telemetry online,
+connection lost) uses its own status colours. Without that separation a
+green "safe" ward and a green "online" chip mean the same thing to the eye.
+
+Severity carries a **second, darker set** used wherever a level is written
+rather than drawn (`--color-risk-*-ink`). The ramp is tuned to be seen as a
+filled shape on a map; set as type it fails - `#f5d020` on white is 1.5:1,
+which is not a readable label. The severity pill used to set its own text in
+the fill colour, so "Watch" was yellow type on a 14% yellow pill. The dot
+and the border still carry the ramp, because those are shapes.
+
+The map owns two colours that are not the page's: `--color-map-canvas`, what
+is behind a tile that has not arrived yet, and `--color-map-surround`,
+everything outside the state this application models. As the page colour the
+canvas flashed the interface's own surface through the map, which reads as a
+hole in it.
 
 Radii follow three steps - `rounded-panel`, `rounded-card`, `rounded-control` -
-replacing an ad-hoc mix of five, and type uses named steps (`text-nano`,
-`text-micro`, `text-mini`) in place of 120 arbitrary pixel sizes.
+and type uses named steps (`text-nano`, `text-micro`, `text-mini`) rather
+than arbitrary pixel sizes.
 
 Shared primitives live in [`src/components/ui/`](src/components/ui):
-`Button` (four semantic variants), `Panel`, `Badge` / `RiskBadge`, `StatTile`.
-`RiskBadge` and `StatTile` are the only components permitted to paint with the
-severity ramp, and `StatTile` takes a severity only when the value actually
-has one - so a measurement is never permanently red.
-Libraries that cannot read CSS (Leaflet, Recharts) are bridged through
-[`src/theme/useThemeTokens.ts`](src/theme/useThemeTokens.ts).
+`Button`, `Panel`, `Badge` / `RiskBadge`, `StatTile`. Libraries that cannot
+read a stylesheet (Leaflet, MapLibre, Recharts) are bridged through
+[`src/theme/useThemeTokens.ts`](src/theme/useThemeTokens.ts), which re-reads
+on every theme change - MapLibre paint properties are values, not
+references, so without that a theme switch left the district grid painted in
+the other theme's colours.
 
-The background is skipped for anyone with `prefers-reduced-motion` set, and
-three.js is dynamically imported so it never sits on the first-paint path.
+### One container
+
+`.shell` is the only page container. The header used `px-3/sm:px-6` while
+`<main>` used `px-3/sm:px-6/lg:px-8`, so from 1024px up the navigation bar
+sat 8px wider than every card beneath it. Header, offline banner, main
+column and footer all read `--shell-max` and `--shell-gutter` now, so the
+left edge of the logo and the left edge of the first card are the same line
+at every width, and the gutter absorbs the safe-area inset rather than being
+replaced by it.
+
+### Adapting to the device
+
+Three things change with the machine, and none of them are a guess about
+screen width alone.
+
+- **Pointer.** Every control was between 17px and 36px tall, under half the
+  44px both Apple and Google publish as the minimum, in an application meant
+  to be used one-handed, in the rain, by someone in a hurry. On a coarse
+  pointer controls grow to 44px and inputs are forced to 16px, below which
+  iOS Safari zooms the page on focus and never zooms back out. On a mouse
+  they stay compact, because a dense board is the right answer there.
+- **Backdrop blur** is dropped entirely on touch. Blurring a full-screen
+  backdrop behind a dozen panels is one of the most expensive things a phone
+  GPU can be asked to do, and the panels are 90% opaque, so almost none of
+  it is visible. The surface goes fully opaque in exchange.
+- **Viewport and safe areas.** `100dvh` rather than `100vh`, so a full-height
+  panel is the height you can actually see; `env(safe-area-inset-*)` so an
+  installed PWA clears the notch and the home indicator.
+
+### Crispness
+
+The live sky renders at the device pixel ratio, capped at 2. It was pinned
+at 1, so on a 3x phone screen it was rendered at a third of the resolution
+and stretched over it - most of why the background looked soft next to the
+text in front of it. Panels carry a 1px contact shadow as well as the wide
+one: a single diffuse shadow is what made every card look slightly out of
+focus.
+
+The background is skipped entirely for anyone with `prefers-reduced-motion`
+set and on phones, where it was measured pushing a bare expression evaluated
+in the page from under a millisecond to 4.6 seconds. three.js is dynamically
+imported, so on a phone it is never downloaded at all.
 
 ## Running it
 
@@ -562,6 +638,102 @@ by injecting time rather than waiting for it.
 `BluetoothEmulation.simulateAdvertisement` never resolves in this Chrome
 build, so advertisement delivery itself is exercised by the unit tests rather
 than in the browser.
+
+## Keeping the maps movable
+
+Three views draw a map: the live weather field (Leaflet plus two canvases),
+the district grid and its 3D extrusion (MapLibre), and the ward inundation
+map (Leaflet). A flood map that answers in whole seconds when you drag it is
+not a flood map, so movement is measured rather than assumed.
+
+```bash
+npm run test:maps -- http://localhost:4330/
+```
+
+[`tools/map-loop.mjs`](tools/map-loop.mjs) opens each view in each theme and
+moves it the way a person does - a drag, a fling, two wheel zooms, and a
+pitch into 3D where there is one - while recording the gap between every
+animation frame. It then checks five things against a budget:
+
+| | why this one |
+|---|---|
+| longest frame | a stutter *is* one long frame. 58fps with a single 600ms lockup averages fine and feels broken, so the worst frame is the measure, not the mean |
+| dropped frames | gaps over 50ms, counted. One is a blink; twenty is a slideshow |
+| settle | how long after the gesture before the map is quiet |
+| blank tiles | tiles still unpainted once it has settled - the glitch that looks like holes in the world |
+| console errors | anything thrown while moving |
+
+When a run fails, the loop applies whichever of its named corrections
+addresses the failure, rebuilds, and runs again. It stops on a clean pass,
+or when a round produces the same failures as the one before it, because a
+loop that cannot improve its own input is only burning rounds. Corrections
+are a short, explicit list - a loop that "fixes things" by guessing moves
+code around until the measurement stops complaining and leaves behind
+something nobody can explain. Anything not on the list is reported for a
+person to look at.
+
+### What it found
+
+The live weather field's wind streaks called Leaflet's
+`latLngToContainerPoint` **twice per particle, per frame** - 3,600 library
+calls a frame at the default count. Each one builds a `LatLng`, projects it
+into a new `Point`, rounds it, subtracts the pixel origin and allocates a
+second `Point` to add the pane offset. That is around three short-lived
+objects and eight calls each, so roughly eleven thousand objects a frame for
+the garbage collector, all of it spent arriving at a number.
+
+Web Mercator is an affine transform of a closed-form function, so a frame's
+entire projection is a scale and an origin. Those are now computed once per
+frame and each particle is ten floating-point operations. The origin is
+derived by asking Leaflet where one anchor point landed, so the fast path
+stays in step with the slow one wherever the pane happens to be, including
+mid zoom-animation, without this code knowing anything about panes or pixel
+origins.
+
+Measured on a real Leaflet map with an offset pane, 40 runs of 3,600
+projections:
+
+```
+old, Leaflet per particle:  2.100 ms/frame
+new, arithmetic per frame:  0.423 ms/frame     5.0x
+worst disagreement:         0.499 px
+```
+
+2.1ms of a 16.7ms frame is 13% of the budget for a decoration. The 0.499px
+is not error - it is exactly Leaflet's own `_round()`, which quantises layer
+points to whole pixels. The arithmetic is the unrounded version of the same
+transform, which for a drifting streak is if anything the smoother one.
+
+**What this does not claim.** This harness runs on software WebGL, where
+three animating canvases at once produce frame times in the seconds; those
+numbers say more about the absence of a GPU than about the application. The
+projection saving above is measured directly and holds anywhere. Whether a
+given phone now drags smoothly is a question only that phone can answer.
+
+Nothing in the running app would report that drift if it ever happened: the
+streaks would just be drawn in the wrong place, which looks like wind. So
+the agreement is a test -
+[`particleProjection.test.ts`](src/__tests__/particleProjection.test.ts)
+checks the arithmetic against Leaflet's own CRS at seven zoom levels and ten
+coordinates, including the poles and the antimeridian, to within a hundredth
+of a pixel.
+
+### Map colour
+
+The map owns two colours that are not the page's. `--color-map-canvas` is
+what sits behind a tile that has not arrived yet, seen constantly on a slow
+connection; as the page colour it flashed the interface's own surface
+through the map, which reads as a hole in it. `--color-map-surround` is
+everything outside Tamil Nadu - the app models one state, and the
+neighbours it can say nothing about are pushed back rather than coloured in.
+Both are desaturated slate, because cartographic surround is the one place
+in the interface that should have no opinion.
+
+The basemap now opens on the one that suits the theme rather than always on
+the dark canvas, which used to put a black rectangle in the middle of the
+light build. Dimming the basemap is only right over a dark one - applied to
+a light basemap it turns the streets to mud - so the light theme desaturates
+and lifts contrast instead.
 
 ## Does the model agree with the record?
 

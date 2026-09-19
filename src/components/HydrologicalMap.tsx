@@ -31,30 +31,24 @@ export const HydrologicalMap: React.FC<Props> = ({
   const [showPumps, setShowPumps] = useState(true);
   const [hoveredZone, setHoveredZone] = useState<ZoneData | null>(null);
 
+  /**
+   * The severity ramp, from the tokens.
+   *
+   * This was a second ramp written out in rgba - rose-600, red-500,
+   * orange-500, yellow-500, emerald-500 - so this map disagreed with every
+   * other view about what "severe" looks like, and neither theme could
+   * touch it. Critical and severe both rendered as a red, which also meant
+   * the top two levels of a five-level scale were the same colour.
+   */
   const getRiskColor = (risk: RiskLevel, alpha = 0.6) => {
-    switch (risk) {
-      case 'critical': return `rgba(225, 29, 72, ${alpha})`; // rose-600
-      case 'severe': return `rgba(239, 68, 68, ${alpha})`; // red-500
-      case 'high': return `rgba(249, 115, 22, ${alpha})`; // orange-500
-      case 'moderate': return `rgba(234, 179, 8, ${alpha})`; // yellow-500
-      case 'low': return `rgba(16, 185, 129, ${alpha})`; // emerald-500
-      default: return `rgba(71, 85, 105, ${alpha})`;
-    }
+    const base = tokens.risk[risk] ?? tokens.subtle;
+    return `color-mix(in oklab, ${base} ${Math.round(alpha * 100)}%, transparent)`;
   };
 
-  const getRiskBorderColor = (risk: RiskLevel) => {
-    switch (risk) {
-      case 'critical': return tokens.risk.severe;
-      case 'severe': return tokens.risk.severe;
-      case 'high': return tokens.risk.high;
-      case 'moderate': return tokens.risk.high;
-      case 'low': return tokens.risk.low;
-      default: return tokens.subtle;
-    }
-  };
+  const getRiskBorderColor = (risk: RiskLevel) => tokens.risk[risk] ?? tokens.subtle;
 
   return (
-    <div className="glass rounded-panel overflow-hidden relative shadow-[0_24px_50px_rgba(0,0,0,0.65)] border border-accent/25 flex flex-col h-full" id="hydrological-map-card">
+    <div className="glass rounded-panel overflow-hidden relative border-accent/25 flex flex-col h-full" id="hydrological-map-card">
       {/* Map Control Toolbar */}
       <div className="p-4 bg-bg/70 border-b border-line/80 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center space-x-3">
@@ -92,7 +86,7 @@ export const HydrologicalMap: React.FC<Props> = ({
           <button
             onClick={() => setShowPumps(!showPumps)}
             className={`px-2.5 py-1 rounded-control border transition-colors flex items-center space-x-1.5 ${
-              showPumps ? 'bg-risk-low/20 border-risk-low/60 text-risk-low' : 'bg-surface-2/60 border-line-strong text-muted'
+              showPumps ? 'bg-risk-low/20 border-risk-low/60 text-risk-low-ink' : 'bg-surface-2/60 border-line-strong text-muted'
             }`}
           >
             <Zap className="w-3.5 h-3.5" />
@@ -383,7 +377,7 @@ export const HydrologicalMap: React.FC<Props> = ({
             </div>
             <div className="text-right">
               <div className="text-micro text-muted uppercase">Flooded Area</div>
-              <div className="font-mono font-bold text-risk-high text-sm">
+              <div className="font-mono font-bold text-risk-high-ink text-sm">
                 {selectedZone.predictedFloodedAreaPercent}%
               </div>
             </div>

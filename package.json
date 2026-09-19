@@ -11,7 +11,8 @@
     "lint": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:maps": "node tools/map-loop.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",

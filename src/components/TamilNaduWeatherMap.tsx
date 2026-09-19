@@ -15,7 +15,7 @@ import {
   sampleBilinear,
 } from '../utils/weatherGrid';
 import { fieldScale, legendTicks, paintField } from './weather/fieldRenderer';
-import { WindParticles } from './weather/particles';
+import { WindParticles, frameProjection } from './weather/particles';
 import { availableBasemaps, basemapById, useThemeTokens } from '../theme/useThemeTokens';
 import { ForecastMode, PointForecast, forecastPoint, recomputeForecast } from '../utils/pointForecast';
 import { PointPredictionPanel } from './PointPredictionPanel';
@@ -44,6 +44,20 @@ interface Props {
 
 const HOUR_COUNT = 48;
 
+/**
+ * How many wind streaks this device should draw.
+ *
+ * The field is the most expensive thing on the page, and a phone holding
+ * this during a flood has other work to do. A coarse pointer or a low core
+ * count gets a thinner field, which still reads as wind.
+ */
+function particleBudget(): number {
+  if (typeof window === 'undefined') return 600;
+  const coarse = window.matchMedia('(pointer: coarse)').matches;
+  const weak = (navigator.hardwareConcurrency ?? 8) <= 4;
+  return coarse || weak ? 600 : 1600;
+}
+
 export const TamilNaduWeatherMap: React.FC<Props> = ({
   simulationParams,
   onUpdateParams,
@@ -54,7 +68,7 @@ export const TamilNaduWeatherMap: React.FC<Props> = ({
   const fieldCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const particleCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const offscreenRef = useRef<HTMLCanvasElement | null>(null);
-  const particlesRef = useRef(new WindParticles(1600));
+  const particlesRef = useRef(new WindParticles(particleBudget()));
   const rafRef = useRef<number | null>(null);
   const baseLayerRef = useRef<L.TileLayer | null>(null);
   const labelLayerRef = useRef<L.TileLayer | null>(null);
@@ -361,6 +375,21 @@ export const TamilNaduWeatherMap: React.FC<Props> = ({
     particlesRef.current.setHour(hour);
   }, [hour]);
 
+  /**
+   * Streak colour, from the theme.
+   *
+   * The streaks were a fixed 72% white, which reads as wind over the dark
+   * basemap and as nothing at all over a light one - so in the light theme
+   * the wind field was simply missing.
+   */
+  useEffect(() => {
+    particlesRef.current.setInk(
+      document.documentElement.dataset.theme === 'light'
+        ? 'rgba(18, 46, 72, 0.6)'
+        : 'rgba(226, 248, 255, 0.78)'
+    );
+  }, [tokens]);
+
   useEffect(() => {
     const canvas = particleCanvasRef.current;
     const ctx = canvas?.getContext('2d');
@@ -375,10 +404,22 @@ export const TamilNaduWeatherMap: React.FC<Props> = ({
     const tick = () => {
       const map = mapRef.current;
       if (!map) return;
-      particlesRef.current.draw(ctx, canvas.width, canvas.height, (lat, lon) => {
-        const p = map.latLngToContainerPoint([lat, lon]);
-        return [p.x, p.y];
-      });
+
+      // One Leaflet projection a frame, for the map centre, and the rest is
+      // arithmetic. Anchoring on a point Leaflet has just placed keeps the
+      // fast path in step with the slow one wherever the pane happens to
+      // be, including mid zoom-animation, without this code knowing
+      // anything about panes or pixel origins.
+      const centre = map.getCenter();
+      const anchor = map.latLngToContainerPoint(centre);
+      const scale = map.options.crs!.scale(map.getZoom());
+
+      particlesRef.current.draw(
+        ctx,
+        canvas.width,
+        canvas.height,
+        frameProjection(scale, centre.lat, centre.lng, anchor.x, anchor.y)
+      );
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
@@ -702,7 +743,7 @@ export const TamilNaduWeatherMap: React.FC<Props> = ({
         {grid && field === 'flood' && stormFactor > 1 && (
           <div className="pointer-events-none absolute left-1/2 top-3 z-[600] -translate-x-1/2">
             <div className="rounded-full border border-risk-high/50 bg-risk-high/15 px-3 py-1 shadow-lg backdrop-blur">
-              <span className="text-mini font-bold text-risk-high">
+              <span className="text-mini font-bold text-risk-high-ink">
                 Scenario: forecast rainfall &times;{stormFactor} — not a forecast
               </span>
             </div>
