@@ -11,7 +11,8 @@ import {
 } from '../services/bluetooth/BluetoothTypes';
 import { BluetoothService } from '../services/bluetooth/BluetoothService';
 import { ConnectionManager } from '../services/bluetooth/ConnectionManager';
-import { DeviceDiscovery } from '../services/bluetooth/DeviceDiscovery';
+import { DeviceDiscovery, SweepStatus } from '../services/bluetooth/DeviceDiscovery';
+import { BluetoothSupport, DiscoverySource } from '../services/bluetooth/WebBluetoothScanner';
 import { OfflineStorage } from '../services/bluetooth/OfflineStorage';
 import {
   Bluetooth,
@@ -40,6 +41,8 @@ import {
   Cpu,
   Layers,
   Gauge,
+  Plus,
+  SearchX,
 } from 'lucide-react';
 
 interface Props {
@@ -58,6 +61,12 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
 
   const [discoveredDevices, setDiscoveredDevices] = useState<BluetoothDevicePeer[]>([]);
   const [isScanning, setIsScanning] = useState(false);
+  const [support, setSupport] = useState<BluetoothSupport | null>(null);
+  const [sweep, setSweep] = useState<SweepStatus | null>(null);
+  const [scanNotice, setScanNotice] = useState<string | null>(null);
+  const [isAddingDevice, setIsAddingDevice] = useState(false);
+  // Re-renders the 'seen 3s ago' labels without touching the device list.
+  const [, setTick] = useState(0);
 
   const [messages, setMessages] = useState<StoredMessage[]>([]);
   const [messageInput, setMessageInput] = useState('');
@@ -96,6 +105,13 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
       setIsScanning(DeviceDiscovery.getIsScanning());
     });
 
+    const unsubSweep = DeviceDiscovery.addSweepListener((status) => {
+      setSweep(status);
+      setScanNotice(BluetoothService.getScanNotice());
+    });
+
+    const unsubSupport = BluetoothService.addSupportListener(setSupport);
+
     const unsubHealth = ConnectionManager.addHealthListener((metrics) => {
       setHealthMetrics(metrics);
     });
@@ -104,7 +120,11 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
       unsubBT();
       unsubConn();
       unsubDiscovery();
+      unsubSweep();
+      unsubSupport();
       unsubHealth();
+      // Leaving the page must release the radio, or the scan runs forever.
+      void BluetoothService.stopScan();
       BluetoothService.stopContinuousHealthLoop();
     };
   }, []);
@@ -150,6 +170,13 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
     return () => clearInterval(interval);
   }, [connectedPeer]);
 
+  // Keeps the "last seen" labels honest while a scan is running.
+  useEffect(() => {
+    if (!isScanning) return;
+    const t = setInterval(() => setTick((n) => n + 1), 1000);
+    return () => clearInterval(t);
+  }, [isScanning]);
+
   // Scroll to latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -164,16 +191,41 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
 
   const handleToggleScan = () => {
     if (isScanning) {
-      BluetoothService.stopScan();
+      void BluetoothService.stopScan();
       setIsScanning(false);
     } else {
-      BluetoothService.startScan();
+      setScanNotice(null);
+      void BluetoothService.startScan().then(() => setScanNotice(BluetoothService.getScanNotice()));
       setIsScanning(true);
     }
   };
 
+  /**
+   * Opens the browser chooser.
+   *
+   * Called straight from the click handler on purpose: requestDevice only
+   * works inside a user gesture, so anything awaited before it would lose
+   * the gesture and the chooser would refuse to open.
+   */
+  const handleAddDevice = async () => {
+    setIsAddingDevice(true);
+    setScanNotice(null);
+    try {
+      const result = await BluetoothService.addDeviceViaChooser();
+      if (!result.ok && result.reason) setScanNotice(result.reason);
+      if (result.ok && !isScanning) {
+        void BluetoothService.startScan();
+        setIsScanning(true);
+      }
+    } finally {
+      setIsAddingDevice(false);
+    }
+  };
+
   const handleConnect = async (peer: BluetoothDevicePeer) => {
-    await BluetoothService.connectToDevice(peer);
+    setScanNotice(null);
+    const ok = await BluetoothService.connectToDevice(peer);
+    if (!ok) setScanNotice(BluetoothService.getScanNotice());
   };
 
   const handleDisconnect = async () => {
@@ -263,6 +315,26 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
   };
 
   const isNative = BluetoothService.isNativeAvailable();
+  const canUseChooser = !isNative && !!support?.hasApi;
+  const realDevices = discoveredDevices.filter((d) => d.source !== 'demo');
+  // "In range" means heard from in the last 12 seconds. A device you granted
+  // access to once is not evidence that it is here now, so it is listed but
+  // not counted.
+  const inRangeDevices = realDevices.filter((d) => d.inRange);
+
+  const secondsAgo = (t: number) => Math.max(0, Math.round((Date.now() - t) / 1000));
+
+  /** Whether a chat can actually be opened to this device from here. */
+  const canChatWith = (device: BluetoothDevicePeer) =>
+    isNative || device.source === 'demo';
+
+  const SOURCE_LABEL: Record<DiscoverySource, { text: string; className: string }> = {
+    native: { text: 'Phone radio', className: 'bg-emerald-500/15 border-emerald-400/30 text-emerald-300' },
+    'web-scan': { text: 'Live scan', className: 'bg-cyan-500/15 border-cyan-400/30 text-cyan-300' },
+    'web-remembered': { text: 'Allowed before', className: 'bg-blue-500/15 border-blue-400/30 text-blue-300' },
+    'web-chooser': { text: 'You picked it', className: 'bg-indigo-500/15 border-indigo-400/30 text-indigo-300' },
+    demo: { text: 'Demo - not real', className: 'bg-purple-500/20 border-purple-400/40 text-purple-300' },
+  };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-2 sm:px-4">
@@ -291,7 +363,22 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
                 ) : (
                   <span className="px-2 py-0.5 rounded-full text-mini font-mono font-bold bg-amber-500/15 border border-amber-400/30 text-amber-300 flex items-center gap-1">
                     <Activity className="w-3 h-3" />
-                    <span>{isSimMode ? 'Simulated demo' : 'Browser - no radio'}</span>
+                    {/*
+                      This said "Browser - no radio" on every browser, which
+                      is now wrong in the common case: Chrome and Edge do
+                      reach the radio. It reports what was actually found.
+                    */}
+                    <span>
+                      {isSimMode
+                        ? 'Walkthrough mode'
+                        : !support
+                        ? 'Checking radio'
+                        : !support.hasApi
+                        ? 'Browser - no radio'
+                        : support.adapterAvailable === false
+                        ? 'Bluetooth off'
+                        : 'Browser radio - finding devices only'}
+                    </span>
                   </span>
                 )}
               </div>
@@ -413,14 +500,26 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column (5 cols): Device Discovery & Nearby Floody Users */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="glass rounded-panel p-4 sm:p-5 border border-line-strong/60 shadow-xl flex flex-col gap-4">
+          <div
+            data-testid="nearby-panel"
+            className="glass rounded-panel p-4 sm:p-5 border border-line-strong/60 shadow-xl flex flex-col gap-4"
+          >
             <div className="flex items-center justify-between pb-3 border-b border-line-strong/50">
               <div className="flex items-center gap-2">
                 <Radio className={`w-4 h-4 ${isScanning ? 'text-cyan-400 animate-spin' : 'text-muted'}`} />
                 <h2 className="font-bold text-sm sm:text-base text-fg">Nearby FloodyPredict Users</h2>
               </div>
-              <span className="text-xs font-mono px-2 py-0.5 rounded bg-surface-2 text-cyan-300 border border-cyan-500/20">
-                {discoveredDevices.length} Found
+              {/* Demo peers are counted separately so the real number is never inflated. */}
+              <span
+                className="text-xs font-mono px-2 py-0.5 rounded bg-surface-2 text-cyan-300 border border-cyan-500/20"
+                title="Devices actually heard from in the last 12 seconds"
+                data-testid="device-count"
+              >
+                {inRangeDevices.length} in range
+                {realDevices.length > inRangeDevices.length &&
+                  ` + ${realDevices.length - inRangeDevices.length} allowed`}
+                {discoveredDevices.length > realDevices.length &&
+                  ` + ${discoveredDevices.length - realDevices.length} demo`}
               </span>
             </div>
 
@@ -447,82 +546,147 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
                 )}
               </button>
 
-              <button
-                onClick={() => {
-                  BluetoothService.startScan();
-                  setIsScanning(true);
-                }}
-                disabled={isScanning}
-                className="h-9 px-3 rounded-full bg-surface-2 hover:bg-surface-3 text-fg-soft border border-line-strong text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
-                title="Scan Again"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Refresh</span>
-              </button>
+              {canUseChooser && (
+                <button
+                  onClick={handleAddDevice}
+                  disabled={isAddingDevice}
+                  className="h-9 px-3 rounded-full bg-surface-2 hover:bg-surface-3 text-fg-soft border border-line-strong text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+                  title="Pick a device from the browser list. After this it is found automatically."
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Add device</span>
+                </button>
+              )}
             </div>
+
+            {/*
+              What this browser can actually do, in its own words. The old
+              panel claimed "Web / PWA Bluetooth radio operational" on every
+              browser including ones with no Bluetooth API, so a user on
+              Firefox was told the radio was fine and left to wonder why
+              nothing appeared.
+            */}
+            {support && (
+              <p className="text-[11px] leading-relaxed text-muted bg-bg/50 border border-line/60 rounded-card px-3 py-2">
+                {support.summary}
+              </p>
+            )}
+
+            {scanNotice && (
+              <p className="text-[11px] leading-relaxed text-amber-300 bg-amber-950/30 border border-amber-500/30 rounded-card px-3 py-2">
+                {scanNotice}
+              </p>
+            )}
+
+            {/* Proof the loop is running, and that it removes as well as adds. */}
+            {isScanning && sweep && sweep.sweeps > 0 && (
+              <div
+                data-testid="sweep-status"
+                className="flex items-center justify-between text-[10px] font-mono text-muted px-1"
+              >
+                <span>
+                  Checked {sweep.sweeps}x &middot; {sweep.present} in range
+                </span>
+                <span>
+                  {sweep.droppedForSilence > 0
+                    ? `${sweep.droppedForSilence} went out of range`
+                    : 'Re-checking every 2s'}
+                </span>
+              </div>
+            )}
 
             {/* Discovered Devices List */}
             <div className="space-y-2.5 max-h-[420px] overflow-y-auto pr-1">
               {discoveredDevices.length === 0 ? (
                 <div className="p-8 text-center bg-bg/50 rounded-card border border-dashed border-line-strong/60 flex flex-col items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-surface-2 flex items-center justify-center text-muted">
-                    <BluetoothOff className="w-6 h-6" />
+                    {isScanning ? (
+                      <SearchX className="w-6 h-6" />
+                    ) : (
+                      <BluetoothOff className="w-6 h-6" />
+                    )}
                   </div>
                   {/*
-                    What the empty state says depends on whether there is a
-                    radio to talk to at all. It used to say "make sure nearby
-                    Android phones have Bluetooth turned ON" in every case,
-                    including in a browser - where no amount of switching
-                    Bluetooth on can help, because a web page has no way to
-                    reach the adapter. Telling someone to keep trying
-                    something that cannot work is worse than saying nothing.
+                    An empty list is a real answer, not a failure, so it says
+                    what it means: nothing is in range. What it suggests next
+                    depends on what this browser can do, because telling
+                    someone to keep scanning on a browser that cannot scan is
+                    worse than saying nothing.
                   */}
                   <div className="flex flex-col gap-1">
-                    {isNative ? (
-                      <>
-                        <span className="text-xs font-bold text-fg">
-                          No nearby FloodyPredict devices detected
-                        </span>
-                        <span className="text-[11px] text-muted max-w-sm leading-relaxed">
-                          Make sure nearby Android phones have Bluetooth and Location
-                          switched on, with FloodyPredict open on this screen. Android
-                          requires Location to be enabled for Bluetooth scanning.
-                        </span>
-                      </>
-                    ) : (
+                    {!support?.hasApi && !isNative ? (
                       <>
                         <span className="text-xs font-bold text-fg">
                           This browser cannot reach a Bluetooth radio
                         </span>
                         <span className="text-[11px] text-muted max-w-sm leading-relaxed">
-                          Peer-to-peer chat pairs two phones directly, which needs the
-                          installed Android app on both. A web page has no API that can
-                          discover or connect to another phone over Bluetooth, so nothing
-                          will appear here however long you scan &mdash; this is a limit of
-                          the browser, not a fault in the pairing.
+                          {support?.summary}
+                        </span>
+                      </>
+                    ) : support?.adapterAvailable === false ? (
+                      <>
+                        <span className="text-xs font-bold text-fg">Bluetooth is switched off</span>
+                        <span className="text-[11px] text-muted max-w-sm leading-relaxed">
+                          Turn Bluetooth on for this device, then scan again.
+                        </span>
+                      </>
+                    ) : isScanning ? (
+                      <>
+                        <span className="text-xs font-bold text-fg">
+                          Listening &mdash; nothing in range yet
+                        </span>
+                        <span className="text-[11px] text-muted max-w-sm leading-relaxed">
+                          Nearby devices appear here on their own as soon as they are heard,
+                          and drop off after {Math.round(DeviceDiscovery.getPresenceTimeoutMs() / 1000)}{' '}
+                          seconds of silence. Nothing is listed that was not actually detected.
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-xs font-bold text-fg">Not scanning</span>
+                        <span className="text-[11px] text-muted max-w-sm leading-relaxed">
+                          Start a scan to see what is near you right now.
                         </span>
                       </>
                     )}
                   </div>
+
+                  {/*
+                    Phone-to-phone chat is a separate capability from finding
+                    a device, and only the second one works in a browser.
+                    Saying so here stops the empty list from being read as the
+                    reason chat does not work.
+                  */}
+                  {!isNative && support?.hasApi && (
+                    <span className="text-[10px] text-subtle max-w-sm leading-relaxed border-t border-line/50 pt-2">
+                      A browser can find nearby devices but cannot open a chat to another
+                      phone &mdash; that needs the Android app installed on both handsets.
+                    </span>
+                  )}
+
                   {!isSimMode && (
                     <button
                       onClick={handleToggleSimulation}
                       className="text-mini font-mono text-cyan-400 hover:underline mt-1 cursor-pointer"
                     >
-                      Run the simulated two-device demo instead
+                      Run the two-device walkthrough instead
                     </button>
                   )}
                 </div>
               ) : (
                 discoveredDevices.map((device) => {
                   const isCurrent = connectedPeer?.id === device.id;
-                  const signalStrength = device.rssi
-                    ? device.rssi > -65
-                      ? 'Strong'
+                  // No reading means no claim. The old default of 'Good' was
+                  // the most optimistic label available, applied precisely
+                  // when nothing was known.
+                  const signalStrength =
+                    typeof device.rssi !== 'number'
+                      ? 'unknown'
+                      : device.rssi > -65
+                      ? 'strong'
                       : device.rssi > -80
-                      ? 'Medium'
-                      : 'Weak'
-                    : 'Good';
+                      ? 'medium'
+                      : 'weak';
 
                   return (
                     <div
@@ -547,12 +711,43 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
                           <span className="text-xs font-bold text-fg truncate">
                             {device.nickname || device.name}
                           </span>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] font-mono text-muted truncate">{device.id}</span>
-                            <span className="text-[10px] font-mono text-cyan-400/80 bg-cyan-950/60 px-1.5 py-0.2 rounded border border-cyan-800/40">
-                              {device.rssi ? `${device.rssi} dBm` : signalStrength}
-                            </span>
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            {device.source && (
+                              <span
+                                className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border uppercase tracking-wide ${
+                                  SOURCE_LABEL[device.source].className
+                                }`}
+                              >
+                                {SOURCE_LABEL[device.source].text}
+                              </span>
+                            )}
+                            {/*
+                              An absent RSSI stays absent. It used to default
+                              to -65 dBm, which put a measured-looking signal
+                              strength on a device that had never reported one.
+                            */}
+                            {typeof device.rssi === 'number' && device.inRange ? (
+                              <span className="text-[10px] font-mono text-cyan-400/80 bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-800/40">
+                                {device.rssi} dBm &middot; {signalStrength}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-mono text-muted bg-surface-2 px-1.5 py-0.5 rounded border border-line">
+                                no signal reading
+                              </span>
+                            )}
+                            {device.inRange ? (
+                              <span className="text-[10px] font-mono text-subtle">
+                                heard {secondsAgo(device.lastHeardAt ?? device.lastSeen)}s ago
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-mono text-amber-400/80">
+                                allowed, not answering now
+                              </span>
+                            )}
                           </div>
+                          <span className="text-[9px] font-mono text-subtle truncate mt-0.5">
+                            {device.id}
+                          </span>
                         </div>
                       </div>
 
@@ -561,7 +756,7 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
                           <span className="px-2.5 py-1 rounded-full text-mini font-mono font-bold bg-cyan-500/20 border border-cyan-400/40 text-cyan-300">
                             Connected
                           </span>
-                        ) : (
+                        ) : canChatWith(device) ? (
                           <button
                             onClick={() => handleConnect(device)}
                             disabled={connState === 'connecting'}
@@ -569,6 +764,16 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
                           >
                             Connect
                           </button>
+                        ) : (
+                          // Offering Connect here would be offering something
+                          // that cannot happen; the button used to report
+                          // success and send nothing.
+                          <span
+                            className="h-8 px-3 rounded-full border border-line bg-surface-2/70 text-muted text-[10px] font-semibold flex items-center"
+                            title="A browser can find this device but cannot open a chat to it. Messaging needs the Android app on both phones."
+                          >
+                            Needs the app
+                          </span>
                         )}
                       </div>
                     </div>

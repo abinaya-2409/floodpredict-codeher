@@ -41,12 +41,26 @@ export interface BluetoothUserIdentity {
 
 export interface BluetoothDevicePeer {
   id: string;          // Unique internal ID (UUID or Device Address)
-  name: string;        // Advertised name (e.g., "FloodUser-4821")
+  name: string;        // Advertised name, as the radio reported it
   nickname?: string;
-  rssi?: number;       // Signal strength in dBm
+  rssi?: number;       // Signal strength in dBm. Absent when not measured.
+  /** First time this device was heard from, for "in range for 2m" style copy. */
+  firstSeen?: number;
+  /** Last time anything at all was reported about it, sighting or grant. */
   lastSeen: number;
+  /** Last time a radio actually heard from it. Absent means never. */
+  lastHeardAt?: number;
+  /** Heard from within the presence window. Computed, not stored. */
+  inRange?: boolean;
   isConnected: boolean;
   isBlocked?: boolean;
+  /**
+   * Which radio path found this device.
+   *
+   * Surfaced in the UI so a demo peer can never be mistaken for a real one -
+   * the previous build showed invented devices with no marking at all.
+   */
+  source?: import('./WebBluetoothScanner').DiscoverySource;
 }
 
 export interface BluetoothMessagePayload {

@@ -2,13 +2,20 @@
  * FloodyPredict - Unified Bluetooth Emergency Service
  * Orchestrates the native Android Capacitor bridge and a local simulation.
  *
- * There is no Web Bluetooth path, and this comment used to claim one. There
- * cannot be a useful one: Web Bluetooth only connects to BLE GATT
- * peripherals chosen by the user from a browser chooser, it has no classic
- * Bluetooth discovery and no peripheral mode, and a phone running a browser
- * does not advertise itself as a connectable GATT peripheral. Phone-to-phone
- * chat therefore needs the installed Android app on both devices; in a
- * browser the only honest options are to say so and to offer a simulation.
+ * Two capabilities that used to be conflated, and are now kept apart:
+ *
+ *   Discovery works in a browser. WebBluetoothScanner listens to the real
+ *   radio and reports what is actually in range - by itself, once permission
+ *   is given. There are no invented devices anywhere in this file's path.
+ *
+ *   Phone-to-phone chat does not work in a browser. Web Bluetooth connects
+ *   only to BLE GATT peripherals, and a phone running a browser does not
+ *   advertise itself as one, so two browsers cannot carry messages between
+ *   them however many devices each can see. That still needs the installed
+ *   Android app on both handsets.
+ *
+ * So a browser can now answer "what is near me" truthfully, and must still
+ * say plainly that it cannot open a chat to what it found.
  * Implements end-to-end peer discovery, direct messaging, SOS broadcasting, delivery verification,
  * ping-pong heartbeat loop, and automated diagnostic self-test loop.
  */
@@ -36,6 +43,7 @@ import {
 } from './MessageProtocol';
 import { MessageTransport } from './MessageTransport';
 import { DeviceDiscovery } from './DeviceDiscovery';
+import { BluetoothSupport, WebBluetoothScanner } from './WebBluetoothScanner';
 import { ConnectionManager } from './ConnectionManager';
 import { OfflineStorage } from './OfflineStorage';
 
@@ -69,6 +77,13 @@ class FloodyBluetoothService {
   private isSimulatedMode: boolean = false;
   private stateListeners: Set<(state: BluetoothState) => void> = new Set();
   private simulatedPeerTimeout: any = null;
+  private support: BluetoothSupport | null = null;
+  private supportListeners: Set<(s: BluetoothSupport) => void> = new Set();
+  private rediscoverTimer: ReturnType<typeof setInterval> | null = null;
+  private lastScanNotice: string | null = null;
+  private demoKeepAliveTimer: ReturnType<typeof setInterval> | null = null;
+  /** Set once requestLEScan has succeeded, after which it needs no gesture. */
+  private passiveScanGranted = false;
   private continuousDiagnosticTimer: NodeJS.Timeout | number | null = null;
   private diagnosticListeners: Set<(summary: DiagnosticSummary) => void> = new Set();
 
@@ -84,18 +99,36 @@ class FloodyBluetoothService {
   public async initialize(): Promise<void> {
     this.identity = MessageProtocol.getOrCreateLocalIdentity();
 
-    // Check if running inside native Capacitor wrapper
+    // The sweep must not evict the peer we are talking to.
+    DeviceDiscovery.setConnectedPeerCheck(
+      (id) => ConnectionManager.isConnected() && ConnectionManager.getConnectedPeer()?.id === id
+    );
+
     if (this.isNativeAvailable()) {
       await this.initNativeBridge();
+      this.support = {
+        hasApi: true,
+        adapterAvailable: this.bluetoothState === 'poweredOn',
+        canScanPassively: true,
+        canRemember: true,
+        summary:
+          'The installed Android app is scanning with the Bluetooth radio in this phone. ' +
+          'Nearby devices appear on their own and drop off when they go out of range.',
+      };
     } else {
-      // Running in web environment: check Web Bluetooth or configure simulation fallback
-      if (typeof navigator !== 'undefined' && 'bluetooth' in navigator) {
-        this.bluetoothState = 'poweredOn';
-      } else {
-        this.bluetoothState = 'poweredOn'; // Enabled for simulation/PWA mode
-      }
+      // Ask the browser what it can really do, rather than assuming a radio.
+      // This used to report poweredOn unconditionally - including on browsers
+      // with no Bluetooth API at all - which made every later failure look
+      // like a fault in the pairing instead of a missing capability.
+      this.support = await WebBluetoothScanner.describeSupport();
+      this.bluetoothState = !this.support.hasApi
+        ? 'unsupported'
+        : this.support.adapterAvailable === false
+        ? 'poweredOff'
+        : 'poweredOn';
     }
 
+    this.notifySupportListeners();
     this.notifyStateListeners();
   }
 
@@ -176,6 +209,7 @@ class FloodyBluetoothService {
           id: device.address || device.id,
           name: device.name || 'FloodyPredict User',
           rssi: device.rssi,
+          source: 'native',
         });
       });
 
@@ -209,36 +243,162 @@ class FloodyBluetoothService {
   }
 
   /**
-   * Starts device discovery scan
+   * How often discovery re-arms itself while scanning.
+   *
+   * The browser drops a scan when the tab is backgrounded, when the adapter
+   * is cycled, and when an advertisement watch is garbage collected. Nothing
+   * tells the page that this happened - the events simply stop. Re-arming on
+   * a timer is what makes discovery survive those without the user noticing,
+   * and it is why a scan here has no expiry: a device that arrives in the
+   * twenty-first second is exactly as interesting as one that arrived in the
+   * first, and the old twenty-second auto-stop guaranteed it was missed.
+   */
+  private static readonly REDISCOVER_INTERVAL_MS = 8000;
+
+  /**
+   * Starts discovery and keeps it running.
+   *
+   * Every device this produces was heard by a radio. The demo peers are the
+   * one exception and they are only ever added when the user has explicitly
+   * switched the walkthrough on, tagged so the UI can label them.
    */
   public async startScan(): Promise<void> {
     DeviceDiscovery.startScanSession();
+    this.lastScanNotice = null;
 
     if (this.isNativeAvailable()) {
       try {
         await window.Capacitor!.Plugins!.BluetoothChat!.startScan?.();
       } catch (err) {
         console.error('[BluetoothService] Native scan start failed:', err);
+        this.lastScanNotice = 'The Android Bluetooth scan could not start. Check that Bluetooth and Location are on.';
       }
     } else {
-      // In web browser / simulation mode: populate nearby simulated peers if simulation enabled
-      if (this.isSimulatedMode) {
-        this.populateSimulatedPeers();
+      // userInitiated: this call came straight from the user's click, which
+      // is the only moment requestLEScan may ask for permission.
+      await this.runWebDiscoveryPass(true);
+      if (this.rediscoverTimer) clearInterval(this.rediscoverTimer);
+      this.rediscoverTimer = setInterval(() => {
+        void this.runWebDiscoveryPass(false);
+      }, FloodyBluetoothService.REDISCOVER_INTERVAL_MS);
+    }
+
+    if (this.isSimulatedMode) this.populateSimulatedPeers();
+  }
+
+  /**
+   * One pass of web discovery: re-adopt granted devices, keep a passive scan
+   * armed. Both are idempotent, so running this repeatedly is safe and is how
+   * discovery recovers from a scan the browser quietly dropped.
+   */
+  private async runWebDiscoveryPass(userInitiated: boolean): Promise<void> {
+    if (!this.support?.hasApi) return;
+
+    /*
+     * Passive scanning is started first, and started synchronously.
+     *
+     * requestLEScan may show a permission prompt, and a prompt may only be
+     * shown while the browser still considers a user gesture to be in
+     * progress. Awaiting anything at all before calling it - even
+     * getDevices(), which asks the user nothing - ends that gesture. Doing
+     * the adopt step first therefore failed every time with "Must be
+     * handling a user gesture to show a permission request", on a scan the
+     * user had just that moment clicked.
+     *
+     * So the call is made before the first await, and only awaited later.
+     */
+    const passive =
+      (userInitiated || this.passiveScanGranted) && !WebBluetoothScanner.isPassiveScanActive()
+        ? WebBluetoothScanner.startPassiveScan((device) =>
+            DeviceDiscovery.registerRadioDevice(device)
+          )
+        : null;
+
+    try {
+      await WebBluetoothScanner.adoptRemembered((device) =>
+        DeviceDiscovery.registerRadioDevice(device)
+      );
+    } catch (err) {
+      console.error('[BluetoothService] Adopting granted devices failed:', err);
+    }
+
+    if (passive) {
+      const result = await passive;
+      if (result.started) {
+        // Permission is granted for this origin now, so later re-arms need no
+        // gesture and can run from the timer.
+        this.passiveScanGranted = true;
+        this.lastScanNotice = null;
+      } else if (result.reason) {
+        this.lastScanNotice = result.reason;
       }
     }
   }
 
   /**
-   * Stops device discovery scan
+   * Opens the browser's own device chooser and keeps whatever the user picks.
+   *
+   * This needs a tap, which is the browser's rule and not a choice made here:
+   * requestDevice must be called from a user gesture. The payoff is that the
+   * chosen device is remembered, so from the next scan onwards it is found
+   * automatically with no prompt at all.
+   */
+  public async addDeviceViaChooser(): Promise<{ ok: boolean; reason?: string }> {
+    if (this.isNativeAvailable()) {
+      return { ok: false, reason: 'The Android app scans for devices directly; no chooser is needed.' };
+    }
+    const result = await WebBluetoothScanner.openChooser((device) =>
+      DeviceDiscovery.registerRadioDevice(device)
+    );
+    if (result.reason) this.lastScanNotice = result.reason;
+    return result;
+  }
+
+  /**
+   * Stops device discovery
    */
   public async stopScan(): Promise<void> {
     DeviceDiscovery.stopScanSession();
+
+    if (this.rediscoverTimer) {
+      clearInterval(this.rediscoverTimer);
+      this.rediscoverTimer = null;
+    }
+    WebBluetoothScanner.stop();
 
     if (this.isNativeAvailable()) {
       try {
         await window.Capacitor!.Plugins!.BluetoothChat!.stopScan?.();
       } catch (err) {
         console.error('[BluetoothService] Native scan stop failed:', err);
+      }
+    }
+  }
+
+  /** The most recent reason discovery could not do something, or null. */
+  public getScanNotice(): string | null {
+    return this.lastScanNotice;
+  }
+
+  public getSupport(): BluetoothSupport | null {
+    return this.support;
+  }
+
+  public addSupportListener(listener: (s: BluetoothSupport) => void): () => void {
+    this.supportListeners.add(listener);
+    if (this.support) listener(this.support);
+    return () => {
+      this.supportListeners.delete(listener);
+    };
+  }
+
+  private notifySupportListeners(): void {
+    if (!this.support) return;
+    for (const listener of this.supportListeners) {
+      try {
+        listener(this.support);
+      } catch (e) {
+        console.error(e);
       }
     }
   }
@@ -263,17 +423,36 @@ class FloodyBluetoothService {
         ConnectionManager.setState('failed', null);
         return false;
       }
-    } else {
-      // Web / Simulation connection handshake
-      return new Promise<boolean>((resolve) => {
-        setTimeout(() => {
-          ConnectionManager.setState('connected', { ...peer, isConnected: true });
-          // Send peer identity handshake
-          this.sendIdentityHandshake(peer.id);
-          resolve(true);
-        }, 1000);
-      });
     }
+
+    if (peer.source !== 'demo') {
+      /*
+       * A real device, found by a real radio, that a browser cannot chat to.
+       *
+       * Web Bluetooth connects to BLE GATT peripherals. A phone running a
+       * browser does not advertise itself as one, so there is no service to
+       * open and no characteristic to write to. This used to resolve after a
+       * one second timer, set the state to 'connected' and mark outgoing
+       * messages as sent - a chat that transmitted nothing while reporting
+       * that it had.
+       */
+      ConnectionManager.setState('failed', null);
+      this.lastScanNotice =
+        `${peer.name} was found by this browser, but a browser cannot open a chat to ` +
+        'another phone. Finding devices works here; messaging needs the Android app ' +
+        'installed on both handsets.';
+      return false;
+    }
+
+    // The walkthrough: a simulated peer, simulated connection, labelled as both.
+    // This is the one place a pretend connection is the honest thing to offer.
+    return new Promise<boolean>((resolve) => {
+      setTimeout(() => {
+        ConnectionManager.setState('connected', { ...peer, isConnected: true });
+        this.sendIdentityHandshake(peer.id);
+        resolve(true);
+      }, 1000);
+    });
   }
 
   /**
@@ -468,9 +647,16 @@ class FloodyBluetoothService {
     this.isSimulatedMode = enabled;
     if (enabled) {
       this.populateSimulatedPeers();
-    } else {
-      DeviceDiscovery.clearAll();
+      return;
     }
+    // Clear only the demo entries. Wiping the whole list also threw away
+    // every real device the radio had found, so turning the walkthrough off
+    // looked like the scan had broken.
+    if (this.demoKeepAliveTimer) {
+      clearInterval(this.demoKeepAliveTimer);
+      this.demoKeepAliveTimer = null;
+    }
+    DeviceDiscovery.clearSource('demo');
   }
 
   public addBluetoothStateListener(listener: (state: BluetoothState) => void): () => void {
@@ -492,37 +678,51 @@ class FloodyBluetoothService {
   }
 
   /**
-   * Simulates nearby peers for web preview / development testing
+   * Adds the two walkthrough peers.
+   *
+   * These are the only devices in this file that are not real, they are added
+   * only when the user has switched the walkthrough on, and they carry
+   * source: 'demo' so the UI can mark them as such. The previous build put
+   * three of these in the list on every scan with no marking whatsoever, so
+   * "Velachery Community Shelter" read exactly like a neighbour who had the
+   * app open. The names below are deliberately ones nobody would mistake for
+   * a real device.
    */
   private populateSimulatedPeers(): void {
-    const mockPeers: BluetoothDevicePeer[] = [
+    const now = Date.now();
+    const demoPeers: BluetoothDevicePeer[] = [
       {
-        id: 'FloodUser-7192',
-        name: 'FloodUser-7192',
-        nickname: 'Disaster Recon Unit 4',
+        id: 'demo-peer-alpha',
+        name: 'Demo peer A (not a real device)',
         rssi: -58,
-        lastSeen: Date.now(),
+        firstSeen: now,
+        lastSeen: now,
         isConnected: false,
+        source: 'demo',
       },
       {
-        id: 'FloodUser-3841',
-        name: 'FloodUser-3841',
-        nickname: 'Velachery Community Shelter',
-        rssi: -72,
-        lastSeen: Date.now(),
+        id: 'demo-peer-bravo',
+        name: 'Demo peer B (not a real device)',
+        rssi: -74,
+        firstSeen: now,
+        lastSeen: now,
         isConnected: false,
-      },
-      {
-        id: 'FloodUser-9024',
-        name: 'FloodUser-9024',
-        nickname: 'Citizen Water-Rescue 09',
-        rssi: -81,
-        lastSeen: Date.now(),
-        isConnected: false,
+        source: 'demo',
       },
     ];
 
-    mockPeers.forEach((p) => DeviceDiscovery.registerDiscoveredPeer(p));
+    demoPeers.forEach((peer) => DeviceDiscovery.registerDiscoveredPeer(peer));
+
+    // The presence sweep drops anything unheard for 12s, and a demo peer has
+    // no radio to be heard from, so it is kept alive deliberately for as long
+    // as the walkthrough is on. Without this the demo list empties itself and
+    // looks like a bug.
+    if (this.demoKeepAliveTimer) clearInterval(this.demoKeepAliveTimer);
+    this.demoKeepAliveTimer = setInterval(() => {
+      if (!this.isSimulatedMode) return;
+      // registerDiscoveredPeer stamps lastSeen itself, which is the whole point.
+      demoPeers.forEach((peer) => DeviceDiscovery.registerDiscoveredPeer(peer));
+    }, 4000);
   }
 
   /**
@@ -644,8 +844,21 @@ class FloodyBluetoothService {
         radioDetails = `Native check error: ${e.message || e}`;
       }
     } else {
-      radioPassed = this.bluetoothState === 'poweredOn';
-      radioDetails = 'Web / PWA Bluetooth radio operational (Ready for direct P2P connection)';
+      // Report what the browser actually said. This used to pass with
+      // "Web / PWA Bluetooth radio operational (Ready for direct P2P
+      // connection)" on every browser, including ones with no Bluetooth API,
+      // so the one check that should have caught a missing radio announced
+      // that everything was fine.
+      const support = this.support ?? (await WebBluetoothScanner.describeSupport());
+      this.support = support;
+      radioPassed = support.hasApi && support.adapterAvailable !== false;
+      radioDetails = !support.hasApi
+        ? 'This browser has no Bluetooth API, so no device can be found from a web page.'
+        : support.adapterAvailable === false
+        ? 'A Bluetooth adapter is present but switched off.'
+        : support.canScanPassively
+        ? 'Bluetooth adapter reachable. This browser can listen for nearby devices on its own.'
+        : 'Bluetooth adapter reachable. Devices must be added once from the browser chooser, after which they are found automatically.';
     }
     checks.push({
       id: 'radio_status',
@@ -653,6 +866,49 @@ class FloodyBluetoothService {
       status: radioPassed ? 'passed' : 'failed',
       details: radioDetails,
       durationMs: Date.now() - radioStart,
+    });
+
+    // Check 1b: Nearby device discovery loop
+    //
+    // Runs the presence loop for real and reports what came back. It passes
+    // on an empty list: "nothing is in range" is a correct result, and the
+    // check that would fail on it is a check that rewards inventing devices.
+    // What it does fail on is a discovery path that cannot run at all.
+    const discoveryStart = Date.now();
+    let discoveryPassed = false;
+    let discoveryDetails = '';
+    try {
+      const wasScanning = DeviceDiscovery.getIsScanning();
+      if (!wasScanning) await this.startScan();
+
+      // Three sweeps, so pruning is exercised and not just registration.
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      for (let i = 0; i < 3; i++) DeviceDiscovery.sweep();
+
+      const found = DeviceDiscovery.getDiscoveredDevices();
+      const real = found.filter((d) => d.source !== 'demo');
+      const status = DeviceDiscovery.getSweepStatus();
+      const notice = this.getScanNotice();
+
+      discoveryPassed = this.isNativeAvailable() || !!this.support?.hasApi;
+      discoveryDetails = discoveryPassed
+        ? `Loop ran ${status.sweeps} sweeps and is re-checking every 2s. ` +
+          `${real.length} real ${real.length === 1 ? 'device' : 'devices'} in range` +
+          (found.length > real.length ? `, plus ${found.length - real.length} demo` : '') +
+          `. ${status.droppedForSilence} dropped for going quiet.` +
+          (notice ? ` Note: ${notice}` : '')
+        : 'No discovery path is available on this platform.';
+
+      if (!wasScanning) await this.stopScan();
+    } catch (e: any) {
+      discoveryDetails = `Discovery loop error: ${e?.message || e}`;
+    }
+    checks.push({
+      id: 'device_discovery',
+      name: 'Nearby Device Discovery Loop',
+      status: discoveryPassed ? 'passed' : 'failed',
+      details: discoveryDetails,
+      durationMs: Date.now() - discoveryStart,
     });
 
     // Check 2: Local Identity & Cryptographic Addressing

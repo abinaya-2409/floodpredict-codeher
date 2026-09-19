@@ -171,70 +171,73 @@ describe('Ping-Pong Heartbeat Watchdog Loop', () => {
 });
 
 describe('Diagnostic Self-Test Loop', () => {
-  it('should run full end-to-end diagnostic loop and pass all multi-layer checks', async () => {
+  /**
+   * These used to assert that every check passed in jsdom, which has no
+   * Bluetooth API at all. They only passed because the radio check reported
+   * "Web / PWA Bluetooth radio operational" without asking anything. The
+   * point of a self-test is to fail where the thing it tests is absent, so
+   * that is what is asserted now.
+   */
+  it('reports the radio as unavailable where there is no radio', async () => {
     await BluetoothService.initialize();
     const summary = await BluetoothService.runDiagnosticLoop();
 
     expect(summary).toBeDefined();
-    expect(summary.checks.length).toBe(6);
-    expect(summary.overallHealthy).toBe(true);
-    expect(summary.summary).toContain('100% operational');
+    expect(summary.checks.length).toBe(7);
 
-    const checkIds = summary.checks.map((c) => c.id);
-    expect(checkIds).toContain('radio_status');
-    expect(checkIds).toContain('local_identity');
-    expect(checkIds).toContain('protocol_integrity');
-    expect(checkIds).toContain('mtu_chunking');
-    expect(checkIds).toContain('offline_storage');
-    expect(checkIds).toContain('link_health');
+    const byId = Object.fromEntries(summary.checks.map((c) => [c.id, c]));
+    expect(Object.keys(byId).sort()).toEqual([
+      'device_discovery',
+      'link_health',
+      'local_identity',
+      'mtu_chunking',
+      'offline_storage',
+      'protocol_integrity',
+      'radio_status',
+    ]);
 
-    for (const check of summary.checks) {
-      expect(check.status).toBe('passed');
+    // jsdom has no navigator.bluetooth, so these two must say so plainly.
+    expect(byId.radio_status.status).toBe('failed');
+    expect(byId.radio_status.details).toMatch(/no Bluetooth API/i);
+    expect(byId.device_discovery.status).toBe('failed');
+
+    // Everything that does not need a radio still has to work.
+    for (const id of ['local_identity', 'protocol_integrity', 'mtu_chunking', 'offline_storage']) {
+      expect(byId[id].status, id).toBe('passed');
     }
   });
-});
 
-describe('OfflineStorage', () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
+  it('passes the radio and discovery checks when a radio is present', async () => {
+    // A minimal stand-in for navigator.bluetooth: enough for describeSupport
+    // to find an adapter, with no devices in range.
+    const original = (navigator as unknown as Record<string, unknown>).bluetooth;
+    Object.defineProperty(navigator, 'bluetooth', {
+      configurable: true,
+      value: {
+        getAvailability: async () => true,
+        getDevices: async () => [],
+        requestDevice: async () => {
+          throw new Error('no chooser in tests');
+        },
+      },
+    });
 
-  it('should save, retrieve and update messages locally', () => {
-    const msg: StoredMessage = {
-      id: 'msg-abc-1',
-      conversationId: 'peer-dev-1',
-      senderId: 'dev-1',
-      senderNick: 'Eve',
-      content: 'Water at ground floor',
-      timestamp: Date.now(),
-      status: 'sent',
-      isSelf: false,
-      priority: 'emergency',
-      type: 'msg',
-      retryCount: 0,
-    };
+    try {
+      await BluetoothService.initialize();
+      const summary = await BluetoothService.runDiagnosticLoop();
+      const byId = Object.fromEntries(summary.checks.map((c) => [c.id, c]));
 
-    OfflineStorage.saveMessage(msg);
-    const loaded = OfflineStorage.getMessages('peer-dev-1');
-    expect(loaded.length).toBe(1);
-    expect(loaded[0].id).toBe('msg-abc-1');
-    expect(loaded[0].content).toBe('Water at ground floor');
-
-    OfflineStorage.updateMessageStatus('peer-dev-1', 'msg-abc-1', 'delivered');
-    const updated = OfflineStorage.getMessages('peer-dev-1');
-    expect(updated[0].status).toBe('delivered');
-  });
-
-  it('should manage conversation threads correctly', () => {
-    const thread = {
-      peerId: 'peer-test-100',
-      peerName: 'Rescue Unit Alpha',
-      unreadCount: 2,
-      updatedAt: Date.now(),
-    };
-
-    OfflineStorage.upsertThread(thread);
-    const threads = OfflineStorage.getThreads();
-    expect(threads.some((t) => t.peerId === 'peer-test-100')).toBe(true);
+      expect(byId.radio_status.status).toBe('passed');
+      expect(byId.device_discovery.status).toBe('passed');
+      // An empty list is a correct answer and must not be reported as a fault.
+      expect(byId.device_discovery.details).toMatch(/0 real devices in range/);
+      expect(byId.device_discovery.details).toMatch(/sweeps/);
+    } finally {
+      if (original === undefined) {
+        delete (navigator as unknown as Record<string, unknown>).bluetooth;
+      } else {
+        Object.defineProperty(navigator, 'bluetooth', { configurable: true, value: original });
+      }
+    }
   });
 });

@@ -306,23 +306,55 @@ and CartoDEM 10m Elevation Grid". The application uses none of those.
 
 ## Offline Bluetooth chat: what works and what does not
 
-**It cannot work in a browser, and it cannot currently be built as an app.**
+Two capabilities used to be described as one. They are separate, and only one
+of them works in a browser.
 
-The feature is written against a Capacitor native Android bridge
-(`android/app/src/main/java/com/floodypredict/app/BluetoothChatPlugin.java`).
-In the deployed web app `window.Capacitor` does not exist, so
-`BluetoothService.isNativeAvailable()` is false and every scan falls through
-to a simulation that is off by default - which is why scanning finds nothing
-and says nothing. The empty state now says so instead of advising you to
-check Bluetooth on nearby phones, which could never have helped.
+### Finding nearby devices: works, and finds real ones
 
-There is no Web Bluetooth fallback, and one would not rescue this. Web
-Bluetooth connects only to BLE GATT peripherals the user picks from a browser
-chooser; it has no classic-Bluetooth discovery and no peripheral mode, and a
-phone running a browser does not advertise itself as a connectable GATT
-peripheral. Phone-to-phone chat needs a native app on both handsets.
+The device list is now the radio's answer. `WebBluetoothScanner` asks the
+browser what it can do and then uses whichever of these it has, in order:
 
-To make it real, three things are missing:
+| Path | Prompts | What it gives |
+| --- | --- | --- |
+| Native BLE scan (Android app) | none after install | continuous discovery with RSSI |
+| `requestLEScan()` | allow scanning, once | continuous advertisements with RSSI |
+| `getDevices()` + `watchAdvertisements()` | none | devices allowed before, re-found automatically |
+| `requestDevice()` | one tap to open the chooser | the one device the user picks |
+
+The middle two need no interaction at all after the first grant, which is what
+lets the list keep itself current. On desktop Chrome `requestLEScan` is behind
+`chrome://flags/#enable-experimental-web-platform-features`; without it, add a
+device once with **Add device** and it is found automatically from then on.
+
+Nothing is listed that a radio did not report. Three named peers - "Disaster
+Recon Unit 4", "Velachery Community Shelter", "Citizen Water-Rescue 09" -
+used to be injected into the list on every scan, unlabelled and
+indistinguishable from a neighbour who had the app open. They are gone. The
+walkthrough peers that replaced them appear only when the walkthrough is
+switched on, are named "Demo peer A (not a real device)", and are counted
+separately from real ones.
+
+A presence loop sweeps every 2 seconds and drops anything not heard from for
+12 seconds, so walking out of range empties the list by itself. A device the
+user granted access to stays listed but stops counting as in range, because a
+permission is not evidence of presence.
+
+Two behaviours are worth knowing if you touch this code:
+
+- `requestLEScan()` does not reject when permission has never been given. It
+  waits on a prompt, indefinitely. Every call is raced against a deadline.
+- It may only ask for permission while a user gesture is still in progress,
+  and awaiting anything first - even `getDevices()`, which asks the user
+  nothing - ends that gesture. It is therefore called before the first
+  `await` in the scan path, and only awaited afterwards.
+
+### Phone-to-phone chat: still needs the Android app
+
+Web Bluetooth connects only to BLE GATT peripherals, and a phone running a
+browser does not advertise itself as one. Two browsers can each see plenty of
+devices and still not be able to carry a message between them. That needs the
+native app on both handsets, and three things are missing before it can be
+built:
 
 1. **Capacitor is not installed.** `package.json` has no `@capacitor/core`,
    `@capacitor/android` or `@capacitor/cli`, so `capacitor.config.ts` is
@@ -336,10 +368,23 @@ To make it real, three things are missing:
    Android 6-11 additionally requires Location to be enabled before a scan
    returns anything.
 
-Until then the browser offers a simulated two-device demo, labelled as
-simulated. None of this was verified against a real handset here - there is
-no Android SDK in this environment - so treat the list above as the diagnosis
-it is, not as a tested build recipe.
+None of that was verified against a real handset here - there is no Android
+SDK in this environment - so treat the list as the diagnosis it is, not as a
+tested build recipe.
+
+### How the discovery is tested
+
+`tools/bluetooth-test.mjs` gives headless Chrome an emulated adapter through
+the CDP `BluetoothEmulation` domain, puts three named peripherals in range,
+and drives Chrome's own device chooser through `DeviceAccess`. It then checks,
+over several rounds, that the app shows those devices and none of the invented
+ones. `src/__tests__/deviceDiscovery.test.ts` covers the presence loop -
+ageing out, keeping the connected peer, and the grant/sighting distinction -
+by injecting time rather than waiting for it.
+
+`BluetoothEmulation.simulateAdvertisement` never resolves in this Chrome
+build, so advertisement delivery itself is exercised by the unit tests rather
+than in the browser.
 
 ## Does the model agree with the record?
 
