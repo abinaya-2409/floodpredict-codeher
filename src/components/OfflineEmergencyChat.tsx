@@ -437,10 +437,10 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
  </div>
 
  <h1 className="text-xl md:text-2xl font-extrabold text-fg tracking-tight mt-1 flex items-center gap-2">
- <span>FloodyPredict Offline Emergency Chat</span>
+ <span>Floodylink Offline Emergency Chat</span>
  </h1>
  <p className="text-xs sm:text-sm text-fg-soft mt-0.5">
- Communicate directly with nearby FloodyPredict users over 2.4GHz Bluetooth when cellular towers, power grids, and Wi-Fi networks fail.
+ Communicate directly with nearby Floodylink users over 2.4GHz Bluetooth when cellular towers, power grids, and Wi-Fi networks fail.
  </p>
  </div>
  </div>
@@ -566,7 +566,7 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
  <div className="flex items-center justify-between pb-3 border-b border-line-strong/50">
  <div className="flex items-center gap-2">
  <Radio className={`w-4 h-4 ${isScanning ? 'text-accent animate-spin' : 'text-muted'}`} />
- <h2 className="font-bold text-sm sm:text-base text-fg">Nearby FloodyPredict Users</h2>
+ <h2 className="font-bold text-sm sm:text-base text-fg">Nearby Floodylink Users</h2>
  </div>
  {/* Demo peers are counted separately so the real number is never inflated. */}
  <span

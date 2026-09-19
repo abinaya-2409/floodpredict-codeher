@@ -112,7 +112,7 @@ export const InstallAppPrompt: React.FC = () => {
         </div>
 
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-bold text-fg">Install FloodyPredict on this phone</h2>
+          <h2 className="text-sm font-bold text-fg">Install Floodylink on this phone</h2>
           <p className="mt-1 flex items-start gap-1.5 text-mini leading-relaxed text-fg-soft">
             <WifiOff className="mt-0.5 h-3 w-3 shrink-0 text-accent" aria-hidden="true" />
             <span>

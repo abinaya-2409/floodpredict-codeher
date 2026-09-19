@@ -96,7 +96,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
             </div>
 
             <p className="text-xs text-fg-soft leading-relaxed mt-2">
-              In severe deluges, cellular towers lose grid power. FloodyPredict stores last-known micro-catchment water ingress curves into local browser storage.
+              In severe deluges, cellular towers lose grid power. Floodylink stores last-known micro-catchment water ingress curves into local browser storage.
             </p>
           </div>
 

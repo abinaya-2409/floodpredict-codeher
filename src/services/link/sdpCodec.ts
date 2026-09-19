@@ -160,7 +160,7 @@ export function decodeCode(raw: string): DecodedCode {
 
   const fields = text.split(SEP);
   if (fields[0] !== FORMAT) {
-    throw new Error('That does not look like a FloodyPredict connection code.');
+    throw new Error('That does not look like a Floodylink connection code.');
   }
   if (fields.length !== 7) {
     throw new Error('That connection code is incomplete - copy the whole thing.');

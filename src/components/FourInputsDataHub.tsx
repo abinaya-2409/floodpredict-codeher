@@ -226,7 +226,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
             <h4 className="font-bold text-fg text-sm">Predicting Hours Before Water Rises:</h4>
             <p className="text-fg-soft leading-relaxed">
               By combining high-resolution atmospheric models (WRF / ECMWF) with Doppler Radar nowcasts, 
-              FloodyPredict forecasts inundation <strong>6 to 12 hours prior to storm landfall</strong>, 
+              Floodylink forecasts inundation <strong>6 to 12 hours prior to storm landfall</strong>, 
               allowing authorities to empty reservoirs, issue vehicle warnings, and stage rescue boats before roads flood.
             </p>
           </div>

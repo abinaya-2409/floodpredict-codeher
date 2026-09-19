@@ -173,7 +173,7 @@ app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
     time: new Date().toISOString(),
-    platform: 'FloodyPredict',
+    platform: 'Floodylink',
     // The briefing no longer needs a model, so this is reported as the
     // optional extra it is rather than as a health problem.
     briefing: 'computed locally, no model required',

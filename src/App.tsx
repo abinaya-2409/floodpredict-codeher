@@ -65,7 +65,7 @@ export default function App() {
   const [isExplainerOpen, setIsExplainerOpen] = useState(false);
   const [citizenReports, setCitizenReports] = useState<CitizenReport[]>(INITIAL_CITIZEN_REPORTS);
 
-  // FloodyPredict Auth Session State
+  // Floodylink Auth Session State
 
   const t = TRANSLATIONS[language];
 
@@ -283,7 +283,7 @@ export default function App() {
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-fg-soft">
-                  Communicate with nearby FloodyPredict users when internet connectivity is unavailable.
+                  Communicate with nearby Floodylink users when internet connectivity is unavailable.
                 </p>
               </div>
             </div>

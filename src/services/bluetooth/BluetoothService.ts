@@ -278,14 +278,14 @@ class FloodyBluetoothService {
       const enabledRes = await plugin.isBluetoothEnabled?.();
       this.bluetoothState = enabledRes?.enabled ? 'poweredOn' : 'poweredOff';
 
-      // Start advertising our FloodyPredict device identity
+      // Start advertising our Floodylink device identity
       await plugin.startAdvertising?.({ deviceName: this.identity.nickname || this.identity.id });
 
       // Listen for discovered peers from Android native BLE scan
       plugin.addListener?.('onDeviceDiscovered', (device: any) => {
         DeviceDiscovery.registerDiscoveredPeer({
           id: device.address || device.id,
-          name: device.name || 'FloodyPredict User',
+          name: device.name || 'Floodylink User',
           rssi: device.rssi,
           source: 'native',
         });

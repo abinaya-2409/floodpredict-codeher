@@ -3,7 +3,7 @@
 @import "maplibre-gl/dist/maplibre-gl.css";
 
 /* ===========================================================================
-   FloodyPredict design tokens
+   Floodylink design tokens
    ---------------------------------------------------------------------------
    Every colour in the application resolves through one of the names below.
    No component may reference a raw palette value (bg-slate-900, #0ea5e9, ...)

@@ -131,7 +131,7 @@ public class BluetoothChatPlugin extends Plugin {
      */
     @PluginMethod
     public void startAdvertising(PluginCall call) {
-        String deviceName = call.getString("deviceName", "FloodyPredict");
+        String deviceName = call.getString("deviceName", "Floodylink");
 
         if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
             call.reject("Bluetooth not enabled");
@@ -319,7 +319,7 @@ public class BluetoothChatPlugin extends Plugin {
 
         BluetoothGattService service = connectedGatt.getService(SERVICE_UUID);
         if (service == null) {
-            call.reject("FloodyPredict GATT service not found on peer");
+            call.reject("Floodylink GATT service not found on peer");
             return;
         }
 
@@ -356,9 +356,9 @@ public class BluetoothChatPlugin extends Plugin {
         public void onScanResult(int callbackType, ScanResult result) {
             BluetoothDevice device = result.getDevice();
             String address = device.getAddress();
-            String name = "FloodyPredict User";
+            String name = "Floodylink User";
             try {
-                name = device.getName() != null ? device.getName() : "FloodyPredict User";
+                name = device.getName() != null ? device.getName() : "Floodylink User";
             } catch (Exception ignored) {}
 
             JSObject discovered = new JSObject();
@@ -516,7 +516,7 @@ public class BluetoothChatPlugin extends Plugin {
             try {
                 if (!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) return;
                 rfcommServerSocket = bluetoothAdapter.listenUsingInsecureRfcommWithServiceRecord(
-                    "FloodyPredict", SERVICE_UUID);
+                    "Floodylink", SERVICE_UUID);
                 while (true) {
                     BluetoothSocket socket = rfcommServerSocket.accept();
                     rfcommSocket = socket;

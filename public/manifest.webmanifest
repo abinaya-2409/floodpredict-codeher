@@ -1,6 +1,6 @@
 {
-  "name": "FloodyPredict - Flood Warning & Offline Chat",
-  "short_name": "FloodyPredict",
+  "name": "Floodylink - Flood Warning & Offline Chat",
+  "short_name": "Floodylink",
   "description": "Flood risk, street-level forecasts and an offline emergency chat for Tamil Nadu. Works with no network once installed.",
   "id": "/",
   "start_url": "/",

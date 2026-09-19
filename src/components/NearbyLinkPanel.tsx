@@ -103,7 +103,7 @@ export const NearbyLinkPanel: React.FC = () => {
 
   const share = async (text: string) => {
     try {
-      await navigator.share({ title: 'FloodyPredict connection code', text });
+      await navigator.share({ title: 'Floodylink connection code', text });
     } catch {
       // Cancelling the share sheet is normal and not worth reporting.
     }

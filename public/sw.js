@@ -1,6 +1,6 @@
 /* eslint-env serviceworker */
 /**
- * FloodyPredict service worker.
+ * Floodylink service worker.
  *
  * The point of this file is narrow: the app has to open and be useful on a
  * phone with no network, because that is the situation it exists for. A flood

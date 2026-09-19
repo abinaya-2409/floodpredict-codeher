@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.floodypredict.app',
-  appName: 'FloodyPredict',
+  appName: 'Floodylink',
   webDir: 'dist',
   server: {
     androidScheme: 'https',

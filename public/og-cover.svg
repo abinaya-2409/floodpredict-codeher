@@ -1,4 +1,4 @@
-<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FloodyPredict - Urban Flood Intelligence">
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Floodylink - Urban Flood Intelligence">
   <defs>
     <linearGradient id="sky" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#0a1626"/>
@@ -34,7 +34,7 @@
     <circle cx="16" cy="11.2" r="2.3" fill="#4f9cf9"/>
   </g>
 
-  <text x="96" y="352" font-family="Plus Jakarta Sans, Inter, sans-serif" font-size="76" font-weight="800" fill="#eef4fb" letter-spacing="-2">FloodyPredict</text>
+  <text x="96" y="352" font-family="Plus Jakarta Sans, Inter, sans-serif" font-size="76" font-weight="800" fill="#eef4fb" letter-spacing="-2">Floodylink</text>
   <text x="98" y="404" font-family="Inter, sans-serif" font-size="25" font-weight="600" fill="#8aa0bb" letter-spacing="0.5">Urban Flood Intelligence</text>
 
   <g font-family="JetBrains Mono, monospace" font-size="19" font-weight="600">
