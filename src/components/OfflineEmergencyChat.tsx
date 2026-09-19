@@ -73,7 +73,8 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
   const [soundArmed, setSoundArmed] = useState(isArmed);
   // Ids already announced, so re-reading storage cannot re-ring old messages.
   const announcedRef = useRef<Set<string>>(new Set());
-  const soundPrimedRef = useRef(false);
+  /** Which conversation the snapshot in announcedRef belongs to. */
+  const primedPeerRef = useRef<string | null>(null);
   // Re-renders the 'seen 3s ago' labels without touching the device list.
   const [, setTick] = useState(0);
 
@@ -105,10 +106,24 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
       setConnState(state);
       setConnectedPeer(peer);
       if (peer) {
-        // A new conversation gets a clean slate, so its history is shown
-        // rather than announced.
-        soundPrimedRef.current = false;
-        announcedRef.current.clear();
+        /*
+         * Snapshot the existing thread here, synchronously, as history.
+         *
+         * The previous version primed on the first poll instead, which lost
+         * alerts: a message that arrived between connecting and that first
+         * poll was already in storage when the snapshot was taken, so it was
+         * marked as history and never rang. That is a silent failure and it
+         * showed up only against production, where the timing differed.
+         *
+         * Taking the snapshot at the moment of connection closes the window
+         * - anything stored afterwards is by definition not in it - and it
+         * uses no clocks, so the two phones disagreeing about the time
+         * cannot swallow an alert either.
+         */
+        if (primedPeerRef.current !== peer.id) {
+          primedPeerRef.current = peer.id;
+          announcedRef.current = new Set(OfflineStorage.getMessages(peer.id).map((m) => m.id));
+        }
         loadMessagesForPeer(peer.id);
       }
     });
@@ -182,22 +197,26 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
     const msgs = OfflineStorage.getMessages(peerId);
     const seen = announcedRef.current;
 
-    if (!soundPrimedRef.current) {
-      for (const m of msgs) seen.add(m.id);
-      soundPrimedRef.current = true;
-    } else {
-      let ring: 'sos' | 'message' | null = null;
-      for (const m of msgs) {
-        if (seen.has(m.id)) continue;
-        seen.add(m.id);
-        // Our own messages, delivery receipts and liveness probes are not
-        // things a person needs to be alerted to.
-        if (m.isSelf || m.type === 'ack' || m.type === 'ping' || m.type === 'pong') continue;
-        if (m.type === 'sos' || m.priority === 'emergency') ring = 'sos';
-        else if (!ring) ring = 'message';
-      }
-      if (ring) notifyIncoming(ring);
+    // A conversation opened without going through the connect listener still
+    // needs its history treated as history rather than announced.
+    if (primedPeerRef.current !== peerId) {
+      primedPeerRef.current = peerId;
+      announcedRef.current = new Set(msgs.map((m) => m.id));
+      setMessages([...msgs]);
+      return;
     }
+
+    let ring: 'sos' | 'message' | null = null;
+    for (const m of msgs) {
+      if (seen.has(m.id)) continue;
+      seen.add(m.id);
+      // Our own messages, delivery receipts and liveness probes are not
+      // things a person needs to be alerted to.
+      if (m.isSelf || m.type === 'ack' || m.type === 'ping' || m.type === 'pong') continue;
+      if (m.type === 'sos' || m.priority === 'emergency') ring = 'sos';
+      else if (!ring) ring = 'message';
+    }
+    if (ring) notifyIncoming(ring);
 
     setMessages([...msgs]);
   };

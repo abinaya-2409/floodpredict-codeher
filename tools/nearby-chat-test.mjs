@@ -186,11 +186,21 @@ await B.page.evaluate(() => {
 });
 await B.page.touchscreen.tap(200, 700);
 await wait(800);
-const armed = await B.page.evaluate(async () => {
-  const mod = await import('/src/utils/alertSound.ts');
-  return { armed: mod.isArmed(), muted: mod.isMuted() };
-}).catch(() => null);
-if (armed) check(armed.armed && !armed.muted, 'alert sound is armed on the receiving phone', JSON.stringify(armed));
+/*
+ * Whether arming worked is read from the UI, not by importing the module.
+ *
+ * Importing /src/utils/alertSound.ts only resolves against the dev server;
+ * against a production build that path falls through to index.html and the
+ * browser logs a MIME-type error, which then shows up as an application
+ * error that is really a fault in this file.
+ */
+const soundLabel = await B.page.evaluate(() => {
+  const el = document.querySelector('[data-testid="sound-toggle"]');
+  return el ? el.textContent?.trim() ?? '' : null;
+});
+if (soundLabel !== null) {
+  check(/sound on/i.test(soundLabel), 'alert sound is armed on the receiving phone', soundLabel);
+}
 
 const sent = await A.page.evaluate(async () => {
   const input = document.querySelector('input[type="text"], textarea[placeholder*="essage" i]');
