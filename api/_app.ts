@@ -210,18 +210,61 @@ interface BriefingPayload {
   sections?: { heading: string; lines: string[] }[];
 }
 
-const LLM_ENDPOINTS: Record<string, { url: string; model: string; label: string }> = {
+/**
+ * Free, open-weight models, in the order they are tried.
+ *
+ * Every one of these is an open-weights model on a provider with a free
+ * tier. The list is a fallback chain rather than a single choice because a
+ * free tier's model catalogue moves: a name that works today can be retired
+ * or rate-limited tomorrow, and a single hard-coded model turns that into a
+ * dead button. Anything that comes back 400, 404 or 429 is treated as "not
+ * this one" and the next is tried.
+ */
+const LLM_PROVIDERS: Record<
+  string,
+  { url: string; models: string[]; label: string; keyPrefix: RegExp }
+> = {
   groq: {
     url: 'https://api.groq.com/openai/v1/chat/completions',
-    model: 'llama-3.3-70b-versatile',
-    label: 'Llama 3.3 70B (Groq)',
+    label: 'Groq',
+    keyPrefix: /^gsk_/,
+    models: [
+      'llama-3.3-70b-versatile',
+      'openai/gpt-oss-120b',
+      'qwen/qwen3-32b',
+      'llama-3.1-8b-instant',
+    ],
   },
   openrouter: {
     url: 'https://openrouter.ai/api/v1/chat/completions',
-    model: 'meta-llama/llama-3.3-70b-instruct:free',
-    label: 'Llama 3.3 70B (OpenRouter)',
+    label: 'OpenRouter',
+    keyPrefix: /^sk-or-/,
+    models: [
+      'meta-llama/llama-3.3-70b-instruct:free',
+      'deepseek/deepseek-chat-v3-0324:free',
+      'qwen/qwen3-235b-a22b:free',
+      'mistralai/mistral-small-3.2-24b-instruct:free',
+    ],
   },
 };
+
+/**
+ * Which provider a key belongs to.
+ *
+ * Read from the key itself when `LLM_PROVIDER` is not set. Groq keys start
+ * `gsk_` and OpenRouter keys start `sk-or-`, so pasting one key into one
+ * variable is the whole of the setup - the commonest way this failed was a
+ * valid OpenRouter key being sent to Groq because the provider defaulted.
+ */
+function resolveProvider(key: string): { id: string; conf: (typeof LLM_PROVIDERS)[string] } | null {
+  const named = (process.env.LLM_PROVIDER ?? '').trim().toLowerCase();
+  if (named && LLM_PROVIDERS[named]) return { id: named, conf: LLM_PROVIDERS[named] };
+  if (named) return null;
+  for (const [id, conf] of Object.entries(LLM_PROVIDERS)) {
+    if (conf.keyPrefix.test(key)) return { id, conf };
+  }
+  return { id: 'groq', conf: LLM_PROVIDERS.groq };
+}
 
 function briefingToPlainText(b: BriefingPayload): string {
   const out = [b.headline ?? ''];
@@ -232,27 +275,42 @@ function briefingToPlainText(b: BriefingPayload): string {
   return out.join(String.fromCharCode(10));
 }
 
-app.post('/api/briefing/rewrite', async (req, res) => {
-  const provider = (process.env.LLM_PROVIDER ?? 'groq').toLowerCase();
-  const key = readApiKey('LLM_API_KEY');
-  const endpoint = LLM_ENDPOINTS[provider];
+const REWRITE_SYSTEM_PROMPT =
+  'You rewrite flood incident briefings for municipal officers in India. ' +
+  'Use only the facts given. Never add, change or round a number, a place ' +
+  'name or a time. Never invent a cause, a statistic or a recommendation. ' +
+  'Write plain English that a non-specialist can act on, in short ' +
+  'paragraphs, no headings, no bullet points, under 250 words. If a fact ' +
+  'is not in the input, leave it out.';
 
-  if (!endpoint) {
-    res.json({
-      prose: null,
-      message: `Unknown LLM_PROVIDER "${provider}". Use groq or openrouter.`,
-    });
-    return;
-  }
+app.post('/api/briefing/rewrite', async (req, res) => {
+  const key = readApiKey('LLM_API_KEY');
+
   if (!key) {
+    // Not an error. The client composes prose from the same facts locally,
+    // which is the path that works with no network at all, and this only
+    // says why it did not get the better-written version.
     res.json({
       prose: null,
+      configured: false,
       message:
-        'No language model is configured. Set LLM_PROVIDER and LLM_API_KEY to enable ' +
-        'the prose rewrite; both Groq and OpenRouter have a free tier.',
+        'No language model key is set, so this was written by the app itself. ' +
+        'For a better-written version, put a free Groq or OpenRouter key in ' +
+        'LLM_API_KEY.',
     });
     return;
   }
+
+  const resolved = resolveProvider(key);
+  if (!resolved) {
+    res.json({
+      prose: null,
+      configured: false,
+      message: `Unknown LLM_PROVIDER "${process.env.LLM_PROVIDER}". Use groq or openrouter.`,
+    });
+    return;
+  }
+  const { conf } = resolved;
 
   const briefing = (req.body?.briefing ?? {}) as BriefingPayload;
   if (!briefing.sections?.length) {
@@ -260,62 +318,65 @@ app.post('/api/briefing/rewrite', async (req, res) => {
     return;
   }
 
-  try {
-    const upstream = await fetch(endpoint.url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${key}`,
-      },
-      body: JSON.stringify({
-        model: endpoint.model,
-        temperature: 0.2,
-        max_tokens: 700,
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You rewrite flood incident briefings for municipal officers in India. ' +
-              'Use only the facts given. Never add, change or round a number, a place ' +
-              'name or a time. Never invent a cause, a statistic or a recommendation. ' +
-              'Write plain English that a non-specialist can act on, in short ' +
-              'paragraphs, no headings, no bullet points, under 250 words. If a fact ' +
-              'is not in the input, leave it out.',
-          },
-          { role: 'user', content: briefingToPlainText(briefing) },
-        ],
-      }),
-    });
+  const userContent = briefingToPlainText(briefing);
+  const attempts: string[] = [];
 
-    if (!upstream.ok) {
-      const detail = (await upstream.text()).slice(0, 200);
-      res.json({
-        prose: null,
-        message:
-          upstream.status === 401
-            ? `${endpoint.label} rejected the API key.`
-            : `${endpoint.label} returned ${upstream.status}. ${detail}`,
+  // Walk the chain. A free tier retires and rate-limits models without
+  // warning, so "this model is unavailable" has to mean "try the next one"
+  // rather than "the feature is broken".
+  for (const model of conf.models) {
+    try {
+      const upstream = await fetch(conf.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+        body: JSON.stringify({
+          model,
+          temperature: 0.2,
+          max_tokens: 700,
+          messages: [
+            { role: 'system', content: REWRITE_SYSTEM_PROMPT },
+            { role: 'user', content: userContent },
+          ],
+        }),
       });
-      return;
-    }
 
-    const body = (await upstream.json()) as {
-      choices?: { message?: { content?: string } }[];
-    };
-    const prose = body.choices?.[0]?.message?.content?.trim();
+      if (upstream.status === 401 || upstream.status === 403) {
+        res.json({
+          prose: null,
+          configured: true,
+          message: `${conf.label} rejected the API key.`,
+        });
+        return;
+      }
 
-    if (!prose) {
-      res.json({ prose: null, message: `${endpoint.label} returned nothing to show.` });
+      if (!upstream.ok) {
+        // 400 unknown model, 404 retired, 429 rate-limited: all "next".
+        attempts.push(`${model} -> ${upstream.status}`);
+        continue;
+      }
+
+      const body = (await upstream.json()) as {
+        choices?: { message?: { content?: string } }[];
+      };
+      const prose = body.choices?.[0]?.message?.content?.trim();
+      if (!prose) {
+        attempts.push(`${model} -> empty`);
+        continue;
+      }
+
+      res.json({ prose, configured: true, model: `${model} (${conf.label})` });
       return;
+    } catch (err) {
+      attempts.push(`${model} -> ${(err as Error).message}`);
     }
-    res.json({ prose, model: endpoint.label });
-  } catch (err) {
-    console.warn('Briefing rewrite failed:', err);
-    res.json({
-      prose: null,
-      message: `Could not reach ${endpoint.label}: ${(err as Error).message}`,
-    });
   }
+
+  console.warn('Briefing rewrite: every model failed.', attempts);
+  res.json({
+    prose: null,
+    configured: true,
+    message: `No model on ${conf.label} answered. Tried: ${attempts.join('; ')}`,
+  });
 });
 
 /*

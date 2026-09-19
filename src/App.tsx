@@ -818,27 +818,24 @@ export default function App() {
         )}
       </main>
 
-      {/* FLUID HYDRODYNAMIC FOOTER */}
+      {/* Footer.
+          It used to carry a hackathon problem-statement code, a restatement
+          of the product name as a sentence, and a claim to be a "Multi-City
+          ML Model (Chennai, Mumbai, Bengaluru)" - which stopped being true
+          when the app was scoped to Tamil Nadu. What is left is the name and
+          the one link anybody actually follows. */}
       <footer className="shell pad-safe-bottom relative z-10 w-full py-6">
-        <div className="glass flex flex-col items-center justify-between gap-3 rounded-full border-risk-low/20 px-5 py-3 text-xs text-muted md:flex-row">
-          <div className="flex items-center gap-2">
-            <span className="text-risk-low-ink font-semibold flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-risk-low animate-pulse" />
-              FloodyLink
-            </span>
-            <span className="text-subtle">•</span>
-            <span>S-34 AI-Based Flood Risk Prediction &amp; Tiered Early Warning System</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsExplainerOpen(true)}
-              className="hover:text-risk-low-ink transition-colors text-accent-soft font-medium cursor-pointer"
-            >
-              System Concept &amp; 4 Inputs
-            </button>
-            <span className="hidden md:inline text-subtle">•</span>
-            <span className="text-fg-soft font-medium">Multi-City ML Model (Chennai, Mumbai, Bengaluru)</span>
-          </div>
+        <div className="glass flex flex-col items-center justify-between gap-2 rounded-full px-5 py-3 text-xs text-muted sm:flex-row">
+          <span className="flex items-center gap-1.5 font-semibold text-fg-soft">
+            <span className="h-2 w-2 rounded-full bg-risk-low" />
+            FloodyLink
+          </span>
+          <button
+            onClick={() => setIsExplainerOpen(true)}
+            className="cursor-pointer font-medium text-accent transition-colors hover:text-accent-soft"
+          >
+            How it works
+          </button>
         </div>
       </footer>
 

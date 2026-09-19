@@ -281,3 +281,99 @@ export function briefingToText(b: IncidentBriefing): string {
   out.push(b.basis);
   return out.join('\n');
 }
+
+/* ---------------------------------------------------------------------------
+ * Prose, without a model
+ *
+ * "Rewrite as prose" used to be the one part of this panel that could not
+ * work on its own: with no API key it showed a configuration notice and did
+ * nothing, which in an application built for the moment the towers go down
+ * is the wrong way round. The network is the first thing a flood takes.
+ *
+ * Turning a set of computed facts into paragraphs does not need a 70B model.
+ * It needs the facts joined in a sensible order with connecting words, which
+ * is what this does - and because it only ever reorders and joins strings
+ * that were computed upstream, it cannot invent a number. That is the exact
+ * failure the model prompt spends a paragraph trying to prevent.
+ *
+ * A model is still better at cadence, and is still used when one is
+ * configured. This is the floor, not the ceiling.
+ * ------------------------------------------------------------------------ */
+
+/** Lowercases a sentence's first letter so it can be joined mid-sentence. */
+function decapitalise(s: string): string {
+  // Not on an acronym or a place name: "OMR Tech Corridor" must stay put.
+  if (/^[A-Z]{2,}/.test(s)) return s;
+  if (/^[A-Z][a-z]+ [A-Z]/.test(s)) return s;
+  return s.charAt(0).toLowerCase() + s.slice(1);
+}
+
+/** Strips a trailing full stop so a line can take a different one. */
+const unpunctuated = (s: string) => s.replace(/[.\s]+$/, '');
+
+/**
+ * Joins lines into one paragraph.
+ *
+ * Long lines stay as their own sentences; short ones are run together with
+ * connectives, because a paragraph of six five-word sentences reads worse
+ * than the bullet list it replaced.
+ */
+function paragraph(lines: string[], lead?: string): string {
+  const parts = lines.map(unpunctuated).filter(Boolean);
+  if (!parts.length) return '';
+
+  const sentences: string[] = [];
+  let i = 0;
+  while (i < parts.length) {
+    const head = parts[i];
+    const next = parts[i + 1];
+    if (next && head.length < 70 && next.length < 70) {
+      sentences.push(`${head}, and ${decapitalise(next)}`);
+      i += 2;
+    } else {
+      sentences.push(head);
+      i += 1;
+    }
+  }
+
+  const body = sentences.map((s) => `${s}.`).join(' ');
+  return lead ? `${lead} ${body}` : body;
+}
+
+/**
+ * The briefing as paragraphs rather than bullets.
+ *
+ * Every word of substance here came from `buildIncidentBriefing`; this adds
+ * only the joins.
+ */
+export function briefingToProse(b: IncidentBriefing): string {
+  const find = (h: string) => b.sections.find((s) => s.heading.toLowerCase() === h)?.lines ?? [];
+
+  const situation = find('what is happening');
+  const worst = find('where to go first');
+  const actions = find('what to do now');
+  const residents = find('what to tell residents');
+  const past = find('this has happened here before');
+
+  const leads: Record<string, string | undefined> = {
+    // Deliberately not "4 areas need attention": a count is a number, and
+    // the guarantee this composer offers is that it emits no digit that the
+    // briefing did not already contain. A count is easy to derive and just
+    // as easy to derive wrongly, and the list that follows says how many.
+    worst: worst.length ? (worst.length === 1 ? 'Start here.' : 'Start here, in order.') : undefined,
+    actions: actions.length ? 'Immediate steps:' : undefined,
+    residents: residents.length ? 'For residents:' : undefined,
+    past: past.length ? 'For context,' : undefined,
+  };
+
+  const paragraphs = [
+    unpunctuated(b.headline) + '.',
+    paragraph(situation),
+    paragraph(worst, leads.worst),
+    paragraph(actions, leads.actions),
+    paragraph(residents, leads.residents),
+    paragraph(past, leads.past),
+  ].filter(Boolean);
+
+  return paragraphs.join(String.fromCharCode(10, 10));
+}

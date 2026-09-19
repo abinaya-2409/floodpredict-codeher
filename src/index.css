@@ -1106,17 +1106,7 @@ body {
   cursor: pointer;
 }
 
-.splash-grid {
-  background-image:
-    linear-gradient(to right, color-mix(in oklab, var(--color-accent) 22%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklab, var(--color-accent) 22%, transparent) 1px, transparent 1px);
-  background-size: 48px 48px;
-  /* The grid is a texture, not a feature. Faded towards the edges it reads
-     as depth; carried all the way out it reads as graph paper. */
-  mask-image: radial-gradient(70% 70% at 50% 45%, #000 0%, transparent 78%);
-  -webkit-mask-image: radial-gradient(70% 70% at 50% 45%, #000 0%, transparent 78%);
-  opacity: 0.5;
-}
+
 
 .splash-halo {
   background: radial-gradient(
@@ -1137,14 +1127,7 @@ body {
   background: color-mix(in oklab, var(--color-surface) 72%, transparent);
 }
 
-.splash-beam {
-  background: conic-gradient(
-    from 0deg,
-    color-mix(in oklab, var(--color-accent) 45%, transparent) 0deg,
-    transparent 76deg,
-    transparent 360deg
-  );
-}
+
 
 .splash-track {
   background: color-mix(in oklab, var(--color-fg) 12%, transparent);
@@ -1154,19 +1137,91 @@ body {
   background: linear-gradient(90deg, var(--color-accent-deep), var(--color-accent), var(--color-accent-soft));
 }
 
-.splash-shimmer {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in oklab, var(--color-on-accent) 55%, transparent),
-    transparent
-  );
-}
+
 
 @media (prefers-reduced-motion: reduce) {
-  .splash-beam,
-  .splash-shimmer,
   .splash-halo {
     display: none;
+  }
+}
+
+/* ===========================================================================
+   The cursor
+
+   A dry autumn leaf, tip-first, so the point of contact is the point of the
+   leaf. Two states: the leaf at rest for the page, and a lifted, tilted,
+   warmer one for anything clickable - the shape changes as well as the
+   colour, so the state survives without colour vision.
+
+   Three rules keep a decorative cursor from becoming a usability problem:
+
+     Text still gets an I-beam and resizes still get arrows. A custom cursor
+     that hides where the text caret will land is worse than no custom
+     cursor, however nice it looks.
+
+     Every rule carries a real keyword as its last fallback. An SVG cursor
+     that fails to load leaves no cursor at all, which is unrecoverable for
+     the person using it, and `url(...), auto` is the whole guard.
+
+     Nothing applies on a touch device, where there is no pointer to draw,
+     and nothing applies for anyone who has asked the system for a larger or
+     higher-contrast pointer - their setting is an accessibility need and
+     outranks the decoration.
+   =========================================================================== */
+
+@media (hover: hover) and (pointer: fine) {
+  body {
+    cursor: url('/cursors/leaf.svg') 3 3, auto;
+  }
+
+  /* Anything you can act on. */
+  a[href],
+  button,
+  summary,
+  label[for],
+  select,
+  [role='button'],
+  [role='tab'],
+  [role='option'],
+  [tabindex]:not([tabindex='-1']),
+  .cursor-pointer {
+    cursor: url('/cursors/leaf-pointer.svg') 4 4, pointer;
+  }
+
+  /* Text editing keeps its I-beam: the leaf cannot show a caret position. */
+  input,
+  textarea,
+  [contenteditable='true'] {
+    cursor: text;
+  }
+
+  /* A disabled control should not look clickable. */
+  button:disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
+  /* The map owns its own cursors - grab, grabbing and the crosshair used
+     when placing a storm centre all mean something specific. */
+  .leaflet-container,
+  .leaflet-container *,
+  .maplibregl-canvas-container,
+  .maplibregl-canvas-container * {
+    cursor: inherit;
+  }
+
+  .leaflet-grab,
+  .maplibregl-canvas-container.maplibregl-interactive {
+    cursor: grab;
+  }
+
+  .leaflet-dragging .leaflet-grab,
+  .maplibregl-canvas-container.maplibregl-interactive:active {
+    cursor: grabbing;
+  }
+
+  /* Range sliders: the leaf would sit over the value being dragged. */
+  input[type='range'] {
+    cursor: ew-resize;
   }
 }

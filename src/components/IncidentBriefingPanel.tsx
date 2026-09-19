@@ -1,7 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { Check, Copy, FileText, RefreshCw, Sparkles } from 'lucide-react';
 import { CityData, SimulationParams, ZoneData, ZoneRiskAssessment } from '../types';
-import { IncidentBriefing, briefingToText, buildIncidentBriefing } from '../utils/briefing';
+import {
+  IncidentBriefing,
+  briefingToProse,
+  briefingToText,
+  buildIncidentBriefing,
+} from '../utils/briefing';
 
 /**
  * The incident briefing.
@@ -52,8 +57,10 @@ export const IncidentBriefingPanel: React.FC<Props> = ({
   );
 
   const [prose, setProse] = useState<string | null>(null);
+  /** Who wrote the prose on screen, so the panel can say so. */
+  const [proseSource, setProseSource] = useState<string | null>(null);
   const [writing, setWriting] = useState(false);
-  const [writeError, setWriteError] = useState<string | null>(null);
+  const [writeNote, setWriteNote] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const severity = SEVERITY[briefing.severity];
@@ -68,10 +75,25 @@ export const IncidentBriefingPanel: React.FC<Props> = ({
     }
   };
 
-  /** Asks the server to rewrite the facts above as prose, if a model is set up. */
+  /**
+   * Turns the briefing into prose.
+   *
+   * The app composes it first, from the same computed facts, so the button
+   * always does something - including with no network, which is the state
+   * this application exists for. A language model, when one is configured,
+   * then replaces that with a better-written version of the same facts.
+   *
+   * Previously this asked the server first and showed a configuration
+   * notice when no key was set, so on every deployment without a key the
+   * button was decoration.
+   */
   const rewrite = async () => {
+    const local = briefingToProse(briefing);
+    setProse(local);
+    setProseSource('the app');
+    setWriteNote(null);
     setWriting(true);
-    setWriteError(null);
+
     try {
       const res = await fetch('/api/briefing/rewrite', {
         method: 'POST',
@@ -79,10 +101,16 @@ export const IncidentBriefingPanel: React.FC<Props> = ({
         body: JSON.stringify({ briefing }),
       });
       const data = await res.json();
-      if (data.prose) setProse(data.prose);
-      else setWriteError(data.message ?? 'No language model is configured.');
+      if (data.prose) {
+        setProse(data.prose);
+        setProseSource(data.model ?? 'a language model');
+      } else if (data.message) {
+        setWriteNote(data.message);
+      }
     } catch {
-      setWriteError('Could not reach the rewrite service.');
+      // Offline is the expected case here, not a failure worth shouting
+      // about: the prose is already on screen.
+      setWriteNote('No network, so this was written by the app itself.');
     } finally {
       setWriting(false);
     }
@@ -126,7 +154,7 @@ export const IncidentBriefingPanel: React.FC<Props> = ({
           <button
             onClick={rewrite}
             disabled={writing}
-            title="Rewrite these same facts as flowing prose, if a language model is configured"
+            title="Rewrite these same facts as flowing prose"
             className="flex h-8 items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-3 text-mini font-semibold text-accent transition-colors hover:bg-accent/20 disabled:opacity-50 cursor-pointer"
           >
             {writing ? (
@@ -134,7 +162,7 @@ export const IncidentBriefingPanel: React.FC<Props> = ({
             ) : (
               <Sparkles className="h-3 w-3" aria-hidden="true" />
             )}
-            {writing ? 'Writing' : 'Rewrite as prose'}
+            {writing ? 'Writing' : 'Read as prose'}
           </button>
         </div>
       </div>
@@ -143,17 +171,16 @@ export const IncidentBriefingPanel: React.FC<Props> = ({
         {briefing.headline}
       </p>
 
-      {writeError && (
-        <p className="mt-2 rounded-card border border-risk-high/30 bg-risk-high/10 px-3 py-2 text-nano leading-relaxed text-fg-soft">
-          {writeError} The briefing below is unaffected &mdash; it is computed, not written
-          by a model.
+      {writeNote && (
+        <p className="mt-2 rounded-card border border-line/70 bg-surface-2/60 px-3 py-2 text-nano leading-relaxed text-muted">
+          {writeNote}
         </p>
       )}
 
       {prose ? (
         <div className="mt-3 space-y-2">
           <p className="font-mono text-nano uppercase tracking-[0.14em] text-muted">
-            Rewritten as prose
+            As prose &middot; written by {proseSource ?? 'the app'}
           </p>
           <p className="whitespace-pre-wrap rounded-card border border-line/70 bg-bg/60 p-3.5 text-mini leading-relaxed text-fg-soft">
             {prose}

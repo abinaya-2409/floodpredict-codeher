@@ -16,9 +16,20 @@
  *     network to re-confirm that is pure latency.
  *   - App data (/data/*, /icons/*): stale-while-revalidate. Serve instantly,
  *     refresh in the background.
- *   - Map tiles: cache first with a hard cap. Tiles are what make a map usable
- *     offline and also what would happily eat a phone's whole disk, so the
- *     tile cache is trimmed to the most recent MAX_TILES entries.
+ *   - Map tiles: stale-while-revalidate with a hard cap. Tiles are what make
+ *     a map usable offline and also what would happily eat a phone's whole
+ *     disk, so the cache is trimmed to the most recent MAX_TILES entries.
+ *
+ *     These were cache-first, and that was a trap. A cross-origin tile
+ *     arrives as an opaque response: status 0, ok false, no readable headers
+ *     and no readable body. A tile server's 404, its 500 and its rate-limit
+ *     page are all opaque too, and all indistinguishable from a real tile.
+ *     Cache-first with no expiry therefore stored whatever came back the
+ *     first time and served it forever - so one bad minute from the tile CDN
+ *     left the map permanently black for that person, on every later visit,
+ *     with a full set of <img> elements that had all "loaded". Serving the
+ *     cached copy and refreshing behind it keeps the offline guarantee and
+ *     lets a poisoned entry heal itself on the next look.
  *   - /api/*: network only. A cached flood forecast is worse than a visible
  *     failure, because it looks current and is not.
  *
@@ -29,7 +40,10 @@
  * offline afterwards.
  */
 
-const VERSION = 'v3';
+// Bumped to v4 to drop every cache from v3, including any tiles poisoned by
+// the cache-first bug above. The activate handler deletes anything not in the
+// current set, so this is what repairs an already-black map.
+const VERSION = 'v4';
 const SHELL_CACHE = `floody-shell-${VERSION}`;
 const ASSET_CACHE = `floody-assets-${VERSION}`;
 const DATA_CACHE = `floody-data-${VERSION}`;
@@ -105,12 +119,20 @@ async function cacheFirst(request, cacheName, { max } = {}) {
   return response;
 }
 
-async function staleWhileRevalidate(request, cacheName) {
+async function staleWhileRevalidate(request, cacheName, { max } = {}) {
   const cache = await caches.open(cacheName);
   const hit = await cache.match(request);
   const network = fetch(request)
     .then((response) => {
-      if (response && response.ok) cache.put(request, response.clone());
+      // `opaque` is how every cross-origin tile comes back, so it has to be
+      // storable or the map never works offline. It is also how that
+      // server's errors come back, which is why this path refreshes rather
+      // than trusting what it already has.
+      if (response && (response.ok || response.type === 'opaque')) {
+        cache.put(request, response.clone()).then(() => {
+          if (max) void trim(cacheName, max);
+        });
+      }
       return response;
     })
     .catch(() => null);
@@ -155,9 +177,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Map tiles and the webfonts, both cross-origin and both immutable.
+  // Map tiles. Served from cache for speed and for offline, refreshed behind
+  // the scenes so a tile cached during an outage does not stay wrong.
   if (/tile|arcgisonline|basemaps|openstreetmap|tiles\./i.test(url.hostname + url.pathname)) {
-    event.respondWith(cacheFirst(request, TILE_CACHE, { max: MAX_TILES }));
+    event.respondWith(staleWhileRevalidate(request, TILE_CACHE, { max: MAX_TILES }));
     return;
   }
   if (/fonts\.(googleapis|gstatic)\.com$/.test(url.hostname)) {

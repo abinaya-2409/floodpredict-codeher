@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+  <!--
+    The pointer: a dry autumn leaf, tip at the top-left so the point of
+    contact is the point of the leaf. Drawn with a drop shadow because a
+    cursor has to stay findable over a black map and a white panel alike.
+  -->
+  <defs>
+    <linearGradient id="blade" x1="4" y1="3" x2="22" y2="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E8A23C"/>
+      <stop offset="0.45" stop-color="#C96A24"/>
+      <stop offset="1" stop-color="#8E3B18"/>
+    </linearGradient>
+    <filter id="lift" x="-30%" y="-30%" width="170%" height="170%">
+      <feDropShadow dx="0.6" dy="1" stdDeviation="0.9" flood-color="#000" flood-opacity="0.55"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#lift)">
+    <!-- Blade: tip at (3,3), curling round to the stem at bottom-right. -->
+    <path
+      d="M3 3 C 13 4.5, 21.5 10, 23 21 C 13.5 21.5, 5.5 15.5, 3 3 Z"
+      fill="url(#blade)"
+      stroke="#5E2410"
+      stroke-width="1.05"
+      stroke-linejoin="round"
+    />
+    <!-- Midrib, running tip to stem. -->
+    <path d="M3.6 3.6 C 10 9, 16 15, 22.4 20.6" stroke="#5E2410" stroke-width="1" stroke-linecap="round" fill="none" opacity="0.75"/>
+    <!-- Three veins a side, short enough to read at 28px. -->
+    <path d="M7.6 7.6 L 7.2 12.4 M11.6 11.6 L 10.8 16.6 M15.6 15.6 L 15.2 19.8" stroke="#5E2410" stroke-width="0.75" stroke-linecap="round" fill="none" opacity="0.55"/>
+    <path d="M7.6 7.6 L 12.6 7.4 M11.6 11.6 L 16.8 11.6 M15.6 15.6 L 19.8 15.8" stroke="#5E2410" stroke-width="0.75" stroke-linecap="round" fill="none" opacity="0.55"/>
+    <!-- Stem. -->
+    <path d="M23 21 C 24.4 22.4, 25.2 23.6, 25.4 25.2" stroke="#5E2410" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>
