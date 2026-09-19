@@ -513,6 +513,69 @@ so the link just plugs into that seam and none of it had to be written twice.
 
 An arriving message rings the alert tone and buzzes the phone.
 
+### A message can cross a phone that is not its recipient
+
+The chat was point to point: a message could only reach someone you had
+personally paired with. It now runs over a mesh built on BitChat's design,
+in [`src/services/mesh/BitchatMesh.ts`](src/services/mesh/BitchatMesh.ts).
+
+```
+     A ── B ── C
+```
+
+A and C never pair and exchange no code. A's message reaches C because B
+relays it. In a flood that is the difference between a message reaching the
+one person who can help and not reaching them.
+
+Four ideas, all of them BitChat's:
+
+- **Flooding with a hop budget.** A packet goes to every link except the one
+  it arrived on, and its TTL drops by one each time. No routing tables, no
+  topology discovery, no coordinator.
+- **Deduplication by message id.** Flooding a graph with a cycle would
+  otherwise circulate forever; remembering what you have already seen is
+  what makes the flood terminate.
+- **Store and forward.** A message for someone unreachable is held and
+  offered the moment they appear, so two people never in range at the same
+  time can still exchange one.
+- **Fragmentation.** Sized for a BLE characteristic write at the default
+  23-byte MTU, counted in UTF-8 bytes rather than characters - Tamil is
+  about three bytes a character, so splitting on length would produce
+  fragments two to three times over the limit and cut characters in half.
+
+**What a browser cannot do.** BitChat is a *Bluetooth* mesh: every phone is
+both a BLE central and a BLE peripheral. **Web Bluetooth can only be a
+central.** There is no API for a page to advertise as a peripheral, so two
+browsers can never see each other over BLE, and a true BLE mesh is not
+available to a PWA at any amount of effort. That is a platform limit, not a
+missing feature.
+
+So the mesh runs over the WebRTC local-network links the app already uses.
+The protocol knows nothing about its transport, so the same code drives BLE
+unchanged in the Capacitor Android build, where a phone can be a peripheral.
+
+**How it is tested.** The protocol is checked against a fake wire in
+[`bitchatMesh.test.ts`](src/__tests__/bitchatMesh.test.ts) - 18 tests over
+real mesh instances with only the radio faked, covering a five-device line,
+a ring that must not loop, two paths delivering exactly once, the TTL bound,
+a late joiner collecting a stored message, and a Tamil string surviving
+fragmentation.
+
+The wiring is checked with three real browsers:
+
+```bash
+npm run test:mesh -- http://localhost:4330/
+```
+
+[`tools/mesh-relay-test.mjs`](tools/mesh-relay-test.mjs) opens three pages,
+drives the pairing UI the way a person does, and asserts that C reads a
+message A sent while B is the only thing between them. Building it found
+two defects that the unit tests could not: the panel hid every pairing
+control once one phone connected, so a device in the middle could never add
+a second link; and `createInvite` began by calling `close()`, which was
+harmless with one connection and hung up on the first link once there could
+be two.
+
 ### The honest limits
 
 - **Both phones must be on the same network.** Same Wi-Fi, or one of them

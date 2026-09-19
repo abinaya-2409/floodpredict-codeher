@@ -45,6 +45,7 @@ import { MessageTransport } from './MessageTransport';
 import { DeviceDiscovery } from './DeviceDiscovery';
 import { BluetoothSupport, WebBluetoothScanner } from './WebBluetoothScanner';
 import { LocalLink } from '../link/LocalLink';
+import { BitchatMesh } from '../mesh/BitchatMesh';
 import { notifyIncoming } from '../../utils/alertSound';
 import { ConnectionManager } from './ConnectionManager';
 import { OfflineStorage } from './OfflineStorage';
@@ -89,8 +90,23 @@ class FloodyBluetoothService {
   private continuousDiagnosticTimer: NodeJS.Timeout | number | null = null;
   private diagnosticListeners: Set<(summary: DiagnosticSummary) => void> = new Set();
 
+  /**
+   * The relay layer.
+   *
+   * Created before `initTransport` wires it up, because the transport's
+   * sender closes over it. Its identity is this device's, so the mesh can
+   * tell a packet addressed here from one merely passing through.
+   */
+  private mesh: BitchatMesh;
+
+  /** What the mesh is currently holding and reaching, for the chat screen. */
+  public getMeshStats(): { peers: number; seen: number; stored: number; pendingFragments: number } {
+    return this.mesh.stats();
+  }
+
   constructor() {
     this.identity = MessageProtocol.getOrCreateLocalIdentity();
+    this.mesh = new BitchatMesh(this.identity.id);
     this.initTransport();
     this.initHeartbeatPingSender();
   }
@@ -147,11 +163,14 @@ class FloodyBluetoothService {
         }
       }
 
-      // The local-network link is the only browser transport that actually
-      // carries a message to another handset, so it is tried before anything
-      // else once it is up.
+      // The local-network links are the only browser transport that
+      // actually carries a message to another handset, so they are tried
+      // before anything else once one is up. Everything goes through the
+      // mesh rather than straight down a link: that is what lets a phone in
+      // the middle relay to someone this phone never paired with.
       if (LocalLink.isConnected()) {
-        return LocalLink.send(packetStr);
+        void this.mesh.send(packetStr);
+        return true;
       }
 
       if (this.isSimulatedMode && ConnectionManager.isConnected()) {
@@ -170,7 +189,27 @@ class FloodyBluetoothService {
      * is the whole reason the transport was given this shape: chunking and
      * delivery receipts did not have to be written twice.
      */
-    LocalLink.onPacket((raw) => MessageTransport.handleIncomingRawPacket(raw));
+    // Every link the pairing flow completes becomes a hop in the mesh.
+    LocalLink.onPeer(({ type, peerId }) => {
+      if (type === 'join') {
+        this.mesh.addLink({ peerId, send: (raw) => LocalLink.sendTo(peerId, raw) });
+      } else {
+        this.mesh.removeLink(peerId);
+      }
+    });
+
+    // Arriving packets go to the mesh, which decides whether this device is
+    // the destination, a relay, or both, and drops anything already seen.
+    LocalLink.onPacket((raw, peerId) => this.mesh.receive(raw, peerId));
+
+    /*
+     * A packet the mesh says is for us rejoins the ordinary path: the same
+     * reassembly, acknowledgement and heartbeat code that a Bluetooth packet
+     * goes through. The mesh carries it; it does not reinterpret it.
+     */
+    this.mesh.on({
+      onMessage: (packet) => MessageTransport.handleIncomingRawPacket(packet.body),
+    });
 
     LocalLink.addStatusListener((status) => {
       if (status.state === 'connected') {

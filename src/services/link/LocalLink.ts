@@ -49,7 +49,21 @@ export interface LinkStatus {
 }
 
 type StatusListener = (status: LinkStatus) => void;
-type PacketListener = (raw: string) => void;
+/**
+ * `peerId` names the link a packet arrived on. The mesh needs it: the one
+ * rule that stops the commonest relay loop is "never send a packet back out
+ * of the link it came in on", and that is unenforceable without knowing
+ * which link that was.
+ */
+type PacketListener = (raw: string, peerId: string) => void;
+type PeerListener = (event: { type: 'join' | 'leave'; peerId: string }) => void;
+
+/** One established link. A device can hold several at once; that is the mesh. */
+interface Peer {
+  id: string;
+  pc: RTCPeerConnection;
+  channel: RTCDataChannel;
+}
 
 /**
  * Gathering normally finishes in tens of milliseconds for host candidates.
@@ -63,11 +77,29 @@ const GATHER_TIMEOUT_MS = 4000;
 const CONNECT_TIMEOUT_MS = 25000;
 
 class LocalLinkService {
+  /**
+   * The pairing currently being set up. One at a time, because the
+   * three-step code exchange is a conversation with one other phone.
+   */
   private pc: RTCPeerConnection | null = null;
   private channel: RTCDataChannel | null = null;
+
+  /**
+   * Every link that has finished pairing.
+   *
+   * This used to be a single connection that each new pairing replaced, so
+   * a phone could only ever talk to one other phone and a relay was
+   * impossible. Completed pairings are promoted in here instead, which is
+   * what lets one device sit in the middle of two others and carry a
+   * message between people who never paired with each other.
+   */
+  private peers = new Map<string, Peer>();
+  private peerSeq = 0;
+
   private status: LinkStatus = { state: 'idle', code: null, error: null, isHost: false };
   private statusListeners = new Set<StatusListener>();
   private packetListeners = new Set<PacketListener>();
+  private peerListeners = new Set<PeerListener>();
   private connectTimer: ReturnType<typeof setTimeout> | null = null;
 
   /* ------------------------------------------------------------ status -- */
@@ -91,6 +123,34 @@ class LocalLinkService {
     };
   }
 
+  /** Told when a link finishes pairing or drops, so the mesh can follow. */
+  public onPeer(listener: PeerListener): () => void {
+    this.peerListeners.add(listener);
+    for (const id of this.peers.keys()) listener({ type: 'join', peerId: id });
+    return () => {
+      this.peerListeners.delete(listener);
+    };
+  }
+
+  private announcePeer(type: 'join' | 'leave', peerId: string): void {
+    for (const listener of this.peerListeners) {
+      try {
+        listener({ type, peerId });
+      } catch (err) {
+        console.error('[LocalLink] peer listener failed:', err);
+      }
+    }
+  }
+
+  /** Ids of every link currently open. */
+  public peerIds(): string[] {
+    return [...this.peers.values()].filter((p) => p.channel.readyState === 'open').map((p) => p.id);
+  }
+
+  public get peerCount(): number {
+    return this.peerIds().length;
+  }
+
   private setStatus(patch: Partial<LinkStatus>): void {
     this.status = { ...this.status, ...patch };
     for (const listener of this.statusListeners) {
@@ -107,7 +167,7 @@ class LocalLinkService {
   }
 
   public isConnected(): boolean {
-    return this.channel?.readyState === 'open';
+    return this.peerIds().length > 0;
   }
 
   /* ------------------------------------------------------------- setup -- */
@@ -131,22 +191,40 @@ class LocalLinkService {
 
   private attachChannel(channel: RTCDataChannel): void {
     this.channel = channel;
+    // Named now rather than on open, so a packet arriving in the same tick
+    // as the open event already has a link to be attributed to.
+    const peerId = `peer-${++this.peerSeq}`;
+    const pc = this.pc;
+
     channel.onopen = () => {
       if (this.connectTimer) clearTimeout(this.connectTimer);
       this.connectTimer = null;
+
+      // Promote the finished pairing into the peer set and free the slot,
+      // so this phone can immediately pair with another one. That second
+      // pairing is what turns two links into a mesh.
+      if (pc) this.peers.set(peerId, { id: peerId, pc, channel });
+      this.pc = null;
+      this.channel = null;
+
       this.setStatus({ state: 'connected', error: null });
+      this.announcePeer('join', peerId);
     };
+
     channel.onclose = () => {
-      if (this.status.state === 'connected') {
+      const had = this.peers.delete(peerId);
+      if (had) this.announcePeer('leave', peerId);
+      if (this.peers.size === 0 && this.status.state === 'connected') {
         this.setStatus({ state: 'closed', error: null });
       }
     };
+
     channel.onmessage = (event) => {
       const raw = typeof event.data === 'string' ? event.data : '';
       if (!raw) return;
       for (const listener of this.packetListeners) {
         try {
-          listener(raw);
+          listener(raw, peerId);
         } catch (err) {
           console.error('[LocalLink] packet listener failed:', err);
         }
@@ -200,7 +278,7 @@ class LocalLinkService {
     if (!this.isSupported()) {
       throw new Error('This browser cannot open a direct connection to another phone.');
     }
-    this.close();
+    this.cancelPending();
     this.setStatus({ state: 'creating-invite', code: null, error: null, isHost: true });
 
     try {
@@ -229,7 +307,7 @@ class LocalLinkService {
     if (!this.isSupported()) {
       throw new Error('This browser cannot open a direct connection to another phone.');
     }
-    this.close();
+    this.cancelPending();
     this.setStatus({ state: 'joining', code: null, error: null, isHost: false });
 
     try {
@@ -280,11 +358,25 @@ class LocalLinkService {
 
   /* -------------------------------------------------------------- send -- */
 
-  /** Sends one raw packet. Returns false rather than throwing when closed. */
+  /**
+   * Sends one raw packet to every open link.
+   *
+   * True when at least one link took it. The mesh usually calls `sendTo`
+   * instead, because it has to exclude the link a packet arrived on; this
+   * remains for anything that just wants to reach whoever is there.
+   */
   public send(raw: string): boolean {
-    if (this.channel?.readyState !== 'open') return false;
+    let sent = false;
+    for (const id of this.peerIds()) sent = this.sendTo(id, raw) || sent;
+    return sent;
+  }
+
+  /** Sends to one named link. */
+  public sendTo(peerId: string, raw: string): boolean {
+    const peer = this.peers.get(peerId);
+    if (peer?.channel.readyState !== 'open') return false;
     try {
-      this.channel.send(raw);
+      peer.channel.send(raw);
       return true;
     } catch (err) {
       console.error('[LocalLink] send failed:', err);
@@ -292,9 +384,47 @@ class LocalLinkService {
     }
   }
 
+  /**
+   * Abandons the pairing being set up, leaving established links alone.
+   *
+   * `createInvite` and `acceptInvite` used to call `close()` here, which was
+   * harmless when there was only ever one connection and fatal once there
+   * could be several: starting a second pairing hung up on the first, so a
+   * phone could never hold the two links a relay is made of.
+   */
+  private cancelPending(): void {
+    if (this.connectTimer) clearTimeout(this.connectTimer);
+    this.connectTimer = null;
+    try {
+      this.channel?.close();
+    } catch {
+      // Already closed.
+    }
+    try {
+      this.pc?.close();
+    } catch {
+      // Already closed.
+    }
+    this.channel = null;
+    this.pc = null;
+  }
+
+  /** Closes every link and the pairing in progress. */
   public close(): void {
     if (this.connectTimer) clearTimeout(this.connectTimer);
     this.connectTimer = null;
+
+    for (const peer of [...this.peers.values()]) {
+      try {
+        peer.channel.close();
+        peer.pc.close();
+      } catch {
+        // Already closed.
+      }
+      this.peers.delete(peer.id);
+      this.announcePeer('leave', peer.id);
+    }
+
     try {
       this.channel?.close();
     } catch {

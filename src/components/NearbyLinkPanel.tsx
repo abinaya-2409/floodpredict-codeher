@@ -58,6 +58,29 @@ export const NearbyLinkPanel: React.FC = () => {
   const [replyInput, setReplyInput] = useState('');
   const [inviteInput, setInviteInput] = useState('');
   const [busy, setBusy] = useState(false);
+  /** How many phones this one is linked to right now. */
+  const [peerCount, setPeerCount] = useState(0);
+  /**
+   * Whether the pairing steps are showing while already connected.
+   *
+   * They used to be hidden the moment one phone connected, which quietly
+   * capped the whole thing at two phones: a device in the middle could
+   * never add a second link, so it could never relay, so a mesh could not
+   * form however well the protocol underneath handled one.
+   */
+  const [addingAnother, setAddingAnother] = useState(false);
+
+  useEffect(
+    () =>
+      LocalLink.onPeer(({ type }) => {
+        setPeerCount(LocalLink.peerCount);
+        // A link that has just opened is the answer to "connect another
+        // phone", so the pairing steps step back out of the way rather than
+        // leaving the person looking at a form they have finished with.
+        if (type === 'join') setAddingAnother(false);
+      }),
+    []
+  );
   const [localError, setLocalError] = useState<string | null>(null);
   const { copied, copy } = useCopy();
 
@@ -136,20 +159,50 @@ export const NearbyLinkPanel: React.FC = () => {
         </p>
       )}
 
-      {status.state === 'connected' ? (
-        <div className="flex items-center justify-between gap-3 rounded-card border border-positive/35 bg-positive/10 px-3 py-2.5">
-          <p className="text-mini leading-relaxed text-positive">
-            Connected to the other phone. Messages now go directly between you, with no
-            network in between.
-          </p>
+      {status.state === 'connected' && !addingAnother ? (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-3 rounded-card border border-positive/35 bg-positive/10 px-3 py-2.5">
+            <p className="text-mini leading-relaxed text-positive" data-testid="peer-count">
+              {peerCount <= 1
+                ? 'Connected to 1 phone.'
+                : `Connected to ${peerCount} phones.`}{' '}
+              Messages go directly between you, with no network in between.
+            </p>
+            <button
+              onClick={() => LocalLink.close()}
+              className="shrink-0 rounded-full border border-line px-2.5 py-1 text-nano font-semibold text-fg-soft hover:text-fg cursor-pointer"
+            >
+              Disconnect
+            </button>
+          </div>
+
+          {/* The mesh. A phone linked to two others carries messages between
+              people who never paired with each other and may be nowhere near
+              each other - which in a flood is the difference between a
+              message arriving and not. */}
           <button
-            onClick={() => LocalLink.close()}
-            className="shrink-0 rounded-full border border-line px-2.5 py-1 text-nano font-semibold text-fg-soft hover:text-fg cursor-pointer"
+            onClick={() => setAddingAnother(true)}
+            data-testid="add-another"
+            className="w-full rounded-card border border-accent/35 bg-accent/10 px-3 py-2 text-mini font-semibold text-accent hover:bg-accent/20 cursor-pointer"
           >
-            Disconnect
+            Connect another phone
           </button>
+          <p className="text-nano leading-relaxed text-muted">
+            Each phone you add can pass messages on to the ones it is connected to,
+            so someone out of your range can still be reached through a phone in
+            between.
+          </p>
         </div>
       ) : (
+        <div className="space-y-2">
+          {status.state === 'connected' && (
+            <button
+              onClick={() => setAddingAnother(false)}
+              className="text-nano font-semibold text-accent hover:underline cursor-pointer"
+            >
+              &larr; Back to the chat
+            </button>
+          )}
         <div className="grid gap-3 sm:grid-cols-2">
           {/* ---------------------------------------------- start a chat -- */}
           <section className="rounded-card border border-line/70 bg-surface/50 p-3 space-y-2">
@@ -292,6 +345,7 @@ export const NearbyLinkPanel: React.FC = () => {
               </>
             )}
           </section>
+        </div>
         </div>
       )}
 
