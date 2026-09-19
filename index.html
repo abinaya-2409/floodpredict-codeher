@@ -11,7 +11,16 @@
     <meta name="theme-color" content="#070d17" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- iPhone reads none of the manifest. Installing to the home screen,
+         the icon it uses, the title under it and the status bar colour are
+         all controlled by these four tags and nothing else. -->
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="FloodyPredict" />
+    <meta name="mobile-web-app-capable" content="yes" />
 
     <meta property="og:title" content="FloodyLink - Urban Flood Intelligence" />
     <meta

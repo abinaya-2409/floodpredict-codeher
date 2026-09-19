@@ -304,6 +304,94 @@ One claim was deleted rather than reworded: the header carried "87.4% High
 Confidence", "based on 14 Automatic Weather Stations, S-Band Doppler Radar
 and CartoDEM 10m Elevation Grid". The application uses none of those.
 
+## Installing it on a phone
+
+The app installs to the home screen on both Android and iPhone and opens
+afterwards with no network at all, which is the state it is built for: a
+flood that takes out the towers is exactly when someone reaches for this.
+
+**Android, Chrome or Edge.** An **Install app** button appears at the top of
+the screen. One tap.
+
+**iPhone, Safari.** Apple exposes no install API, so there is no button that
+could work; the app shows the three steps instead. Share → Add to Home Screen
+→ Add. It has to be Safari — Chrome on iPhone cannot add to the home screen.
+
+Both are handled by `src/components/InstallAppPrompt.tsx`, which shows the
+button only when the browser has actually offered one and shows the iPhone
+steps only on iPhone. A button that does nothing is worse than a sentence.
+
+### What works with the network off
+
+`public/sw.js` caches by what each request actually needs, which is not the
+same rule for all of them:
+
+| Request | Strategy | Why |
+| --- | --- | --- |
+| The HTML page | network first, cache fallback | Its URL never changes, so cache-first would pin people to an old build |
+| `/assets/*` | cache first | Vite hashes the filename, so the bytes at a URL can never change |
+| `/data/*`, `/icons/*` | stale while revalidate | Instant, refreshed in the background |
+| Map tiles | cache first, capped at 600 | What makes the map usable offline, and what would otherwise eat the disk |
+| `/api/*` | **never cached** | A stale flood forecast looks current and is not. An obvious failure is safer |
+
+One online visit fills the caches; after that the app opens offline. Verified
+rather than assumed: `tools/pwa-test.mjs` loads the app on an emulated Pixel 7,
+switches Chrome to offline through the CDP so every request genuinely fails,
+reloads, and checks the app still renders. It came back with 99 cached entries
+and 5,994 characters of rendered content with the network down.
+
+Run it against a production build, not the dev server — the service worker
+only registers in production:
+
+```bash
+npm run build
+NODE_ENV=production PORT=4381 node dist/server.cjs
+node tools/pwa-test.mjs http://localhost:4381/
+```
+
+### The alert sound
+
+An arriving message plays a tone and buzzes the phone, because the whole
+point of an offline chat is that it works from a pocket. An ordinary message
+is a two-note rising chime; an SOS is four harder, higher notes, so the two
+are tellable apart without looking.
+
+The tone is synthesised (`src/utils/alertSound.ts`) rather than shipped as an
+audio file: it costs nothing in a cache that has to survive on a phone with no
+network, and a sine chime carries better on a phone speaker than a compressed
+clip.
+
+The catch worth knowing: **no browser will make a sound until the user has
+touched the page**, and on iOS the audio context also starts suspended and
+only resumes from inside a real gesture handler. So the first touch anywhere
+arms it, and until that happens the chat header says **Enable sound** and an
+amber bar explains that the phone will otherwise stay silent. Claiming
+otherwise would mean someone misses a rescue message because the alert
+quietly never fired.
+
+Vibration is Android only — iOS Safari has never implemented
+`navigator.vibrate` — so the sound is never made conditional on it.
+
+### Mobile performance
+
+The animated WebGL sky and the rain canvas are switched off on phones. This
+was measured, not assumed: on an emulated Pixel 7 the two together pushed a
+bare `1 + 1` evaluated inside the page from under a millisecond to **4.6
+seconds**. A decorative background is not worth a four-second stall on the
+device most likely to be holding this during a flood — taps go unanswered and
+the message alert arrives late. Phones get a still gradient, and three.js is
+never downloaded there at all.
+
+The switch is in `VantaBackground.tsx`: reduced-motion request, small screen,
+coarse pointer, or a weak-hardware hint.
+
+### No accounts
+
+There is no sign-in, no sign-up and no OTP, for residents or for officials.
+Everything in the app is open on arrival. The login modal, both `/api/auth/*`
+routes, the OTP store and the email dependency have been removed rather than
+hidden, so there is no dormant auth surface left in the build.
+
 ## Offline Bluetooth chat: what works and what does not
 
 Two capabilities used to be described as one. They are separate, and only one

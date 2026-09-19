@@ -62,8 +62,6 @@ interface Props {
   onSelectCity: (city: CityData) => void;
   activeTab: string;
   onChangeTab: (tab: string) => void;
-  userRole: 'authority' | 'citizen';
-  onToggleRole: () => void;
   onOpenExplainer: () => void;
   /**
    * The theme controls arrived in App but never reached here, so the app
@@ -78,15 +76,6 @@ interface Props {
   onSetLanguage: (l: Language) => void;
   isOfflineSimulated: boolean;
   onToggleOffline: () => void;
-  onOpenAuthModal?: () => void;
-  onSignOut?: () => void;
-  session?: {
-    mode: 'citizen' | 'authority';
-    isGuest: boolean;
-    contact?: string;
-    roleLabel?: string;
-    wardName: string;
-  } | null;
 }
 
 export const Navbar: React.FC<Props> = ({
@@ -94,8 +83,6 @@ export const Navbar: React.FC<Props> = ({
   onSelectCity,
   activeTab,
   onChangeTab,
-  userRole,
-  onToggleRole,
   onOpenExplainer,
   themeMode,
   onToggleTheme,
@@ -104,9 +91,6 @@ export const Navbar: React.FC<Props> = ({
   onSetLanguage,
   isOfflineSimulated,
   onToggleOffline,
-  onOpenAuthModal,
-  onSignOut,
-  session,
 }) => {
   const tokens = useThemeTokens();
   const t = TRANSLATIONS[language];

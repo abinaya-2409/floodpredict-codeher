@@ -40,8 +40,8 @@ import { StatTile } from './components/ui/StatTile';
 import { RiskBadge } from './components/ui/Badge';
 import { VulnerabilityIndexPanel } from './components/VulnerabilityIndexPanel';
 import { EvacuationPriorityQueue } from './components/EvacuationPriorityQueue';
-import { LoginModal, AuthSession } from './components/LoginModal';
 import { OfflineEmergencyChat } from './components/OfflineEmergencyChat';
+import { InstallAppPrompt } from './components/InstallAppPrompt';
 import { VantaBackground, ThemeMode } from './components/VantaBackground';
 import { AlertTriangle, ShieldCheck, Waves, Users, Clock, ArrowUpRight, Gauge, Cpu, CloudRain, Radio, WifiOff, Map as MapIcon, Sliders, Bluetooth } from 'lucide-react';
 
@@ -60,23 +60,12 @@ export default function App() {
   const [mapRenderMode, setMapRenderMode] = useState<
     'weather' | 'district' | 'leaflet' | 'schematic'
   >('weather');
-  const [userRole, setUserRole] = useState<'authority' | 'citizen'>('authority');
   const [language, setLanguage] = useState<Language>('en');
   const [isOfflineSimulated, setIsOfflineSimulated] = useState(false);
   const [isExplainerOpen, setIsExplainerOpen] = useState(false);
   const [citizenReports, setCitizenReports] = useState<CitizenReport[]>(INITIAL_CITIZEN_REPORTS);
 
   // FloodyPredict Auth Session State
-  const [authSession, setAuthSession] = useState<AuthSession | null>(() => {
-    try {
-      const cached = localStorage.getItem('floodypredict_session');
-      return cached ? JSON.parse(cached) : null;
-    } catch {
-      return null;
-    }
-  });
-  // Auth modal closed by default
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
 
   const t = TRANSLATIONS[language];
 
@@ -229,34 +218,6 @@ export default function App() {
     window.dispatchEvent(new Event('floodypredict-theme-change'));
   }, [themeMode]);
 
-  const handleLoginSuccess = (session: AuthSession) => {
-    setAuthSession(session);
-    localStorage.setItem('floodypredict_session', JSON.stringify(session));
-    setIsAuthModalOpen(false);
-
-    if (session.mode === 'authority') {
-      setUserRole('authority');
-      setActiveTab('map');
-    } else {
-      setUserRole('citizen');
-      if (session.wardId) {
-        setSelectedZoneId(session.wardId);
-      }
-      setActiveTab('map');
-    }
-  };
-
-  const handleSignOut = () => {
-    try {
-      localStorage.removeItem('floodypredict_session');
-    } catch (e) {
-      console.error(e);
-    }
-    setAuthSession(null);
-    setUserRole('citizen');
-    setIsAuthModalOpen(false);
-  };
-
   return (
     <div className="relative min-h-screen bg-transparent text-fg flex flex-col font-sans selection:bg-risk-low/30 selection:text-risk-low overflow-x-hidden">
       <a href="#main-content" className="sr-only-focusable">Skip to main content</a>
@@ -269,17 +230,12 @@ export default function App() {
         onSelectCity={handleSelectCity}
         activeTab={activeTab}
         onChangeTab={setActiveTab}
-        userRole={userRole}
-        onToggleRole={() => setUserRole(userRole === 'authority' ? 'citizen' : 'authority')}
         onOpenExplainer={() => setIsExplainerOpen(true)}
         weather={selectedCity.weather}
         language={language}
         onSetLanguage={handleSetLanguage}
         isOfflineSimulated={isOfflineSimulated}
         onToggleOffline={() => setIsOfflineSimulated(!isOfflineSimulated)}
-        onOpenAuthModal={() => setIsAuthModalOpen(true)}
-        onSignOut={handleSignOut}
-        session={authSession}
         themeMode={themeMode}
         onToggleTheme={() => setThemeMode(themeMode === 'light' ? 'oled' : 'light')}
       />
@@ -303,6 +259,9 @@ export default function App() {
 
       {/* Main Container */}
       <main id="main-content" className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 space-y-6">
+        {/* Offered once, on every tab: the app is most useful installed. */}
+        <InstallAppPrompt />
+
         {/* Offline Emergency Bluetooth Communication Card */}
         {activeTab === 'map' && (
           <div className="glass rounded-panel p-4 sm:p-5 border border-cyan-500/30 shadow-[0_8px_32px_rgba(6,182,212,0.12)] relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-cyan-950/40 via-surface/60 to-blue-950/40">
@@ -867,17 +826,6 @@ export default function App() {
         onClose={() => setIsExplainerOpen(false)}
       />
 
-      {/* FloodyPredict Login Modal */}
-      {isAuthModalOpen && (
-        <LoginModal
-          selectedCity={selectedCity}
-          zones={computedZones}
-          initialSession={authSession}
-          onLoginSuccess={handleLoginSuccess}
-          onSignOut={handleSignOut}
-          onClose={() => setIsAuthModalOpen(false)}
-        />
-      )}
     </div>
   );
 }

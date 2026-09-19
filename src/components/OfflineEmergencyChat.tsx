@@ -13,6 +13,7 @@ import { BluetoothService } from '../services/bluetooth/BluetoothService';
 import { ConnectionManager } from '../services/bluetooth/ConnectionManager';
 import { DeviceDiscovery, SweepStatus } from '../services/bluetooth/DeviceDiscovery';
 import { BluetoothSupport, DiscoverySource } from '../services/bluetooth/WebBluetoothScanner';
+import { arm, isArmed, isMuted, isSupported, notifyIncoming, setMuted } from '../utils/alertSound';
 import { OfflineStorage } from '../services/bluetooth/OfflineStorage';
 import {
   Bluetooth,
@@ -43,6 +44,8 @@ import {
   Gauge,
   Plus,
   SearchX,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 
 interface Props {
@@ -65,6 +68,11 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
   const [sweep, setSweep] = useState<SweepStatus | null>(null);
   const [scanNotice, setScanNotice] = useState<string | null>(null);
   const [isAddingDevice, setIsAddingDevice] = useState(false);
+  const [soundMuted, setSoundMuted] = useState(isMuted);
+  const [soundArmed, setSoundArmed] = useState(isArmed);
+  // Ids already announced, so re-reading storage cannot re-ring old messages.
+  const announcedRef = useRef<Set<string>>(new Set());
+  const soundPrimedRef = useRef(false);
   // Re-renders the 'seen 3s ago' labels without touching the device list.
   const [, setTick] = useState(0);
 
@@ -96,6 +104,10 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
       setConnState(state);
       setConnectedPeer(peer);
       if (peer) {
+        // A new conversation gets a clean slate, so its history is shown
+        // rather than announced.
+        soundPrimedRef.current = false;
+        announcedRef.current.clear();
         loadMessagesForPeer(peer.id);
       }
     });
@@ -156,8 +168,36 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
   };
 
   // Poll / sync messages on connection or message updates
+  /**
+   * Reads the stored thread and rings for anything new that came from a peer.
+   *
+   * This runs on a 600ms poll, so "new" has to mean "not announced before"
+   * rather than "not in the previous render" - otherwise every poll would
+   * re-ring the whole thread. The first load of a conversation is marked as
+   * already-announced for the same reason: opening a chat should not replay
+   * every alert it ever received.
+   */
   const loadMessagesForPeer = (peerId: string) => {
     const msgs = OfflineStorage.getMessages(peerId);
+    const seen = announcedRef.current;
+
+    if (!soundPrimedRef.current) {
+      for (const m of msgs) seen.add(m.id);
+      soundPrimedRef.current = true;
+    } else {
+      let ring: 'sos' | 'message' | null = null;
+      for (const m of msgs) {
+        if (seen.has(m.id)) continue;
+        seen.add(m.id);
+        // Our own messages, delivery receipts and liveness probes are not
+        // things a person needs to be alerted to.
+        if (m.isSelf || m.type === 'ack' || m.type === 'ping' || m.type === 'pong') continue;
+        if (m.type === 'sos' || m.priority === 'emergency') ring = 'sos';
+        else if (!ring) ring = 'message';
+      }
+      if (ring) notifyIncoming(ring);
+    }
+
     setMessages([...msgs]);
   };
 
@@ -169,6 +209,22 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
     }, 600);
     return () => clearInterval(interval);
   }, [connectedPeer]);
+
+  /*
+   * The first touch anywhere on the page arms audio, and that can happen
+   * outside this component, so the indicator is polled until it flips rather
+   * than assuming a click on the toggle was the trigger.
+   */
+  useEffect(() => {
+    if (soundArmed) return;
+    const t = setInterval(() => {
+      if (isArmed()) {
+        setSoundArmed(true);
+        clearInterval(t);
+      }
+    }, 500);
+    return () => clearInterval(t);
+  }, [soundArmed]);
 
   // Keeps the "last seen" labels honest while a scan is running.
   useEffect(() => {
@@ -312,6 +368,32 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
     const next = !isSimMode;
     setIsSimMode(next);
     BluetoothService.setSimulationMode(next);
+  };
+
+  const soundSupported = isSupported();
+
+  /**
+   * Turns the alert tone on or off.
+   *
+   * Arming has to happen inside this click: iOS only resumes a suspended
+   * AudioContext from a real gesture handler, so doing it any later leaves
+   * the chat permanently silent.
+   */
+  const handleToggleSound = () => {
+    if (!soundArmed) {
+      arm();
+      setSoundArmed(isArmed());
+      if (isMuted()) {
+        setMuted(false);
+        setSoundMuted(false);
+      }
+      notifyIncoming('message'); // Confirms it works, audibly.
+      return;
+    }
+    const next = !soundMuted;
+    setMuted(next);
+    setSoundMuted(next);
+    if (!next) notifyIncoming('message');
   };
 
   const isNative = BluetoothService.isNativeAvailable();
@@ -834,17 +916,62 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
                 </div>
               </div>
 
-              {connectedPeer && (
-                <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
+                {/*
+                  The alert tone is the whole reason this works from a pocket,
+                  so its state is shown rather than assumed. Browsers refuse
+                  to make a sound before the first touch, and an alert that
+                  silently never fires is the worst failure this screen has.
+                */}
+                {soundSupported && (
+                  <button
+                    onClick={handleToggleSound}
+                    data-testid="sound-toggle"
+                    title={
+                      soundMuted
+                        ? 'Alert sound is off. Tap to turn it on.'
+                        : soundArmed
+                        ? 'Alert sound is on. Tap to mute.'
+                        : 'Tap to turn the alert sound on for this device.'
+                    }
+                    className={`h-7 px-2.5 rounded-full border text-mini font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                      soundMuted || !soundArmed
+                        ? 'bg-surface border-line-strong text-muted hover:text-fg'
+                        : 'bg-emerald-950/50 border-emerald-500/40 text-emerald-300'
+                    }`}
+                  >
+                    {soundMuted || !soundArmed ? (
+                      <VolumeX className="w-3.5 h-3.5" />
+                    ) : (
+                      <Volume2 className="w-3.5 h-3.5" />
+                    )}
+                    <span className="hidden sm:inline">
+                      {soundMuted ? 'Sound off' : soundArmed ? 'Sound on' : 'Enable sound'}
+                    </span>
+                  </button>
+                )}
+                {connectedPeer && (
                   <button
                     onClick={handleDisconnect}
                     className="h-7 px-2.5 rounded-full bg-surface hover:bg-rose-950/50 border border-line-strong hover:border-rose-500/40 text-fg-soft hover:text-rose-300 text-mini font-semibold transition-colors cursor-pointer"
                   >
                     Disconnect
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
+
+            {soundSupported && !soundArmed && !soundMuted && (
+              <button
+                onClick={handleToggleSound}
+                data-testid="sound-warning"
+                className="w-full px-4 py-2 bg-amber-950/40 border-b border-amber-500/30 text-amber-200 text-[11px] leading-relaxed text-left cursor-pointer"
+              >
+                <strong>Tap here to turn on the alert sound.</strong> Until you do, this phone
+                stays silent when a message arrives &mdash; phones block sound until you touch
+                the page once.
+              </button>
+            )}
 
             {/* Chat Body Message Stream */}
             <div className="flex-1 p-4 overflow-y-auto space-y-3.5 bg-bg/40">

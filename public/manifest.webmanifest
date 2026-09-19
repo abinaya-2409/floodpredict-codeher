@@ -1,0 +1,38 @@
+{
+  "name": "FloodyPredict - Flood Warning & Offline Chat",
+  "short_name": "FloodyPredict",
+  "description": "Flood risk, street-level forecasts and an offline emergency chat for Tamil Nadu. Works with no network once installed.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#070d17",
+  "theme_color": "#070d17",
+  "lang": "en-IN",
+  "dir": "ltr",
+  "categories": ["utilities", "navigation", "weather"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Offline emergency chat",
+      "short_name": "Offline chat",
+      "description": "Talk to nearby people with no network",
+      "url": "/?tab=offline-chat",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Flood map",
+      "short_name": "Map",
+      "description": "Live ward risk and street-level forecast",
+      "url": "/?tab=map",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
