@@ -77,6 +77,9 @@ const val = (phone, testid) =>
     testid
   );
 
+const exists = (phone, testid) =>
+  phone.page.evaluate((id) => !!document.querySelector(`[data-testid="${id}"]`), testid);
+
 const click = (phone, testid) =>
   phone.page.evaluate((id) => {
     const el = document.querySelector(`[data-testid="${id}"]`);
@@ -111,14 +114,15 @@ const panelText = (phone) =>
 
 /** Runs the three-step code exchange between two open phones. */
 async function pair(host, guest, label) {
-  // If the host is already connected it must first ask for the extra link.
-  if ((await panelText(host)).includes('connected to')) {
-    await click(host, 'add-another');
-    await wait(500);
-  }
-  if ((await panelText(guest)).includes('connected to')) {
-    await click(guest, 'add-another');
-    await wait(500);
+  // A phone already in a chat has to ask for the extra link first. Waiting
+  // for the control to exist rather than for a fixed 500ms: React renders
+  // the pairing grid a frame or two after the click, and on a slower page
+  // than localhost that gap is longer than any number picked in advance.
+  for (const phone of [host, guest]) {
+    if (!(await panelText(phone)).includes('connected to')) continue;
+    await click(phone, 'add-another');
+    const ready = await until(() => exists(phone, 'create-invite'), 10000, 150);
+    if (!check(!!ready, `${label}: ${phone.name} reopened the pairing steps`)) return false;
   }
 
   await click(host, 'create-invite');
