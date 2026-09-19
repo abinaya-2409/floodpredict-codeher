@@ -16,6 +16,7 @@ import {
 } from '../utils/weatherGrid';
 import { fieldScale, legendTicks, paintField } from './weather/fieldRenderer';
 import { WindParticles, frameProjection } from './weather/particles';
+import { trackMapMotion } from '../utils/mapMotion';
 import { availableBasemaps, basemapById, useThemeTokens } from '../theme/useThemeTokens';
 import { ForecastMode, PointForecast, forecastPoint, recomputeForecast } from '../utils/pointForecast';
 import { PointPredictionPanel } from './PointPredictionPanel';
@@ -264,6 +265,13 @@ export const TamilNaduWeatherMap: React.FC<Props> = ({
     void applyMask(map);
 
     map.on('move zoom resize zoomend moveend', resetCanvases);
+
+    // Tells the ambient background to stand down while this map is moving.
+    const untrack = trackMapMotion(
+      (e, h) => map.on(e as never, h),
+      (e, h) => map.off(e as never, h)
+    );
+
     map.on('click', (e: L.LeafletMouseEvent) => {
       const target = e.originalEvent?.target as HTMLElement | null;
       if (target?.closest?.('.leaflet-interactive, .leaflet-marker-icon, .leaflet-popup')) {
@@ -276,6 +284,7 @@ export const TamilNaduWeatherMap: React.FC<Props> = ({
 
     return () => {
       map.off('move zoom resize zoomend moveend', resetCanvases);
+      untrack();
     };
     // Bound once; handlers read current state through refs and callbacks.
     // eslint-disable-next-line react-hooks/exhaustive-deps

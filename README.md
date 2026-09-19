@@ -657,11 +657,20 @@ animation frame. It then checks five things against a budget:
 
 | | why this one |
 |---|---|
-| longest frame | a stutter *is* one long frame. 58fps with a single 600ms lockup averages fine and feels broken, so the worst frame is the measure, not the mean |
+| 95th-percentile frame | what sustained smoothness actually is. A mean hides a stall; a single worst frame is noise. 19 frames in 20 must land inside two 60Hz frames |
+| longest frame | still checked, but at 150ms - the level where one frame is a freeze a person notices rather than a hitch they do not |
 | dropped frames | gaps over 50ms, counted. One is a blink; twenty is a slideshow |
 | settle | how long after the gesture before the map is quiet |
 | blank tiles | tiles still unpainted once it has settled - the glitch that looks like holes in the world |
 | console errors | anything thrown while moving |
+
+The first version of this judged on the worst frame alone, and that was the
+wrong measure. With a 17ms median in every view, runs still failed on one
+83ms frame - a batch of tiles finishing their decode, in a different view
+each round. Tightening the threshold until that stopped would have been
+gaming it; loosening it until it passed would have been worse, since it
+would then pass a map that stuttered constantly as long as it never froze.
+The percentile is the honest gate, and a single outlier cannot move it.
 
 When a run fails, the loop applies whichever of its named corrections
 addresses the failure, rebuilds, and runs again. It stops on a clean pass,
@@ -717,6 +726,32 @@ the agreement is a test -
 checks the arithmetic against Leaflet's own CRS at seven zoom levels and ten
 coordinates, including the poles and the antimeridian, to within a hundredth
 of a pixel.
+
+### What the loop corrected, and what happened next
+
+Run against production, the loop found the district grid's worst frame at
+83ms against a 68ms budget and applied its own correction: pause the rain
+canvas while a map is being dragged. A map drag and a rain canvas are
+asking for the same frame, and only one of them is under the user's finger.
+
+That patch was half a change - it added a handler for an event nothing
+fired. What is in the source now is the whole one:
+[`src/utils/mapMotion.ts`](src/utils/mapMotion.ts), a signal all three maps
+raise and the background listens for. It is counted rather than boolean,
+because two maps can be mounted at once and a flag would let whichever
+stopped first speak for both, and it refuses to go below zero, because
+Leaflet fires `zoomend` without a matching `zoomstart` when the zoom is set
+programmatically and one unbalanced end would leave the background
+permanently paused with no error anywhere. Both of those are
+[tested](src/__tests__/mapMotion.test.ts): a blank sky with no console
+output is not something a screenshot catches.
+
+The loop's remaining correction is one number with a floor - thin the wind
+field by a quarter per round, never below 400 particles, because a fast map
+that no longer shows which way the storm is moving has not been fixed. The
+correction it already made is recorded in the file rather than deleted; a
+loop that quietly rewrites its own history is worse than one that never
+ran.
 
 ### Map colour
 

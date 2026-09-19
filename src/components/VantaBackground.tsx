@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { MAP_MOTION_EVENT, isMapMoving } from '../utils/mapMotion';
 
 /**
  * Live sky behind the whole application (Vanta CLOUDS2).
@@ -164,7 +165,7 @@ export function VantaBackground({ theme }: { theme: ThemeMode }) {
     let height = 0;
     let frame = 0;
     let previous = performance.now();
-    let active = !document.hidden;
+    let active = !document.hidden && !isMapMoving();
     let drops: Drop[] = [];
     // Resolved once per theme rather than once per drop per frame: reading a
     // custom property forces a style resolve, and there are ~120 drops.
@@ -212,7 +213,19 @@ export function VantaBackground({ theme }: { theme: ThemeMode }) {
       frame = requestAnimationFrame(render);
     };
 
-    const onVisibility = () => { active = !document.hidden; previous = performance.now(); };
+    const onVisibility = () => {
+      active = !document.hidden && !isMapMoving();
+      previous = performance.now();
+    };
+
+    // A map drag and a rain canvas are both asking for the same frame, and
+    // only one of them is under the user's finger. The rain yields, and
+    // clears itself so it does not leave a frozen streak field behind.
+    const onMapMove = (e: Event) => {
+      active = !document.hidden && !(e as CustomEvent<boolean>).detail;
+      previous = performance.now();
+      if (!active) context.clearRect(0, 0, width, height);
+    };
     // Pale rain stays pale over a white sky, which is rain you cannot see.
     // The theme switch has to reach the canvas, and only an event can carry
     // it: this effect is deliberately not keyed on the theme, because
@@ -224,6 +237,7 @@ export function VantaBackground({ theme }: { theme: ThemeMode }) {
     window.addEventListener('orientationchange', resize, { passive: true });
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('floodypredict-theme-change', onThemeChange);
+    window.addEventListener(MAP_MOTION_EVENT, onMapMove);
     frame = requestAnimationFrame(render);
     return () => {
       cancelAnimationFrame(frame);
@@ -231,6 +245,7 @@ export function VantaBackground({ theme }: { theme: ThemeMode }) {
       window.removeEventListener('orientationchange', resize);
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('floodypredict-theme-change', onThemeChange);
+      window.removeEventListener(MAP_MOTION_EVENT, onMapMove);
     };
   }, []);
 

@@ -10,6 +10,7 @@ import { Facility, fetchFacilities } from '../utils/facilities';
 import { DistrictReconPanel } from './DistrictReconPanel';
 import { Select } from './ui/Select';
 import { PointPredictionPanel } from './PointPredictionPanel';
+import { trackMapMotion } from '../utils/mapMotion';
 import {
   ForecastMode,
   PointForecast,
@@ -346,6 +347,12 @@ export const LeafletFloodMap: React.FC<Props> = ({
       void applyStateMask(map);
 
       map.on('zoomend', () => setZoomLevel(map.getZoom()));
+
+      // Tells the ambient background to stand down while this map is moving.
+      trackMapMotion(
+        (e, h) => map.on(e as never, h),
+        (e, h) => map.off(e as never, h)
+      );
 
       const layerGroup = L.layerGroup().addTo(map);
       layerGroupRef.current = layerGroup;

@@ -11,6 +11,7 @@ import {
   scoreDistricts,
 } from '../utils/nationalModel';
 import { useThemeTokens } from '../theme/useThemeTokens';
+import { trackMapMotion } from '../utils/mapMotion';
 
 /**
  * Tamil Nadu district view.
@@ -111,6 +112,7 @@ export function NationalGridMap({
   useEffect(() => {
     let cancelled = false;
     let map: MapLibreMap | null = null;
+    let untrack: (() => void) | null = null;
 
     (async () => {
       try {
@@ -177,6 +179,13 @@ export function NationalGridMap({
         map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
         mapRef.current = map;
 
+        // Tells the ambient background to stand down while this map is
+        // moving. MapLibre names these events the same as Leaflet does.
+        untrack = trackMapMotion(
+          (e, h) => map!.on(e as never, h),
+          (e, h) => map!.off(e as never, h)
+        );
+
         const activate = () => {
           if (cancelled || !map) return;
           try {
@@ -202,6 +211,7 @@ export function NationalGridMap({
 
     return () => {
       cancelled = true;
+      untrack?.();
       map?.remove();
       mapRef.current = null;
     };
