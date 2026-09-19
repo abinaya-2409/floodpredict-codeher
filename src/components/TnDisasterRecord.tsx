@@ -33,9 +33,9 @@ const HAZARD_LABEL: Record<string, string> = {
 };
 
 const HAZARD_TONE: Record<string, string> = {
-  cyclone: 'text-risk-critical border-risk-critical/40 bg-risk-critical/10',
-  flood: 'text-risk-severe border-risk-severe/40 bg-risk-severe/10',
-  drought: 'text-risk-high border-risk-high/40 bg-risk-high/10',
+  cyclone: 'text-risk-critical-ink border-risk-critical/40 bg-risk-critical/10',
+  flood: 'text-risk-severe-ink border-risk-severe/40 bg-risk-severe/10',
+  drought: 'text-risk-high-ink border-risk-high/40 bg-risk-high/10',
 };
 
 export const TnDisasterRecord: React.FC = () => {
@@ -56,7 +56,7 @@ export const TnDisasterRecord: React.FC = () => {
       {/* The honest framing, first and unmissable. */}
       <div className="flex gap-2.5 rounded-card border border-risk-high/35 bg-risk-high/10 p-3.5">
         <AlertTriangle
-          className="mt-0.5 h-4 w-4 shrink-0 text-risk-high"
+          className="mt-0.5 h-4 w-4 shrink-0 text-risk-high-ink"
           aria-hidden="true"
         />
         <p className="text-xs leading-relaxed text-fg-soft">
@@ -138,7 +138,7 @@ export const TnDisasterRecord: React.FC = () => {
               {e.deaths !== null && (
                 <div>
                   <dt className="inline text-subtle">Deaths </dt>
-                  <dd className="inline font-bold text-risk-severe">{e.deaths}</dd>
+                  <dd className="inline font-bold text-risk-severe-ink">{e.deaths}</dd>
                 </div>
               )}
               {e.evacuated !== null && (

@@ -219,7 +219,7 @@ export default function App() {
   }, [themeMode]);
 
   return (
-    <div className="relative min-h-screen bg-transparent text-fg flex flex-col font-sans selection:bg-risk-low/30 selection:text-risk-low overflow-x-hidden">
+    <div className="relative min-h-screen bg-transparent text-fg flex flex-col font-sans selection:bg-risk-low/30 selection:text-risk-low-ink overflow-x-hidden">
       <a href="#main-content" className="sr-only-focusable">Skip to main content</a>
       <VantaBackground theme={themeMode} />
 
@@ -240,43 +240,49 @@ export default function App() {
         onToggleTheme={() => setThemeMode(themeMode === 'light' ? 'oled' : 'light')}
       />
 
-      {/* Offline Mode Emergency Banner (If active) */}
+      {/* Offline mode banner.
+          It used to span the window while its text was centred in a capped
+          box and the Reconnect button sat outside that box, so the two ends
+          of one bar lined up with nothing. Both are in the shell now, and the
+          text wraps rather than shoving the button off the edge of a phone. */}
       {isOfflineSimulated && (
-        <div className="relative z-20 bg-risk-high text-on-accent px-4 py-2 text-xs font-bold flex items-center justify-between">
-          <div className="flex items-center space-x-2 max-w-7xl mx-auto w-full">
-            <WifiOff className="w-4 h-4 shrink-0 animate-bounce" />
+        <div className="relative z-20 bg-risk-high py-2 text-xs font-bold text-[#2b1400]">
+          <div className="shell flex flex-wrap items-center gap-x-2 gap-y-1">
+            <WifiOff className="w-4 h-4 shrink-0 animate-bounce" aria-hidden="true" />
             <span>{t.offlineBannerTitle}:</span>
-            <span className="font-normal">{t.offlineBannerDesc}</span>
+            <span className="min-w-0 font-normal">{t.offlineBannerDesc}</span>
+            <button
+              onClick={() => setIsOfflineSimulated(false)}
+              className="ml-auto shrink-0 rounded-control bg-[#2b1400] px-2.5 py-1 text-micro font-mono font-bold text-risk-high-ink cursor-pointer"
+            >
+              Reconnect
+            </button>
           </div>
-          <button
-            onClick={() => setIsOfflineSimulated(false)}
-            className="px-2 py-0.5 bg-bg text-risk-high rounded text-micro font-mono shrink-0 cursor-pointer"
-          >
-            Reconnect
-          </button>
         </div>
       )}
 
       {/* Main Container */}
-      <main id="main-content" className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 space-y-6">
+      <main id="main-content" className="shell relative z-10 flex-1 py-4 space-y-4 sm:space-y-6">
         {/* Offered once, on every tab: the app is most useful installed. */}
         <InstallAppPrompt />
 
         {/* Offline Emergency Bluetooth Communication Card */}
         {activeTab === 'map' && (
-          <div className="glass rounded-panel p-4 sm:p-5 border border-cyan-500/30 shadow-[0_8px_32px_rgba(6,182,212,0.12)] relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-cyan-950/40 via-surface/60 to-blue-950/40">
-            <div className="flex items-start sm:items-center gap-3.5">
-              <div className="w-11 h-11 rounded-xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 shadow-inner shrink-0">
-                <Bluetooth className="w-6 h-6 animate-pulse" />
+          <div className="glass rounded-panel relative flex flex-col gap-4 overflow-hidden border-accent/30 p-4 sm:p-5 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-3.5 sm:items-center">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-card border border-accent/40 bg-accent/15 text-accent">
+                <Bluetooth className="w-6 h-6" aria-hidden="true" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-fg">Offline Emergency Chat</span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 font-semibold">
-                    Direct P2P Bluetooth
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="text-sm font-bold text-fg">Offline Emergency Chat</span>
+                  {/* whitespace-nowrap: at 390px this wrapped mid-phrase and
+                      pushed the heading onto two lines behind it. */}
+                  <span className="whitespace-nowrap rounded-full border border-accent/30 bg-accent/12 px-2 py-0.5 text-micro font-mono font-semibold text-accent">
+                    Direct P2P
                   </span>
                 </div>
-                <p className="text-xs text-fg-soft mt-0.5">
+                <p className="mt-1 text-xs text-fg-soft">
                   Communicate with nearby FloodyPredict users when internet connectivity is unavailable.
                 </p>
               </div>
@@ -284,9 +290,9 @@ export default function App() {
 
             <button
               onClick={() => setActiveTab('offline-chat')}
-              className="h-9 px-5 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md hover:scale-[1.02] active:scale-[0.98] cursor-pointer shrink-0"
+              className="flex h-10 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full bg-accent px-5 text-xs font-bold text-on-accent transition-colors hover:bg-accent-deep"
             >
-              <Bluetooth className="w-3.5 h-3.5" />
+              <Bluetooth className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Open Offline Chat</span>
             </button>
           </div>
@@ -295,13 +301,13 @@ export default function App() {
         {/* Top KPI Telemetry Banner */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {/* Metric 1: Worst-hit areas (Neon Coral / Rose Accent) */}
-          <div className="glass glass-interactive rounded-panel p-5 relative overflow-hidden group border border-risk-critical/25 hover:border-risk-critical/50 shadow-[0_12px_32px_rgba(244,63,94,0.12)]">
+          <div className="glass glass-interactive rounded-panel p-5 relative overflow-hidden group border border-risk-critical/25 hover:border-risk-critical/50">
             <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-accent-2/15 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
             <div className="flex items-center justify-between">
-              <span className="font-mono text-mini text-risk-critical/80 uppercase tracking-wider font-semibold">
+              <span className="font-mono text-mini text-risk-critical-ink/80 uppercase tracking-wider font-semibold">
                 Worst-hit areas
               </span>
-              <div className="w-10 h-10 rounded-card bg-risk-critical/20 border border-risk-critical/40 flex items-center justify-center text-risk-critical">
+              <div className="w-10 h-10 rounded-card bg-risk-critical/20 border border-risk-critical/40 flex items-center justify-center text-risk-critical-ink">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                   <line x1="12" x2="12" y1="9" y2="13" />
@@ -312,28 +318,44 @@ export default function App() {
             <div className="flex items-baseline gap-1.5 mt-3">
               <span className="text-3xl font-extrabold text-fg tracking-tight font-sans">{severeOrCriticalZonesCount}</span>
               <span className="text-muted text-sm">of</span>
-              <span className="text-3xl font-extrabold text-risk-critical tracking-tight font-sans">{computedZones.length}</span>
+              <span className="text-3xl font-extrabold text-risk-critical-ink tracking-tight font-sans">{computedZones.length}</span>
               <span className="text-xs text-muted ml-1 font-medium">wards</span>
             </div>
-            <div className="mt-3 flex items-center gap-2 pt-2 border-t border-risk-critical/20">
+            {/* "All areas safe" was written in the alert colour with a
+                pulsing alert dot next to it, so the one state that means
+                nothing is wrong looked exactly like the one that means
+                something is. The colour now follows the count. */}
+            <div className="mt-3 flex items-center gap-2 border-t border-risk-critical/20 pt-2">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-2 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-risk-high" />
+                {severeOrCriticalZonesCount > 0 && (
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-risk-high opacity-75" />
+                )}
+                <span
+                  className={`relative inline-flex h-2 w-2 rounded-full ${
+                    severeOrCriticalZonesCount > 0 ? 'bg-risk-high' : 'bg-positive'
+                  }`}
+                />
               </span>
-              <span className="text-mini text-risk-high font-medium">
-                {severeOrCriticalZonesCount > 0 ? `${severeOrCriticalZonesCount} Sectors in Pre-Alarm State` : 'All areas safe'}
+              <span
+                className={`text-mini font-medium ${
+                  severeOrCriticalZonesCount > 0 ? 'text-risk-high-ink' : 'text-positive'
+                }`}
+              >
+                {severeOrCriticalZonesCount > 0
+                  ? `${severeOrCriticalZonesCount} Sectors in Pre-Alarm State`
+                  : 'All areas safe'}
               </span>
             </div>
           </div>
 
           {/* Metric 2: Shortest Lead-Time (Tactical Amber / Gold Accent) */}
-          <div className="glass glass-interactive rounded-panel p-5 relative overflow-hidden group border border-risk-high/25 hover:border-risk-high/50 shadow-[0_12px_32px_rgba(245,158,11,0.12)]">
+          <div className="glass glass-interactive rounded-panel p-5 relative overflow-hidden group border border-risk-high/25 hover:border-risk-high/50">
             <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-accent-2/15 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
             <div className="flex items-center justify-between">
-              <span className="font-mono text-mini text-risk-high/80 uppercase tracking-wider font-semibold">
+              <span className="font-mono text-mini text-risk-high-ink/80 uppercase tracking-wider font-semibold">
                 Least time to prepare
               </span>
-              <div className="w-10 h-10 rounded-card bg-risk-high/20 border border-risk-high/40 flex items-center justify-center text-risk-high">
+              <div className="w-10 h-10 rounded-card bg-risk-high/20 border border-risk-high/40 flex items-center justify-center text-risk-high-ink">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                   <circle cx="12" cy="13" r="8" />
                   <path d="M12 9v4l2.5 2.5" />
@@ -344,13 +366,13 @@ export default function App() {
               </div>
             </div>
             <div className="flex items-baseline gap-1 mt-3">
-              <span className="text-3xl font-extrabold text-risk-high tracking-tight font-sans">
+              <span className="text-3xl font-extrabold text-risk-high-ink tracking-tight font-sans">
                 {shortestLeadTimeMins}
               </span>
               <span className="text-sm text-fg-soft font-medium">min</span>
             </div>
             <div className="mt-3 flex items-center gap-1.5 pt-2 border-t border-risk-high/20">
-              <svg className="w-3.5 h-3.5 text-risk-high" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 text-risk-high-ink" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M2 12h20M2 6h20M2 18h20" />
               </svg>
               <span className="text-mini text-fg-soft truncate">
@@ -360,7 +382,7 @@ export default function App() {
           </div>
 
           {/* Metric 3: People at risk (Electric Violet / Purple Accent) */}
-          <div className="glass glass-interactive rounded-panel p-5 relative overflow-hidden group border border-accent-2/25 hover:border-accent-2/50 shadow-[0_12px_32px_rgba(139,92,246,0.12)]">
+          <div className="glass glass-interactive rounded-panel p-5 relative overflow-hidden group border border-accent-2/25 hover:border-accent-2/50">
             <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-accent-2/20 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
             <div className="flex items-center justify-between">
               <span className="font-mono text-mini text-accent-2/80 uppercase tracking-wider font-semibold">
@@ -389,7 +411,7 @@ export default function App() {
           </div>
 
           {/* Metric 4: Blocked drains (Bright Electric Turquoise / Cyan Accent) */}
-          <div className="glass glass-interactive rounded-panel p-5 relative overflow-hidden group border border-accent/25 hover:border-accent/50 shadow-[0_12px_32px_rgba(6,182,212,0.12)]">
+          <div className="glass glass-interactive rounded-panel p-5 relative overflow-hidden group border border-accent/25 hover:border-accent/50">
             <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-accent/20 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
             <div className="flex items-center justify-between">
               <span className="font-mono text-mini text-accent-soft/80 uppercase tracking-wider font-semibold">
@@ -593,10 +615,10 @@ export default function App() {
                       </div>
                       <span className={`px-3 py-1 rounded-full font-mono text-mini font-bold uppercase tracking-wider ${
                         selectedZone.alertTier === 'evacuate'
-                          ? 'bg-risk-critical/20 border border-risk-critical/40 text-risk-critical animate-pulse'
+                          ? 'bg-risk-critical/20 border border-risk-critical/40 text-risk-critical-ink animate-pulse'
                           : selectedZone.alertTier === 'warning'
-                          ? 'bg-risk-high/20 border border-risk-high/40 text-risk-high'
-                          : 'bg-risk-low/20 border border-risk-low/40 text-risk-low'
+                          ? 'bg-risk-high/20 border border-risk-high/40 text-risk-high-ink'
+                          : 'bg-risk-low/20 border border-risk-low/40 text-risk-low-ink'
                       }`}>
                         Tier {selectedZone.alertTier}
                       </span>
@@ -797,10 +819,10 @@ export default function App() {
       </main>
 
       {/* FLUID HYDRODYNAMIC FOOTER */}
-      <footer className="w-full relative z-10 py-6 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto glass rounded-full px-6 py-3 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-muted border border-risk-low/20">
+      <footer className="shell pad-safe-bottom relative z-10 w-full py-6">
+        <div className="glass flex flex-col items-center justify-between gap-3 rounded-full border-risk-low/20 px-5 py-3 text-xs text-muted md:flex-row">
           <div className="flex items-center gap-2">
-            <span className="text-risk-low font-semibold flex items-center gap-1.5">
+            <span className="text-risk-low-ink font-semibold flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-risk-low animate-pulse" />
               FloodyLink
             </span>
@@ -810,7 +832,7 @@ export default function App() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsExplainerOpen(true)}
-              className="hover:text-risk-low transition-colors text-accent-soft font-medium cursor-pointer"
+              className="hover:text-risk-low-ink transition-colors text-accent-soft font-medium cursor-pointer"
             >
               System Concept &amp; 4 Inputs
             </button>

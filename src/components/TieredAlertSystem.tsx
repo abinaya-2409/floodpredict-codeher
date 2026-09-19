@@ -185,7 +185,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="px-2.5 py-0.5 rounded-full text-micro font-bold uppercase bg-risk-high/20 text-risk-high border border-risk-high/40">
+            <span className="px-2.5 py-0.5 rounded-full text-micro font-bold uppercase bg-risk-high/20 text-risk-high-ink border border-risk-high/40">
               Tier 1 • T - 12 to 6 Hours
             </span>
             <span className="text-xs font-mono text-muted">30-60mm</span>
@@ -206,7 +206,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="px-2.5 py-0.5 rounded-full text-micro font-bold uppercase bg-risk-severe/20 text-risk-severe border border-risk-severe/40">
+            <span className="px-2.5 py-0.5 rounded-full text-micro font-bold uppercase bg-risk-severe/20 text-risk-severe-ink border border-risk-severe/40">
               Tier 2 • T - 6 to 2 Hours
             </span>
             <span className="text-xs font-mono text-muted">60-120mm</span>
@@ -227,7 +227,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="px-2.5 py-0.5 rounded-full text-micro font-bold uppercase bg-risk-critical/20 text-risk-critical border border-risk-critical/40 animate-pulse">
+            <span className="px-2.5 py-0.5 rounded-full text-micro font-bold uppercase bg-risk-critical/20 text-risk-critical-ink border border-risk-critical/40 animate-pulse">
               Tier 3 • T - 2 to 0 Hours
             </span>
             <span className="text-xs font-mono text-muted">&gt;120mm / Overflow</span>
@@ -331,7 +331,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
                 <Smartphone className="w-4 h-4 text-accent" />
                 <span>Citizen Smartphone Lock Screen Preview</span>
               </span>
-              <span className="text-micro font-mono text-risk-low">● 4G/5G Broadcast Active</span>
+              <span className="text-micro font-mono text-risk-low-ink">● 4G/5G Broadcast Active</span>
             </div>
 
             {/* Notification Card */}
@@ -339,7 +339,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center space-x-2">
                   <span className="p-1 rounded-control bg-accent/20 text-accent">
-                    <AlertTriangle className="w-3.5 h-3.5 text-risk-critical" />
+                    <AlertTriangle className="w-3.5 h-3.5 text-risk-critical-ink" />
                   </span>
                   <span className="font-bold text-fg text-xs">DISASTER MANAGEMENT AUTHORITY</span>
                 </div>
@@ -366,7 +366,7 @@ export const TieredAlertSystem: React.FC<Props> = ({
                 <div key={log.id} className="p-2.5 rounded-control bg-surface border border-line text-xs">
                   <div className="flex items-center justify-between">
                     <span className={`px-2 py-0.2 rounded text-micro font-bold uppercase ${
-                      log.tier === 'evacuate' ? 'bg-risk-critical/20 text-risk-critical' : 'bg-risk-severe/20 text-risk-severe'
+                      log.tier === 'evacuate' ? 'bg-risk-critical/20 text-risk-critical-ink' : 'bg-risk-severe/20 text-risk-severe-ink'
                     }`}>
                       {log.tier} • {log.channel}
                     </span>

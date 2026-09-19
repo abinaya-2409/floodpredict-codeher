@@ -172,7 +172,7 @@ export const InstallAppPrompt: React.FC = () => {
                 </span>
                 <span className="flex items-center gap-1.5">
                   Tap <strong className="text-fg">Add</strong>
-                  <Check className="h-3.5 w-3.5 text-risk-low" aria-hidden="true" />
+                  <Check className="h-3.5 w-3.5 text-risk-low-ink" aria-hidden="true" />
                 </span>
               </li>
               <li className="pt-1 text-nano text-subtle">

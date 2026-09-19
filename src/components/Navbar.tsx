@@ -107,10 +107,13 @@ export const Navbar: React.FC<Props> = ({
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full px-3 sm:px-6 pt-3 pb-2 backdrop-blur-md bg-transparent">
-      <div className="max-w-7xl mx-auto flex flex-col gap-2">
+    <header className="sticky top-0 z-50 w-full pt-3 pb-2 bg-transparent">
+      {/* `.shell` is the one container in the app. It used to be px-3/sm:px-6
+          here and px-3/sm:px-6/lg:px-8 on <main>, so from 1024px up the
+          navigation sat 8px wider than every card below it. */}
+      <div className="shell flex flex-col gap-2">
         {/* Top Live Telemetry Pill Strip */}
-        <div className="glass flex items-center gap-3 overflow-hidden rounded-full border border-line px-4 py-1.5 text-xs whitespace-nowrap shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
+        <div className="glass flex items-center gap-2.5 overflow-hidden rounded-full border-line px-3 py-1.5 text-xs whitespace-nowrap sm:gap-3 sm:px-4">
           {/* Static label. */}
           <div className="flex shrink-0 items-center gap-3">
             {/* Radar Animated Pulse & Sweep Icon */}
@@ -135,7 +138,7 @@ export const Navbar: React.FC<Props> = ({
                 <span className="absolute w-1.5 h-1.5 rounded-full bg-accent-2 animate-ping" />
                 <span className="absolute w-1 h-1 rounded-full bg-accent-2" />
               </div>
-              <span className="text-fg">LIVE READINGS</span>
+              <span className="hidden text-fg sm:inline">LIVE READINGS</span>
             </div>
           </div>
 
@@ -161,7 +164,7 @@ export const Navbar: React.FC<Props> = ({
                   <span className="text-subtle">&bull;</span>
                   <span className="font-mono text-muted">
                     {t.forecast24h}:{' '}
-                    <strong className="font-bold text-risk-high">
+                    <strong className="font-bold text-risk-high-ink">
                       +{weather.forecast24hMm} mm
                     </strong>
                   </span>
@@ -175,7 +178,7 @@ export const Navbar: React.FC<Props> = ({
                   <span className="text-subtle">&bull;</span>
                   <span className="font-mono text-muted">
                     {t.dopplerTrend}:{' '}
-                    <strong className="font-bold uppercase text-risk-critical">
+                    <strong className="font-bold uppercase text-risk-critical-ink">
                       {weather.dopplerRadarTrend}
                     </strong>
                   </span>
@@ -189,26 +192,26 @@ export const Navbar: React.FC<Props> = ({
             {btState === 'connected' ? (
               <button
                 onClick={() => onChangeTab('offline-chat')}
-                className="inline-flex items-center gap-1.5 bg-blue-950/80 border border-blue-400/60 px-3 py-0.5 rounded-full text-blue-300 font-mono text-mini font-bold hover:bg-blue-900 transition-all cursor-pointer shadow-[0_0_10px_rgba(59,130,246,0.3)]"
+                className="inline-flex items-center gap-1.5 h-7 rounded-full border border-accent/55 bg-accent/15 px-3 font-mono text-mini font-bold text-accent transition-colors hover:bg-accent/25 cursor-pointer"
                 title="Bluetooth P2P Mesh Connected"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping" />
-                <Bluetooth className="w-3 h-3 text-blue-400" />
+                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-ping" />
+                <Bluetooth className="w-3 h-3 text-accent" />
                 <span>🔵 BT: {btPeer?.nickname || btPeer?.name || 'Connected'}</span>
               </button>
             ) : isOfflineSimulated ? (
               <button
                 onClick={onToggleOffline}
-                className="inline-flex items-center gap-1.5 bg-rose-950/70 border border-rose-500/40 px-3 py-0.5 rounded-full text-rose-300 font-mono text-mini font-semibold hover:bg-rose-900 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 h-7 rounded-full border border-danger/45 bg-danger/12 px-3 font-mono text-mini font-semibold text-danger transition-colors hover:bg-danger/20 cursor-pointer"
                 title="Telemetry Offline Simulation Mode"
               >
-                <WifiOff className="w-3 h-3 text-rose-400" />
+                <WifiOff className="w-3 h-3 text-danger" />
                 <span>🔴 Offline</span>
               </button>
             ) : (
               <button
                 onClick={onToggleOffline}
-                className="inline-flex items-center gap-1.5 bg-positive/12 border border-positive/35 px-3 py-0.5 rounded-full text-positive font-mono text-mini font-semibold hover:bg-positive/20 transition-colors cursor-pointer"
+                className="inline-flex h-7 items-center gap-1.5 rounded-full border border-positive/35 bg-positive/12 px-3 font-mono text-mini font-semibold text-positive transition-colors hover:bg-positive/20 cursor-pointer"
                 title="Telemetry Feed Online"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-positive animate-pulse" />
@@ -219,45 +222,48 @@ export const Navbar: React.FC<Props> = ({
         </div>
 
         {/* Main Navigation Fluid Island */}
-        <div className="glass rounded-panel px-4 sm:px-6 py-2.5 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.55)] border border-line-strong/50">
+        <div className="glass rounded-panel flex flex-col gap-2.5 border-line-strong/50 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-6">
           {/* Brand: one geometric mark, no ornament. */}
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <LogoMark className="h-8 w-8 shrink-0 text-accent" />
-            <div className="flex flex-col leading-none">
+            <div className="flex min-w-0 flex-col leading-none">
               <span className="font-display text-base sm:text-lg font-extrabold tracking-tight text-fg">
                 FloodyLink
               </span>
-              <span className="mt-1 text-micro font-medium uppercase tracking-[0.18em] text-subtle">
+              <span className="mt-1 truncate text-micro font-medium uppercase tracking-[0.18em] text-subtle">
                 Flood Intelligence
               </span>
             </div>
           </div>
 
           {/* Controls: Language, Ward/City Picker, Offline Chat CTA, Concept, Authority Hub CTA */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:justify-end sm:gap-3">
             <LanguagePicker language={language} onChange={onSetLanguage} />
 
             {/* Quick Access Offline Chat CTA */}
             <button
               onClick={() => onChangeTab('offline-chat')}
-              className={`h-9 px-3 sm:px-4 rounded-full border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm ${
+              className={`flex h-10 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-xs font-bold transition-colors sm:px-4 ${
                 activeTab === 'offline-chat'
-                  ? 'bg-cyan-500/25 border-cyan-400 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                  ? 'border-accent bg-accent/20 text-accent'
                   : btState === 'connected'
-                  ? 'bg-blue-950/90 border-blue-400 text-blue-300 hover:bg-blue-900 shadow-[0_0_10px_rgba(59,130,246,0.3)]'
-                  : 'bg-surface-2/80 hover:bg-surface-3 text-fg-soft hover:text-cyan-300 border-line-strong/60'
+                  ? 'border-accent/70 bg-accent/12 text-accent hover:bg-accent/20'
+                  : 'border-line-strong/60 bg-surface-2/80 text-fg-soft hover:bg-surface-3 hover:text-accent'
               }`}
               title="Open Direct Offline Bluetooth Emergency Chat"
             >
-              <Bluetooth className={`w-3.5 h-3.5 ${btState === 'connected' ? 'text-blue-400 animate-pulse' : 'text-cyan-400'}`} />
+              <Bluetooth className={`w-3.5 h-3.5 ${btState === 'connected' ? 'text-accent animate-pulse' : 'text-accent'}`} />
               <span className="hidden md:inline">Offline Chat</span>
               {btState === 'connected' && (
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                <span className="w-1.5 h-1.5 rounded-full bg-accent" />
               )}
             </button>
 
             {/* City / Ward Selector */}
-            <div className="flex items-center bg-surface-2/80 border border-line-strong/60 hover:border-accent/50 rounded-full px-3.5 h-9 gap-2 text-fg-soft text-xs font-medium transition-colors shadow-sm">
+            {/* min-h, not h: on a touch device the <select> inside grows to the
+                44px minimum, and a fixed-height wrapper would simply let it
+                overflow the pill it is drawn in. */}
+            <label className="flex min-h-10 items-center gap-2 rounded-full border border-line-strong/60 bg-surface-2/80 px-3.5 text-xs font-medium text-fg-soft transition-colors hover:border-accent/50">
               <svg className="w-4 h-4 text-accent shrink-0" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M3 21h18" />
                 <path d="M5 21V7l5-4v18" />
@@ -272,7 +278,8 @@ export const Navbar: React.FC<Props> = ({
                   const found = CITIES.find((c) => c.id === e.target.value);
                   if (found) onSelectCity(found);
                 }}
-                className="bg-transparent text-fg font-semibold text-xs focus:outline-none cursor-pointer pr-1"
+                aria-label="City"
+                className="h-full max-w-[9.5rem] cursor-pointer truncate border-0 bg-transparent pr-1 text-xs font-semibold text-fg focus:outline-none sm:max-w-none"
               >
                 {CITIES.map((c) => (
                   <option key={c.id} value={c.id} className="bg-surface text-fg">
@@ -280,7 +287,7 @@ export const Navbar: React.FC<Props> = ({
                   </option>
                 ))}
               </select>
-            </div>
+            </label>
 
             {onToggleTheme && (
               <button
@@ -289,7 +296,7 @@ export const Navbar: React.FC<Props> = ({
                   themeMode === 'oled' ? 'Switch to light theme' : 'Switch to OLED theme'
                 }
                 title={themeMode === 'oled' ? 'Light theme' : 'OLED theme'}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-line-strong/60 bg-surface-2/70 text-fg-soft transition-colors hover:bg-surface-3 hover:text-fg cursor-pointer"
+                className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-line-strong/60 bg-surface-2/70 text-fg-soft transition-colors hover:bg-surface-3 hover:text-fg"
               >
                 {themeMode === 'oled' ? (
                   <Sun className="h-3.5 w-3.5" aria-hidden="true" />
@@ -302,7 +309,7 @@ export const Navbar: React.FC<Props> = ({
             {/* Concept Link */}
             <button
               onClick={onOpenExplainer}
-              className="hidden lg:flex items-center h-9 px-4 rounded-full bg-surface-2/70 hover:bg-surface-3 text-fg-soft hover:text-fg text-xs font-medium transition-colors border border-line-strong/60 cursor-pointer"
+              className="hidden h-10 cursor-pointer items-center rounded-full border border-line-strong/60 bg-surface-2/70 px-4 text-xs font-medium text-fg-soft transition-colors hover:bg-surface-3 hover:text-fg lg:flex"
             >
               Concept
             </button>
@@ -317,7 +324,10 @@ export const Navbar: React.FC<Props> = ({
         <nav
           role="tablist"
           aria-label="Dashboard sections"
-          className="flex flex-wrap items-center gap-1.5 rounded-full glass px-3 py-1.5 border border-line-strong/50"
+          // rounded-full on a strip that has wrapped to two rows reads as a
+          // lozenge with a hole in it. A panel radius is the honest shape for
+          // a two-row strip; the pill comes back when it fits on one.
+          className="glass flex flex-wrap items-center gap-1.5 rounded-panel border-line-strong/50 px-2.5 py-1.5 sm:rounded-full sm:px-3"
           // No overflow-x-auto: it clipped the section menus, which open
           // downwards out of this strip. With five controls instead of ten
           // there is nothing left to scroll anyway.
@@ -331,7 +341,7 @@ export const Navbar: React.FC<Props> = ({
                 aria-selected={selected}
                 onClick={() => onChangeTab(tab.id)}
                 className={[
-                  'flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-1.5',
+                  'flex h-10 items-center gap-2 whitespace-nowrap rounded-full border px-4',
                   'text-xs font-semibold transition-colors cursor-pointer',
                   selected
                     ? 'border-accent/45 bg-accent/18 text-accent font-bold'

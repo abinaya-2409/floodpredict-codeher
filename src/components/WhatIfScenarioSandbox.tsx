@@ -242,7 +242,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
           <div className="p-4 bg-bg border border-line rounded-card space-y-2">
             <div className="flex justify-between items-center text-xs">
               <span className="font-semibold text-fg-soft">Initial Soil Saturation (Catchment Ground Water Table)</span>
-              <span className="font-mono font-bold text-risk-low text-sm">
+              <span className="font-mono font-bold text-risk-low-ink text-sm">
                 {simulationParams.soilSaturationInitial}%
               </span>
             </div>
@@ -283,7 +283,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
                     key={drain.id}
                     className={`p-3 rounded-control border transition-colors flex items-center justify-between gap-2 ${
                       isBlocked
-                        ? 'bg-risk-critical/30 border-risk-critical/50 text-risk-critical'
+                        ? 'bg-risk-critical/30 border-risk-critical/50 text-risk-critical-ink'
                         : 'bg-surface border-line text-fg-soft hover:border-line-strong'
                     }`}
                   >
@@ -296,7 +296,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
                         Max Capacity: {drain.maxCapacityCusecs} cusecs • Outfall: {drain.outfallCondition}
                       </div>
                       {drain.blockageReason && isBlocked && (
-                        <div className="text-micro text-risk-critical mt-0.5">
+                        <div className="text-micro text-risk-critical-ink mt-0.5">
                           ⚠️ {drain.blockageReason}
                         </div>
                       )}
@@ -321,7 +321,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
                         title="Toggle High-Capacity Dewatering Pump"
                         className={`p-1.5 rounded-control border transition-colors text-xs ${
                           isPumpActive
-                            ? 'bg-risk-low/20 border-risk-low text-risk-low font-bold'
+                            ? 'bg-risk-low/20 border-risk-low text-risk-low-ink font-bold'
                             : 'bg-surface-2 border-line-strong text-muted hover:text-fg-soft'
                         }`}
                       >
@@ -338,7 +338,7 @@ export const WhatIfScenarioSandbox: React.FC<Props> = ({
           <div className="grid grid-cols-2 gap-3">
             <div className="p-3.5 bg-bg border border-line rounded-card">
               <div className="text-mini text-muted">At-Risk Population</div>
-              <div className="text-xl font-mono font-bold text-risk-critical mt-1">
+              <div className="text-xl font-mono font-bold text-risk-critical-ink mt-1">
                 {totalFloodedPop.toLocaleString()} <span className="text-xs text-muted">citizens</span>
               </div>
               <div className="text-micro text-subtle mt-0.5">In zones exceeding 30cm flood</div>

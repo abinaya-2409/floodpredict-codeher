@@ -82,8 +82,8 @@ export const SystemExplainerModal: React.FC<Props> = ({ isOpen, onClose }) => {
             </div>
 
             <div className="p-4 bg-bg/60 border border-line rounded-card hover:border-accent/40 transition-colors">
-              <div className="flex items-center space-x-2 text-risk-low font-semibold text-sm mb-1">
-                <History className="w-4 h-4 text-risk-low" />
+              <div className="flex items-center space-x-2 text-risk-low-ink font-semibold text-sm mb-1">
+                <History className="w-4 h-4 text-risk-low-ink" />
                 <span>4. Historical Flood Benchmarks</span>
               </div>
               <p className="text-xs text-muted leading-relaxed">

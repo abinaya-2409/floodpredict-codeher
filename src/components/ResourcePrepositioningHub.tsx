@@ -85,7 +85,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="p-3.5 bg-bg border border-line rounded-card">
             <div className="text-mini text-muted">Total Population at Risk</div>
-            <div className="text-xl font-mono font-bold text-risk-critical mt-1">
+            <div className="text-xl font-mono font-bold text-risk-critical-ink mt-1">
               {totalImpactedPop.toLocaleString()} <span className="text-xs text-muted">citizens</span>
             </div>
             <div className="text-micro text-subtle mt-0.5">In &gt;30cm inundation zones</div>
@@ -101,7 +101,7 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
 
           <div className="p-3.5 bg-bg border border-line rounded-card">
             <div className="text-mini text-muted">NDRF / SDRF Dinghy Squads</div>
-            <div className="text-xl font-mono font-bold text-risk-high mt-1">
+            <div className="text-xl font-mono font-bold text-risk-high-ink mt-1">
               {totalRescueBoatsNeeded} <span className="text-xs text-muted">Boat Units</span>
             </div>
             <div className="text-micro text-subtle mt-0.5">Pre-staged at low bridges</div>
@@ -172,8 +172,8 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
                   <div className="flex items-center space-x-2">
                     <div className={`p-2 rounded-control ${
                       res.type === 'dewatering_pump' ? 'bg-accent/20 text-accent-soft' :
-                      res.type === 'ndrf_boat_unit' ? 'bg-risk-high/20 text-risk-high' :
-                      res.type === 'sdrf_rescue_team' ? 'bg-risk-critical/20 text-risk-critical' :
+                      res.type === 'ndrf_boat_unit' ? 'bg-risk-high/20 text-risk-high-ink' :
+                      res.type === 'sdrf_rescue_team' ? 'bg-risk-critical/20 text-risk-critical-ink' :
                       res.type === 'mobile_power_generator' ? 'bg-accent-2/20 text-accent-2' : 'bg-accent/20 text-accent-soft'
                     }`}>
                       {res.type === 'dewatering_pump' ? <Zap className="w-4 h-4" /> :
@@ -190,8 +190,8 @@ export const ResourcePrepositioningHub: React.FC<Props> = ({
                   </div>
 
                   <span className={`px-2 py-0.5 rounded text-micro font-bold uppercase shrink-0 ${
-                    res.priority === 'CRITICAL' ? 'bg-risk-critical/20 text-risk-critical border border-risk-critical/40' :
-                    res.priority === 'HIGH' ? 'bg-risk-severe/20 text-risk-severe border border-risk-severe/40' : 'bg-accent/20 text-accent-soft'
+                    res.priority === 'CRITICAL' ? 'bg-risk-critical/20 text-risk-critical-ink border border-risk-critical/40' :
+                    res.priority === 'HIGH' ? 'bg-risk-severe/20 text-risk-severe-ink border border-risk-severe/40' : 'bg-accent/20 text-accent-soft'
                   }`}>
                     {res.priority}
                   </span>

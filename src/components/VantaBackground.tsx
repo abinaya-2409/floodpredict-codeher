@@ -48,10 +48,57 @@ function prefersStillBackground(): boolean {
   return false;
 }
 
+/**
+ * The cloud field, per theme.
+ *
+ * The light row used to be #4d6675 / #2d4f63 / #132a38 - three dark slates
+ * labelled "light", which is the whole reason the light theme rendered as a
+ * dark one on any machine that ran the effect. It is now an actual overcast
+ * morning. The OLED row goes the other way: the sky is #000 and the clouds
+ * barely lift off it, so the panel stays switched off and the accent colours
+ * in front of it are the only bright thing on the screen.
+ */
 const SKY: Record<ThemeMode, Record<string, number>> = {
-  light: { backgroundColor: 0x4d6675, skyColor: 0x2d4f63, cloudColor: 0x132a38, lightColor: 0x95b6c6, speed: 0.65 },
-  oled: { backgroundColor: 0x050a14, skyColor: 0x102b3b, cloudColor: 0x02070c, lightColor: 0x6f98ac, speed: 0.55 },
+  light: {
+    // The sky has to be meaningfully darker than the cloud or the whole
+    // field renders as one pale wash with no shape in it - which is the
+    // difference between weather and fog on a lens.
+    backgroundColor: 0xd3e2ef,
+    skyColor: 0x6ba3cf,
+    cloudColor: 0xfbfdff,
+    lightColor: 0xffffff,
+    speed: 0.6,
+  },
+  oled: {
+    backgroundColor: 0x000000,
+    skyColor: 0x03090f,
+    cloudColor: 0x0b1922,
+    lightColor: 0x1b6f87,
+    speed: 0.5,
+  },
 };
+
+/**
+ * Renderer resolution.
+ *
+ * Vanta's `scale` becomes the WebGL pixel ratio. At the previous fixed 1 the
+ * sky was rendered at a third of the resolution of a modern phone screen and
+ * then stretched over it, which is most of why the background looked soft
+ * next to the text in front of it. Matching the device, capped at 2, is the
+ * difference between a sky and a blur; past 2 the cost climbs and nothing
+ * visible improves.
+ */
+function renderScale(): number {
+  if (typeof window === 'undefined') return 1;
+  return Math.min(Math.max(window.devicePixelRatio || 1, 1), 2);
+}
+
+/** Rain ink, as the active theme defines it: dark on a bright sky, pale on black. */
+function rainInk(): string {
+  if (typeof window === 'undefined') return '210 239 250';
+  const v = getComputedStyle(document.documentElement).getPropertyValue('--rain-ink').trim();
+  return v || '210 239 250';
+}
 
 export function VantaBackground({ theme }: { theme: ThemeMode }) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -87,8 +134,8 @@ export function VantaBackground({ theme }: { theme: ThemeMode }) {
           gyroControls: false,
           minHeight: 200,
           minWidth: 200,
-          scale: 1,
-          scaleMobile: 1,
+          scale: renderScale(),
+          scaleMobile: renderScale(),
           texturePath: '/gallery/noise.png',
           ...SKY[theme],
         });
@@ -119,13 +166,16 @@ export function VantaBackground({ theme }: { theme: ThemeMode }) {
     let previous = performance.now();
     let active = !document.hidden;
     let drops: Drop[] = [];
+    // Resolved once per theme rather than once per drop per frame: reading a
+    // custom property forces a style resolve, and there are ~120 drops.
+    let ink = rainInk();
 
     const makeDrop = (startAbove = false): Drop => ({
       x: Math.random() * width,
       y: startAbove ? -Math.random() * height : Math.random() * height,
       length: 10 + Math.random() * 16,
       speed: 360 + Math.random() * 340,
-      alpha: 0.08 + Math.random() * 0.16,
+      alpha: 0.18 + Math.random() * 0.3,
       drift: -35 - Math.random() * 45,
     });
 
@@ -152,7 +202,7 @@ export function VantaBackground({ theme }: { theme: ThemeMode }) {
           drop.x += drop.drift * delta;
           drop.y += drop.speed * delta;
           if (drop.y - drop.length > height || drop.x < -20) Object.assign(drop, makeDrop(true));
-          context.strokeStyle = `rgb(210 239 250 / ${drop.alpha})`;
+          context.strokeStyle = `rgb(${ink} / ${drop.alpha})`;
           context.beginPath();
           context.moveTo(drop.x, drop.y - drop.length);
           context.lineTo(drop.x + drop.drift * 0.035, drop.y);
@@ -163,16 +213,33 @@ export function VantaBackground({ theme }: { theme: ThemeMode }) {
     };
 
     const onVisibility = () => { active = !document.hidden; previous = performance.now(); };
+    // Pale rain stays pale over a white sky, which is rain you cannot see.
+    // The theme switch has to reach the canvas, and only an event can carry
+    // it: this effect is deliberately not keyed on the theme, because
+    // rebuilding the drop field would restart the rain mid-fall.
+    const onThemeChange = () => { ink = rainInk(); };
+
     resize();
     window.addEventListener('resize', resize, { passive: true });
+    window.addEventListener('orientationchange', resize, { passive: true });
     document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('floodypredict-theme-change', onThemeChange);
     frame = requestAnimationFrame(render);
-    return () => { cancelAnimationFrame(frame); window.removeEventListener('resize', resize); document.removeEventListener('visibilitychange', onVisibility); };
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('orientationchange', resize);
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('floodypredict-theme-change', onThemeChange);
+    };
   }, []);
 
   return (
     <div className="storm-background" aria-hidden="true">
       <div ref={hostRef} className="vanta-canvas-host fixed inset-0 z-0 pointer-events-none" style={{ opacity: ready ? 1 : 0, transition: 'opacity 1.2s ease-out' }} />
+      {/* Above the cloud field, so a phone with no WebGL sky and a desktop
+          with one still carry the same colour signature. */}
+      <div className="storm-glow" />
       <canvas ref={rainRef} className="storm-rain" />
       <div className="storm-lightning" />
     </div>

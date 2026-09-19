@@ -61,19 +61,66 @@
   --color-risk-critical: #c026d3;
 
   /* -------------------------------------------------------------------------
+     SEVERITY, AS TEXT
+     The five above are tuned to be seen as a filled shape on a map. Set as
+     type they fail: #f5d020 on white is 1.5:1, which is not a readable
+     label, it is a highlighter stain. So severity carries a second, darker
+     set used wherever the level is written rather than drawn - same hues,
+     same order, but each one legible against the surface of its own theme.
+     ---------------------------------------------------------------------- */
+  --color-risk-low-ink: #0b7f62;
+  --color-risk-moderate-ink: #8a6100;
+  --color-risk-high-ink: #b8460e;
+  --color-risk-severe-ink: #c01d3d;
+  --color-risk-critical-ink: #9a1fab;
+
+  /* -------------------------------------------------------------------------
      STATUS - SYSTEM STATE, NOT FLOOD STATE
      Deliberately distinct from the severity ramp: a green "telemetry online"
      chip must not read as "this ward is safe".
      ---------------------------------------------------------------------- */
-  --color-positive: #4ade80;
-  --color-warning: #fbbf24;
-  --color-danger: #f87171;
+  --color-positive: #15803d;
+  --color-warning: #b45309;
+  --color-danger: #b91c1c;
 
-  /* Glass / elevation */
-  --glass-bg: #ffffff;
-  --glass-border: #dce3eb;
-  --glass-blur: 0px;
-  --glass-shadow: 0 1px 3px rgb(15 35 52 / 0.08);
+  /* Glass / elevation.
+     Two shadows, not one. A single wide soft shadow is what made every panel
+     look like it was photographed slightly out of focus; a 1px contact
+     shadow pins the edge to the page and the wide one carries the lift. */
+  --glass-bg: rgb(255 255 255 / 0.94);
+  --glass-border: rgb(18 46 72 / 0.14);
+  --glass-blur: 14px;
+  --glass-shadow:
+    0 1px 2px rgb(16 42 66 / 0.09),
+    0 10px 28px rgb(16 42 66 / 0.08);
+
+  /* -------------------------------------------------------------------------
+     PAGE CONTAINER
+     One width and one gutter for the entire application. The header used
+     px-3/sm:px-6 while main used px-3/sm:px-6/lg:px-8, so from 1024px up the
+     navigation bar sat 8px wider than every card beneath it. Both now read
+     these, so the left edge of the logo and the left edge of the first card
+     are the same line at every width.
+     ---------------------------------------------------------------------- */
+  --shell-max: 80rem;
+
+  /* -------------------------------------------------------------------------
+     THE MAP
+
+     A map needs two colours that are not the page's. The canvas is what is
+     behind a tile that has not arrived yet, and it is seen constantly on a
+     slow connection - as the page colour it flashed the interface's own
+     surface through the map, which reads as a hole. The surround is
+     everything outside Tamil Nadu: the app models one state, and the
+     neighbours it cannot say anything about are pushed back rather than
+     coloured in.
+
+     Both are desaturated slate. Cartographic surround is the one place in
+     the interface that should have no opinion, because everything drawn on
+     top of it does.
+     ---------------------------------------------------------------------- */
+  --color-map-canvas: #dbe4ec;
+  --color-map-surround: #e7edf3;
 
   /* -------------------------------------------------------------------------
      RADIUS SCALE
@@ -118,11 +165,22 @@
     color: var(--color-fg);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    /* Stops iOS inflating body copy in landscape, which was silently undoing
+       the type scale on a rotated phone. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
-  /* Form controls and scrollbars render dark to match the interface. */
-  :root {
+  /* Native controls - the select's own dropdown, the scrollbar, the form
+     widgets the page does not draw itself - follow the chosen theme. This
+     said "light" unconditionally, so in the OLED theme every open dropdown
+     was a white sheet. */
+  :root[data-theme="light"] {
     color-scheme: light;
+  }
+
+  :root[data-theme="oled"] {
+    color-scheme: dark;
   }
 
   /* Visible focus for every interactive element. The previous build had no
@@ -189,10 +247,24 @@
 
 .glass {
   background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
+}
+
+/* Touch devices get no backdrop blur.
+   Blurring a full-screen backdrop behind a dozen panels is one of the most
+   expensive things a phone GPU can be asked to do, and the panels are 90%
+   opaque anyway, so almost none of it is visible. Dropping it costs nothing
+   that can be seen and buys back frames on the device least able to spare
+   them. The surface is raised to fully opaque in exchange. */
+@media (pointer: coarse) {
+  .glass {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: var(--glass-bg-solid, var(--glass-bg));
+  }
 }
 
 .glass-interactive {
@@ -206,13 +278,46 @@
   border-color: color-mix(in oklab, var(--color-accent) 40%, transparent);
 }
 
-.app-shell { width: min(1440px, calc(100% - 32px)); margin: 0 auto; }
-.app-header { position: sticky; top: 0; z-index: 50; background: var(--color-surface); border-bottom: 1px solid var(--color-line); }
-.app-header__utility { background: #163546; color: #dcecf2; font-size: .72rem; }.app-header__utility-inner { min-height: 30px; display: flex; align-items: center; gap: 14px; }.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #61c793; }.utility-reading { color: #afc4ce; }.utility-control { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
-.app-header__main { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }.brand { display: flex; align-items: center; gap: 10px; border: 0; background: transparent; color: var(--color-fg); text-align: left; cursor: pointer; }.brand-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 6px; color: #fff; background: var(--color-accent); }.brand strong { display: block; font-size: 1rem; line-height: 1.1; }.brand small { display: block; margin-top: 3px; color: var(--color-muted); font-size: .66rem; text-transform: uppercase; letter-spacing: .08em; }.header-actions, .account-control { display: flex; align-items: center; gap: 8px; }
-.city-select select { min-height: 36px; padding: 0 10px; border: 1px solid var(--color-line-strong); border-radius: 4px; background: var(--color-surface); color: var(--color-fg); font: inherit; font-size: .78rem; }.icon-control { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--color-line); border-radius: 4px; color: var(--color-fg-soft); background: var(--color-surface); cursor: pointer; }.button { min-height: 36px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid transparent; border-radius: 4px; cursor: pointer; font-size: .78rem; font-weight: 650; }.button--primary { background: var(--color-accent); color: #fff; }.button--primary:hover { background: var(--color-accent-deep); }.button--secondary { background: var(--color-surface); color: var(--color-accent); border-color: var(--color-accent); }.button--full { width: 100%; }.account-control { padding: 3px 3px 3px 8px; border: 1px solid var(--color-line); border-radius: 4px; color: var(--color-fg-soft); font-size: .76rem; }.account-control button { display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-left: 1px solid var(--color-line); background: transparent; color: var(--color-muted); cursor: pointer; }
-.app-header__nav-wrap { overflow-x: auto; }.app-nav { min-height: 43px; display: flex; align-items: stretch; gap: 2px; }.app-nav button { padding: 0 12px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--color-muted); white-space: nowrap; font-size: .76rem; font-weight: 600; cursor: pointer; }.app-nav button:hover { color: var(--color-fg); }.app-nav button.is-active { border-bottom-color: var(--color-accent); color: var(--color-accent); }.app-nav .nav-role { margin-left: auto; color: var(--color-fg-soft); }
-@media (max-width: 760px) { .app-shell { width: min(100% - 20px, 1440px); }.utility-reading, .brand small, .city-select, .account-control > span, .app-nav .nav-role { display: none; }.app-header__main { min-height: 60px; }.header-actions { gap: 5px; } }
+/* ===========================================================================
+   The page container
+
+   Header, banner and main all sit in the same box. The gutter grows with the
+   viewport and never falls inside a phone's rounded corner or notch: on a
+   landscape iPhone the safe-area inset is added to the gutter rather than
+   replacing it, so content clears the camera cutout and still has a margin.
+   =========================================================================== */
+
+:root {
+  --shell-gutter: 14px;
+
+  /* Sky defaults, so the background is never transparent in the window
+     between the document existing and `data-theme` being set - and so a
+     test renderer, which sets no attribute at all, still gets a colour. */
+  --sky-base: #e9f0f7;
+  --sky-wash: linear-gradient(180deg, #c9dcec 0%, #e3edf6 44%, #d6e5f0 100%);
+  --sky-glow: none;
+  --lightning-tint: rgb(255 255 255 / 0.7);
+  --rain-ink: 34 62 88;
+  --rain-opacity: 0.4;
+  --glass-bg-solid: #ffffff;
+}
+
+@media (min-width: 640px) {
+  :root { --shell-gutter: 24px; }
+}
+
+@media (min-width: 1280px) {
+  :root { --shell-gutter: 32px; }
+}
+
+.shell {
+  width: 100%;
+  max-width: calc(var(--shell-max) + var(--shell-gutter) * 2);
+  margin-inline: auto;
+  padding-inline:
+    calc(var(--shell-gutter) + env(safe-area-inset-left, 0px))
+    calc(var(--shell-gutter) + env(safe-area-inset-right, 0px));
+}
 
 /* ===========================================================================
    Ambient motion. Every duration divides by --motion-scale, so the Dynamic
@@ -297,14 +402,28 @@
    and attribution bar in every theme.
    =========================================================================== */
 
-/* The basemap is context, not content: dim it so risk colours dominate. */
+/* The basemap is context, not content: pull it back so the risk colours
+   drawn on top dominate. Darkening is only the right move over a dark
+   basemap - applied to a light one it turns the streets to mud, so the
+   light theme desaturates and lifts contrast instead. */
 .map-dim .leaflet-tile-pane img.leaflet-tile {
   filter: brightness(0.82) saturate(0.55) contrast(1.05);
 }
 
+:root[data-theme="light"] .map-dim .leaflet-tile-pane img.leaflet-tile {
+  filter: saturate(0.6) contrast(1.06);
+}
+
 .leaflet-container {
-  background: var(--color-bg-deep);
+  background: var(--color-map-canvas);
   font-family: var(--font-sans);
+}
+
+/* MapLibre paints its own canvas; this is what shows through before the
+   first frame and around the edges of a pitched 3D view. */
+.maplibregl-map,
+.maplibregl-canvas-container {
+  background: var(--color-map-canvas);
 }
 
 .leaflet-popup-content-wrapper,
@@ -353,68 +472,190 @@
   pointer-events: none !important;
 }
 
-/* The storm is atmospheric context, not content: dense surfaces stay readable
-   while the weather remains visible through the page perimeter. */
-.storm-background { position: fixed; inset: 0; z-index: 0; overflow: hidden; background: #2d4f63; }
-.storm-rain { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: .72; }
-.storm-lightning { position: absolute; inset: 0; opacity: 0; pointer-events: none; background: radial-gradient(circle at 72% 18%, rgb(209 234 245 / .36), transparent 32%); mix-blend-mode: screen; animation: stormLightning 19s ease-in-out infinite; }
-@keyframes stormLightning { 0%, 91%, 93%, 100% { opacity: 0; } 91.4%, 91.7% { opacity: .5; } 92.3% { opacity: .16; } }
+/* ===========================================================================
+   The sky behind the application
+
+   Four layers, in this order, back to front:
+
+     .storm-background   the flat theme colour, plus one gradient wash. This
+                         is the whole background on any device that does not
+                         run the WebGL sky, which is every phone.
+     .vanta-canvas-host  the live cloud field, when it is running. Opaque, so
+                         it covers the wash entirely.
+     .storm-glow         the theme's colour signature, painted OVER the sky
+                         so a phone and a desktop read as the same product
+                         rather than as two different ones.
+     .storm-rain         falling rain, drawn at device resolution.
+     .storm-lightning    an occasional distant flash.
+
+   Every layer is a hard gradient. Nothing here is blurred: a blurred
+   backdrop is what made the old background read as a smear behind the
+   interface rather than as weather behind a window.
+   =========================================================================== */
+
+.storm-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background-color: var(--sky-base);
+  background-image: var(--sky-wash);
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.storm-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--sky-glow);
+}
+
+.storm-rain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: var(--rain-opacity, 0.7);
+}
+
+.storm-lightning {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 72% 18%, var(--lightning-tint), transparent 32%);
+  animation: stormLightning 19s ease-in-out infinite;
+}
+
+@keyframes stormLightning {
+  0%, 91%, 93%, 100% { opacity: 0; }
+  91.4%, 91.7% { opacity: 0.5; }
+  92.3% { opacity: 0.16; }
+}
+
+/* ===========================================================================
+   LIGHT
+
+   The light theme used to paint the same #2d4f63 slab behind the page as the
+   dark one did, and hand Vanta a palette whose three "light" colours were
+   #4d6675, #2d4f63 and #132a38. So light mode was white cards on a dark
+   slate sky, which is why it never looked like a light theme. It is now an
+   overcast morning: bright at the horizon, weight at the top, and rain you
+   can actually see, because it is drawn dark rather than white on white.
+   =========================================================================== */
+
+:root[data-theme="light"] {
+  --sky-base: #e9f0f7;
+  --sky-wash:
+    radial-gradient(120% 70% at 50% -12%, #ffffff 0%, rgb(255 255 255 / 0) 58%),
+    radial-gradient(80% 55% at 10% 4%, rgb(150 190 222 / 0.5) 0%, rgb(150 190 222 / 0) 62%),
+    radial-gradient(85% 55% at 92% 2%, rgb(132 172 208 / 0.42) 0%, rgb(132 172 208 / 0) 60%),
+    linear-gradient(180deg, #c9dcec 0%, #e3edf6 44%, #d6e5f0 100%);
+  --sky-glow: radial-gradient(90% 50% at 50% 0%, rgb(255 255 255 / 0.4), rgb(255 255 255 / 0) 62%);
+  --lightning-tint: rgb(255 255 255 / 0.75);
+
+  /* Rain on a bright sky has to be dark or it is not there at all. */
+  --rain-ink: 34 62 88;
+  --rain-opacity: 0.4;
+
+  --color-map-canvas: #dbe4ec;
+  --color-map-surround: #e9eff5;
+
+  --glass-bg: rgb(255 255 255 / 0.9);
+  --glass-bg-solid: #ffffff;
+  --glass-border: rgb(18 46 72 / 0.14);
+  --glass-shadow:
+    0 1px 2px rgb(16 42 66 / 0.1),
+    0 10px 28px rgb(16 42 66 / 0.09);
+}
+
+/* ===========================================================================
+   OLED
+
+   True #000. Nothing in the background is lifted off black, so on an OLED
+   panel most of the screen is switched off, which is both the battery
+   saving and the reason the accents read as bright as they do.
+
+   The vibrance is carried by three things and never by the page itself:
+   electric cyan for anything you can act on, violet as its second note, and
+   the severity ramp, which stays fully saturated because on black it can
+   afford to be. Surfaces stay near-black and do the quiet work, so the
+   result reads as a control room at night rather than as a neon sign.
+   =========================================================================== */
 
 :root[data-theme="oled"] {
   --color-bg: #000000;
   --color-bg-deep: #000000;
-  --color-surface: #070a0d;
-  --color-surface-2: #0d1318;
-  --color-surface-3: #16212a;
-  --color-line: #1e303b;
-  --color-line-strong: #2b4656;
-  --color-fg: #e7f1f4;
-  --color-fg-soft: #b7c9d1;
-  --color-muted: #8198a4;
-  --color-subtle: #5d7380;
-  --color-accent: #49b7d2;
-  --color-accent-soft: #8ad8e8;
-  --color-accent-deep: #1d819b;
-  --color-accent-2: #7b9ab0;
-  --color-on-accent: #021014;
-  --glass-bg: rgb(7 10 13 / .88);
-  --glass-border: rgb(101 150 171 / .22);
-  --glass-shadow: 0 12px 36px rgb(0 0 0 / .32);
+  --color-surface: #08090d;
+  --color-surface-2: #0e1117;
+  --color-surface-3: #171c25;
+  --color-line: #1c2530;
+  --color-line-strong: #2d3d4d;
+  --color-fg: #f0f6fa;
+  --color-fg-soft: #bdcedb;
+  --color-muted: #8ba0b0;
+  --color-subtle: #677d8e;
+
+  --color-accent: #22d3ee;
+  --color-accent-soft: #7ee7f7;
+  --color-accent-deep: #0891b2;
+  --color-accent-2: #a78bfa;
+  --color-on-accent: #00161c;
+
+  /* On black the ramp can run at full saturation, which is what makes the
+     map legible at a glance instead of merely present. */
+  --color-risk-low: #2ee6b0;
+  --color-risk-moderate: #fde047;
+  --color-risk-high: #fb923c;
+  --color-risk-severe: #ff4d6d;
+  --color-risk-critical: #e879f9;
+
+  /* Written severity needs no darkening here - black is doing that job. */
+  --color-risk-low-ink: #34e7b4;
+  --color-risk-moderate-ink: #fde047;
+  --color-risk-high-ink: #fdba74;
+  --color-risk-severe-ink: #ff7391;
+  --color-risk-critical-ink: #f0abfc;
+
+  --color-positive: #4ade80;
+  --color-warning: #fbbf24;
+  --color-danger: #fb7185;
+
+  --sky-base: #000000;
+  --sky-wash:
+    radial-gradient(60% 40% at 6% -6%, rgb(34 211 238 / 0.15) 0%, rgb(34 211 238 / 0) 72%),
+    radial-gradient(55% 38% at 96% 0%, rgb(167 139 250 / 0.13) 0%, rgb(167 139 250 / 0) 74%),
+    radial-gradient(85% 45% at 50% 112%, rgb(8 145 178 / 0.16) 0%, rgb(8 145 178 / 0) 70%);
+  --sky-glow:
+    radial-gradient(55% 34% at 4% -8%, rgb(34 211 238 / 0.1) 0%, rgb(34 211 238 / 0) 70%),
+    radial-gradient(50% 32% at 98% -2%, rgb(167 139 250 / 0.09) 0%, rgb(167 139 250 / 0) 72%);
+  --lightning-tint: rgb(126 231 247 / 0.32);
+
+  --rain-ink: 186 230 253;
+  --rain-opacity: 0.5;
+
+  /* Near-black glass with a hairline of light on the edge. The hairline is
+     what separates one panel from the next when both are almost black. */
+  /* Black canvas, and a surround only just off it - enough that the coast
+     of Tamil Nadu is a visible edge rather than a guess, not enough to lift
+     the panel out of its low-power state. */
+  --color-map-canvas: #000000;
+  --color-map-surround: #05070a;
+
+  --glass-bg: rgb(8 9 13 / 0.82);
+  --glass-bg-solid: #08090d;
+  --glass-border: rgb(93 179 201 / 0.2);
+  --glass-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.035),
+    0 18px 44px rgb(0 0 0 / 0.72);
 }
-
-:root[data-theme="light"] {
-  --glass-bg: rgb(255 255 255 / .88);
-  --glass-border: rgb(220 227 235 / .8);
-}
-
-:root[data-theme="oled"] .app-header { background: rgb(7 10 13 / .92); }
-:root[data-theme="oled"] .app-header__utility { background: #07151d; }
-:root[data-theme="oled"] .city-select select,
-:root[data-theme="oled"] .icon-control,
-
 
 @media (prefers-reduced-motion: reduce) {
   .storm-lightning { animation: none; }
-  .storm-rain { opacity: .12; }
+  .storm-rain { opacity: 0.12; }
 }
-
-/* Brand and load state: quiet, legible, and brief. */
-.brand { gap: 11px; }
-.brand-mark { width: 40px; height: 40px; border-radius: 8px; background: linear-gradient(145deg, #0f5067, #167e9e); box-shadow: 0 5px 14px rgb(0 38 53 / .2); }
-.brand strong { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; letter-spacing: 0; }
-.brand small { margin-top: 4px; font-size: .7rem; text-transform: none; letter-spacing: .01em; }
-.icon-control { transition: background-color .16s ease, color .16s ease, border-color .16s ease; }
-.icon-control:hover { color: var(--color-accent); background: color-mix(in oklab, var(--color-accent) 9%, var(--color-surface)); border-color: color-mix(in oklab, var(--color-accent) 35%, var(--color-line)); }
-.app-nav button { font-family: var(--font-sans); letter-spacing: 0; }
-.splash-screen { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; background: #02080c; transition: opacity .28s ease; }
-.splash-screen::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 85%, rgb(10 92 121 / .32), transparent 46%); }
-.splash-content { position: relative; display: grid; justify-items: center; gap: 15px; width: min(100% - 48px, 320px); color: #effaff; text-align: center; }
-.splash-logo { display: grid; place-items: center; width: 60px; height: 60px; border: 1px solid rgb(123 218 241 / .2); border-radius: 14px; color: #65d1eb; background: rgb(11 46 60 / .7); box-shadow: 0 10px 30px rgb(0 0 0 / .3); }
-.splash-content h1 { margin: 0; font-family: var(--font-display); font-size: 1.45rem; font-weight: 700; letter-spacing: 0; }
-.splash-content p { margin: 5px 0 0; color: #9cb5c0; font-size: .78rem; letter-spacing: 0; }
-.splash-loader { display: block; width: 96px; height: 3px; overflow: hidden; border-radius: 999px; background: rgb(136 185 201 / .18); }
-.splash-loader i { display: block; width: 42%; height: 100%; border-radius: inherit; background: #4cc8e5; animation: splashLoad .78s ease-in-out infinite alternate; }
-@keyframes splashLoad { from { transform: translateX(-10%); } to { transform: translateX(155%); } }
 
 /* Critical catchments pulse gently so they are findable without hunting. */
 .leaflet-interactive.zone-critical {
@@ -695,6 +936,237 @@
   }
   /* The duplicate copy is decorative; without motion it is just repetition. */
   .telemetry-track > [aria-hidden='true'] {
+    display: none;
+  }
+}
+
+/* ===========================================================================
+   Adapting to the device
+
+   Three things change with the machine the app is running on, and none of
+   them are a guess about screen size alone.
+
+   1. Pointer. A finger is not a mouse. Every control the interface draws was
+      between 17px and 36px tall, which is under half of the 44px Apple and
+      Google both publish as the minimum, and this application is meant to
+      be used one-handed, in the rain, by someone in a hurry. On a coarse
+      pointer every control grows to 44px; on a mouse they stay compact,
+      because a compact dense board is the right answer there.
+
+   2. Viewport height. `100vh` on a phone is the height of the window with
+      the browser's address bar hidden, so a full-height panel is taller
+      than the screen until you scroll. `100dvh` is the height you can
+      actually see, right now.
+
+   3. Safe areas. In an installed PWA there is no browser chrome between the
+      app and the notch, the rounded corners or the home indicator.
+   =========================================================================== */
+
+@media (pointer: coarse) {
+  /* The comfortable minimum, applied by role rather than by class, so a
+     control added later gets it without anyone remembering to ask. */
+  button,
+  a[role="button"],
+  [role="tab"],
+  [role="radio"],
+  select,
+  summary {
+    min-height: 44px;
+  }
+
+  /* A checkbox is the one control where growing the box is wrong - a 44px
+     native checkbox is a large empty square, not a better target. The label
+     around it takes the height instead, so the whole row is tappable and
+     the box stays the size a checkbox should be. */
+  label:has(> input[type="checkbox"]),
+  label:has(> input[type="radio"]) {
+    min-height: 44px;
+  }
+
+  /* Icon-only controls need the width too, or they are a 44px-tall sliver. */
+  button:not(:has(span, p, strong, time)) {
+    min-width: 44px;
+  }
+
+  /* Inputs below 16px make iOS Safari zoom the whole page on focus and never
+     zoom back out, which is how a chat box ends up hijacking the layout. */
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+
+  /* A finger drags the page; it does not need a hover state left behind. */
+  .glass-interactive:hover {
+    border-color: var(--glass-border);
+  }
+}
+
+/* The few places that genuinely must not grow: strips of chips inside a
+   scrolling row, and the map's own controls, which Leaflet positions to the
+   pixel and which a 44px override pushes off the corner of the map. */
+@media (pointer: coarse) {
+  .leaflet-container button,
+  .leaflet-control a,
+  .compact-control,
+  .compact-control button {
+    min-height: 0;
+    min-width: 0;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Letting truncation truncate
+
+   `truncate` is `white-space: nowrap`, so the element's min-content width is
+   the entire string - 604px for one drainage channel's name in this data. A
+   flex or grid item's default `min-width` is `auto`, which resolves to that
+   min-content, so the name does not get clipped: it pushes its item, its
+   column and the whole dashboard wider than the phone holding it. At 360px
+   that was 95px of the interface hanging off the right-hand edge, hidden by
+   an `overflow-x: hidden` further up and therefore simply gone.
+
+   The class only does what its name says once the element, and every flex
+   or grid ancestor between it and the container, is allowed to shrink.
+   Matched by containment rather than listed by hand, so a long name added
+   to any panel later is clipped rather than reopening the same hole.
+
+   Deliberately not `:where(.flex, .grid) > * { min-width: 0 }`: that would
+   also let an icon without `shrink-0` squash to nothing.
+   --------------------------------------------------------------------------- */
+
+.truncate,
+:where(.flex, .grid) > :where(.truncate),
+:where(.flex, .grid) > *:has(.truncate) {
+  min-width: 0;
+}
+
+/* Viewport height that means what it says on a phone. */
+.min-h-screen-safe {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.h-screen-safe {
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* Installed, there is no browser chrome to keep content off the notch or the
+   home indicator, so the app has to do it. */
+.pad-safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.pad-safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+body {
+  /* A rubber-band scroll past the end of the page reveals the browser's own
+     background, not the app's. On a black OLED theme that flash is white. */
+  overscroll-behavior-y: none;
+}
+
+/* ===========================================================================
+   Crispness
+
+   The panel edge is painted inside the element's own box rather than across
+   its boundary. A 1px border drawn on a fractional device-pixel boundary is
+   resampled into a 2px smudge on a 2x or 3x screen; clipping the background
+   to the padding box stops the fill bleeding under that border and leaves
+   the line reading as a line.
+   =========================================================================== */
+
+.glass {
+  background-clip: padding-box;
+}
+
+/* The colour wash over the sky is decoration. It goes when motion does. */
+@media (prefers-reduced-motion: reduce) {
+  .storm-glow {
+    display: none;
+  }
+}
+
+/* ===========================================================================
+   The loading screen
+
+   Everything here is a theme token, so the screen the app opens on and the
+   screen it becomes are the same product. In the OLED theme this is a true
+   #000 field: the grid, the halo and the sonar rings are all accent colour
+   at low alpha over black, nothing is lifted off it, and the panel stays
+   switched off behind them.
+   =========================================================================== */
+
+.splash {
+  background-color: var(--sky-base);
+  background-image: var(--sky-wash);
+  color: var(--color-fg);
+  cursor: pointer;
+}
+
+.splash-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--color-accent) 22%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--color-accent) 22%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+  /* The grid is a texture, not a feature. Faded towards the edges it reads
+     as depth; carried all the way out it reads as graph paper. */
+  mask-image: radial-gradient(70% 70% at 50% 45%, #000 0%, transparent 78%);
+  -webkit-mask-image: radial-gradient(70% 70% at 50% 45%, #000 0%, transparent 78%);
+  opacity: 0.5;
+}
+
+.splash-halo {
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--color-accent) 26%, transparent) 0%,
+    color-mix(in oklab, var(--color-accent-2) 10%, transparent) 42%,
+    transparent 70%
+  );
+  filter: blur(90px);
+}
+
+.splash-ring {
+  border: 1px solid color-mix(in oklab, var(--color-accent) 30%, transparent);
+}
+
+.splash-scope {
+  border: 1px solid color-mix(in oklab, var(--color-accent) 32%, transparent);
+  background: color-mix(in oklab, var(--color-surface) 72%, transparent);
+}
+
+.splash-beam {
+  background: conic-gradient(
+    from 0deg,
+    color-mix(in oklab, var(--color-accent) 45%, transparent) 0deg,
+    transparent 76deg,
+    transparent 360deg
+  );
+}
+
+.splash-track {
+  background: color-mix(in oklab, var(--color-fg) 12%, transparent);
+}
+
+.splash-fill {
+  background: linear-gradient(90deg, var(--color-accent-deep), var(--color-accent), var(--color-accent-soft));
+}
+
+.splash-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--color-on-accent) 55%, transparent),
+    transparent
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-beam,
+  .splash-shimmer,
+  .splash-halo {
     display: none;
   }
 }

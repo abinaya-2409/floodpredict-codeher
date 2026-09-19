@@ -9,12 +9,29 @@ import { RiskLevel } from '../../types';
  * allowed to paint with the severity ramp; Badge covers everything else.
  */
 
+/** The fill: the dot, the tint and the border. */
 const RISK_VAR: Record<RiskLevel, string> = {
   low: 'var(--color-risk-low)',
   moderate: 'var(--color-risk-moderate)',
   high: 'var(--color-risk-high)',
   severe: 'var(--color-risk-severe)',
   critical: 'var(--color-risk-critical)',
+};
+
+/**
+ * The label.
+ *
+ * The pill used to set its text in the fill colour, so the "Watch" pill was
+ * #f5d020 type on a 14% #f5d020 tint - 1.4:1, a word you can see is there
+ * and cannot read. The dot and the border still carry the ramp, because
+ * those are shapes; the word is set in the readable ink for the theme.
+ */
+const RISK_INK: Record<RiskLevel, string> = {
+  low: 'var(--color-risk-low-ink)',
+  moderate: 'var(--color-risk-moderate-ink)',
+  high: 'var(--color-risk-high-ink)',
+  severe: 'var(--color-risk-severe-ink)',
+  critical: 'var(--color-risk-critical-ink)',
 };
 
 const RISK_LABEL: Record<RiskLevel, string> = {
@@ -43,7 +60,7 @@ export function RiskBadge({
     <span
       className={`${BASE} text-micro uppercase tracking-wider ${className}`}
       style={{
-        color: c,
+        color: RISK_INK[level],
         backgroundColor: `color-mix(in oklab, ${c} 14%, transparent)`,
         borderColor: `color-mix(in oklab, ${c} 40%, transparent)`,
       }}

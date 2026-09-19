@@ -398,7 +398,7 @@ export const PointPredictionPanel: React.FC<Props> = ({
                 {history.floodCount === 1 ? ' event' : ' events'} on record since 2016
                 {history.floodDeaths > 0 && (
                   <>
-                    , with <strong className="text-risk-severe">{history.floodDeaths}</strong>{' '}
+                    , with <strong className="text-risk-severe-ink">{history.floodDeaths}</strong>{' '}
                     recorded deaths across them
                   </>
                 )}

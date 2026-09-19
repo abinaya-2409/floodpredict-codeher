@@ -105,12 +105,12 @@ export const NearbyLinkPanel: React.FC = () => {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-card border border-cyan-400/30 bg-cyan-500/12 text-cyan-300">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-card border border-accent/35 bg-accent/12 text-accent">
             <Wifi className="h-4 w-4" aria-hidden="true" />
           </div>
           <div className="min-w-0">
             <h2 className="text-sm font-bold text-fg">Chat with a phone next to you</h2>
-            <p className="mt-0.5 text-[11px] leading-relaxed text-muted">
+            <p className="mt-0.5 text-mini leading-relaxed text-muted">
               Straight from one phone to the other over Wi-Fi. No internet, no mobile signal
               and no server &mdash; the same Wi-Fi or one phone&apos;s hotspot is enough.
             </p>
@@ -120,9 +120,9 @@ export const NearbyLinkPanel: React.FC = () => {
           data-testid="link-state"
           className={`shrink-0 rounded-full border px-2.5 py-1 text-nano font-bold uppercase tracking-wide ${
             status.state === 'connected'
-              ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-300'
+              ? 'border-positive/45 bg-positive/12 text-positive'
               : status.state === 'failed'
-              ? 'border-risk-high/40 bg-risk-high/10 text-risk-high'
+              ? 'border-risk-high/40 bg-risk-high/10 text-risk-high-ink'
               : 'border-line bg-surface-2/70 text-muted'
           }`}
         >
@@ -131,14 +131,14 @@ export const NearbyLinkPanel: React.FC = () => {
       </div>
 
       {error && (
-        <p className="rounded-card border border-risk-high/30 bg-risk-high/10 px-3 py-2 text-[11px] leading-relaxed text-fg-soft">
+        <p className="rounded-card border border-risk-high/30 bg-risk-high/10 px-3 py-2 text-mini leading-relaxed text-fg-soft">
           {error}
         </p>
       )}
 
       {status.state === 'connected' ? (
-        <div className="flex items-center justify-between gap-3 rounded-card border border-emerald-500/30 bg-emerald-950/30 px-3 py-2.5">
-          <p className="text-[11px] leading-relaxed text-emerald-200">
+        <div className="flex items-center justify-between gap-3 rounded-card border border-positive/35 bg-positive/10 px-3 py-2.5">
+          <p className="text-mini leading-relaxed text-positive">
             Connected to the other phone. Messages now go directly between you, with no
             network in between.
           </p>
@@ -185,14 +185,14 @@ export const NearbyLinkPanel: React.FC = () => {
                   value={status.code}
                   rows={3}
                   onFocus={(e) => e.currentTarget.select()}
-                  className="w-full resize-none rounded-card border border-line bg-bg/70 p-2 font-mono text-[9px] leading-tight text-fg-soft"
+                  className="w-full resize-none rounded-card border border-line bg-bg/70 p-2 font-mono text-nano leading-tight text-fg-soft"
                 />
                 <div className="flex gap-2">
                   <button
                     onClick={() => copy(status.code!)}
                     className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full border border-line bg-surface-2/70 text-mini font-semibold text-fg-soft hover:text-fg cursor-pointer"
                   >
-                    {copied ? <Check className="h-3 w-3 text-risk-low" /> : <Copy className="h-3 w-3" />}
+                    {copied ? <Check className="h-3 w-3 text-risk-low-ink" /> : <Copy className="h-3 w-3" />}
                     {copied ? 'Copied' : 'Copy'}
                   </button>
                   {canShare && (
@@ -215,7 +215,7 @@ export const NearbyLinkPanel: React.FC = () => {
                     rows={2}
                     data-testid="reply-input"
                     placeholder="Paste the reply from the other phone"
-                    className="mt-1 w-full resize-none rounded-card border border-line bg-bg/70 p-2 font-mono text-[9px] text-fg"
+                    className="mt-1 w-full resize-none rounded-card border border-line bg-bg/70 p-2 font-mono text-nano text-fg"
                   />
                 </label>
                 <button
@@ -247,7 +247,7 @@ export const NearbyLinkPanel: React.FC = () => {
               rows={3}
               data-testid="invite-input"
               placeholder="Paste their invite code"
-              className="w-full resize-none rounded-card border border-line bg-bg/70 p-2 font-mono text-[9px] text-fg"
+              className="w-full resize-none rounded-card border border-line bg-bg/70 p-2 font-mono text-nano text-fg"
             />
             <button
               onClick={() => run(() => LocalLink.acceptInvite(inviteInput))}
@@ -269,14 +269,14 @@ export const NearbyLinkPanel: React.FC = () => {
                   value={status.code}
                   rows={3}
                   onFocus={(e) => e.currentTarget.select()}
-                  className="w-full resize-none rounded-card border border-line bg-bg/70 p-2 font-mono text-[9px] leading-tight text-fg-soft"
+                  className="w-full resize-none rounded-card border border-line bg-bg/70 p-2 font-mono text-nano leading-tight text-fg-soft"
                 />
                 <div className="flex gap-2">
                   <button
                     onClick={() => copy(status.code!)}
                     className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full border border-line bg-surface-2/70 text-mini font-semibold text-fg-soft hover:text-fg cursor-pointer"
                   >
-                    {copied ? <Check className="h-3 w-3 text-risk-low" /> : <Copy className="h-3 w-3" />}
+                    {copied ? <Check className="h-3 w-3 text-risk-low-ink" /> : <Copy className="h-3 w-3" />}
                     {copied ? 'Copied' : 'Copy'}
                   </button>
                   {canShare && (

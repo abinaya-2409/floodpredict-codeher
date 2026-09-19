@@ -30,7 +30,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
               <Cpu className="w-4 h-4" />
               <span>Model Reliability & Confidence Index</span>
             </div>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-risk-low/20 text-risk-low border border-risk-low/30">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-risk-low/20 text-risk-low-ink border border-risk-low/30">
               87.4% High Confidence
             </span>
           </div>
@@ -65,7 +65,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
             </div>
 
             <div className="p-2.5 bg-bg rounded-card border border-line flex items-center space-x-2">
-              <HardDrive className="w-4 h-4 text-risk-high shrink-0" />
+              <HardDrive className="w-4 h-4 text-risk-high-ink shrink-0" />
               <div>
                 <div className="font-bold text-fg">2015/23 Ground Truth</div>
                 <div className="text-micro text-muted">Historical calibration</div>
@@ -102,7 +102,7 @@ export const HydrologicalTimelineView: React.FC<Props> = ({
 
           <div className={`p-3 rounded-card border text-xs flex items-center space-x-2.5 ${
             isOfflineSimulated
-              ? 'bg-risk-high/40 border-risk-high/50 text-risk-high'
+              ? 'bg-risk-high/40 border-risk-high/50 text-risk-high-ink'
               : 'bg-bg border-line text-muted'
           }`}>
             <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isOfflineSimulated ? 'bg-risk-high animate-ping' : 'bg-accent'}`} />

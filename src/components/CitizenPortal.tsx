@@ -139,7 +139,7 @@ export const CitizenPortal: React.FC<Props> = ({
             <div className="flex items-center space-x-2 text-accent font-bold text-xs uppercase tracking-wider">
               <span>Verified Elevated Relief Camps & Shelters</span>
             </div>
-            <span className="text-micro text-risk-low font-mono">● High Ground (Dry Guaranteed)</span>
+            <span className="text-micro text-risk-low-ink font-mono">● High Ground (Dry Guaranteed)</span>
           </div>
 
           <div className="space-y-3">
@@ -160,7 +160,7 @@ export const CitizenPortal: React.FC<Props> = ({
                     <Users className="w-3.5 h-3.5 text-accent" />
                     <span>Cap: {shelter.currentOccupancyPersons}/{shelter.capacityPersons}</span>
                   </div>
-                  <div className="flex items-center space-x-1 text-risk-low">
+                  <div className="flex items-center space-x-1 text-risk-low-ink">
                     <Zap className="w-3.5 h-3.5" />
                     <span>Generator Backup</span>
                   </div>
@@ -274,8 +274,8 @@ export const CitizenPortal: React.FC<Props> = ({
             </button>
 
             {reportSubmitted && (
-              <div className="p-2.5 bg-risk-low/60 border border-risk-low/50 rounded-card text-risk-low text-xs flex items-center space-x-2">
-                <CheckCircle2 className="w-4 h-4 text-risk-low" />
+              <div className="p-2.5 bg-risk-low/60 border border-risk-low/50 rounded-card text-risk-low-ink text-xs flex items-center space-x-2">
+                <CheckCircle2 className="w-4 h-4 text-risk-low-ink" />
                 <span>Beacon sent! Dispatched to municipal flood control room.</span>
               </div>
             )}

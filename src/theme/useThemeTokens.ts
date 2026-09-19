@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { RiskLevel } from '../types';
 
 /**
@@ -28,6 +28,10 @@ export interface ThemeTokens {
   positive: string;
   warning: string;
   danger: string;
+  /** Behind a tile that has not arrived yet. */
+  mapCanvas: string;
+  /** Everything outside the state this application models. */
+  mapSurround: string;
 }
 
 const FALLBACK: ThemeTokens = {
@@ -55,6 +59,8 @@ const FALLBACK: ThemeTokens = {
   positive: '#34d399',
   warning: '#fbbf24',
   danger: '#fb7185',
+  mapCanvas: '#000000',
+  mapSurround: '#05070a',
 };
 
 function read(styles: CSSStyleDeclaration, name: string, fallback: string): string {
@@ -90,12 +96,32 @@ export function readThemeTokens(): ThemeTokens {
     positive: read(s, '--color-positive', FALLBACK.positive),
     warning: read(s, '--color-warning', FALLBACK.warning),
     danger: read(s, '--color-danger', FALLBACK.danger),
+    mapCanvas: read(s, '--color-map-canvas', FALLBACK.mapCanvas),
+    mapSurround: read(s, '--color-map-surround', FALLBACK.mapSurround),
   };
 }
 
 export function useThemeTokens(): ThemeTokens {
-  // The palette is fixed, so this resolves once per mount.
-  return useMemo(() => readThemeTokens(), []);
+  /**
+   * Re-read on every theme change.
+   *
+   * This resolved once per mount, on the note that "the palette is fixed".
+   * It is not: the OLED and light themes carry different values for all of
+   * these, so a map or chart mounted under one theme kept its colours after
+   * a switch to the other - a black-on-black district grid one way, and
+   * pale-on-white the other. App already announces the change; this listens
+   * for it.
+   */
+  const [tokens, setTokens] = useState<ThemeTokens>(readThemeTokens);
+
+  useEffect(() => {
+    const reread = () => setTokens(readThemeTokens());
+    reread();
+    window.addEventListener('floodypredict-theme-change', reread);
+    return () => window.removeEventListener('floodypredict-theme-change', reread);
+  }, []);
+
+  return tokens;
 }
 
 /**

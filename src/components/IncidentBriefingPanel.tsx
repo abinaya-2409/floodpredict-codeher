@@ -30,12 +30,12 @@ const SEVERITY: Record<
   IncidentBriefing['severity'],
   { label: string; className: string }
 > = {
-  routine: { label: 'Routine', className: 'border-risk-low/40 bg-risk-low/10 text-risk-low' },
-  watch: { label: 'Watch', className: 'border-risk-moderate/40 bg-risk-moderate/10 text-risk-moderate' },
-  warning: { label: 'Warning', className: 'border-risk-high/40 bg-risk-high/10 text-risk-high' },
+  routine: { label: 'Routine', className: 'border-risk-low/40 bg-risk-low/10 text-risk-low-ink' },
+  watch: { label: 'Watch', className: 'border-risk-moderate/40 bg-risk-moderate/10 text-risk-moderate-ink' },
+  warning: { label: 'Warning', className: 'border-risk-high/40 bg-risk-high/10 text-risk-high-ink' },
   emergency: {
     label: 'Emergency',
-    className: 'border-risk-critical/45 bg-risk-critical/12 text-risk-critical',
+    className: 'border-risk-critical/45 bg-risk-critical/12 text-risk-critical-ink',
   },
 };
 
@@ -117,7 +117,7 @@ export const IncidentBriefingPanel: React.FC<Props> = ({
             className="flex h-8 items-center gap-1.5 rounded-full border border-line bg-surface-2/70 px-3 text-mini font-semibold text-fg-soft transition-colors hover:text-fg cursor-pointer"
           >
             {copied ? (
-              <Check className="h-3 w-3 text-risk-low" aria-hidden="true" />
+              <Check className="h-3 w-3 text-risk-low-ink" aria-hidden="true" />
             ) : (
               <Copy className="h-3 w-3" aria-hidden="true" />
             )}

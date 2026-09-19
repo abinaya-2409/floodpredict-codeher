@@ -86,7 +86,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
               <div className="text-2xl font-mono font-bold text-accent mt-1">
                 {weather.currentRainfallMmHr} <span className="text-xs text-muted font-sans">mm/hr</span>
               </div>
-              <div className="text-micro text-risk-critical mt-1 font-semibold flex items-center">
+              <div className="text-micro text-risk-critical-ink mt-1 font-semibold flex items-center">
                 <AlertCircle className="w-3 h-3 mr-1" />
                 <span>Exceeding standard drain capacity (30mm/h)</span>
               </div>
@@ -102,7 +102,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
 
             <div className="p-4 bg-bg border border-line rounded-card">
               <div className="text-xs text-muted">Intensity Category</div>
-              <div className="text-lg font-bold text-risk-high mt-1">
+              <div className="text-lg font-bold text-risk-high-ink mt-1">
                 {weather.intensityCategory}
               </div>
               <div className="text-micro text-subtle mt-1">IMD Heavy Squall Criteria</div>
@@ -140,7 +140,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
                     <span className="font-bold text-fg text-sm">{drain.name}</span>
                   </div>
                   <span className={`text-micro font-bold px-2 py-0.5 rounded uppercase ${
-                    drain.isBlocked ? 'bg-risk-critical/20 text-risk-critical border border-risk-critical/30' : 'bg-risk-low/20 text-risk-low'
+                    drain.isBlocked ? 'bg-risk-critical/20 text-risk-critical-ink border border-risk-critical/30' : 'bg-risk-low/20 text-risk-low-ink'
                   }`}>
                     {drain.isBlocked ? 'Choked' : 'Operational'}
                   </span>
@@ -165,7 +165,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
                 <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-line/80">
                   <div>
                     <span className="text-subtle text-micro uppercase block">Silt / Debris Choke</span>
-                    <span className="font-mono font-bold text-risk-high">{drain.chokePercentage}% Choked</span>
+                    <span className="font-mono font-bold text-risk-high-ink">{drain.chokePercentage}% Choked</span>
                   </div>
                   <div>
                     <span className="text-subtle text-micro uppercase block">Outfall Status</span>
@@ -210,7 +210,7 @@ export const FourInputsDataHub: React.FC<Props> = ({
               <div className="text-2xl font-mono font-bold text-accent-2 mt-1">
                 +{weather.forecast24hMm} <span className="text-xs text-muted font-sans">mm</span>
               </div>
-              <div className="text-micro text-risk-critical font-semibold mt-1">High Flood Trigger</div>
+              <div className="text-micro text-risk-critical-ink font-semibold mt-1">High Flood Trigger</div>
             </div>
 
             <div className="p-4 bg-bg border border-line rounded-card">

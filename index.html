@@ -8,7 +8,27 @@
       name="description"
       content="Composite vulnerability risk index, street-level inundation forecasting and tiered early warning for flood-prone Indian wards."
     />
-    <meta name="theme-color" content="#070d17" />
+    <meta name="theme-color" content="#000000" />
+
+    <!-- Theme, resolved before the first pixel.
+         React only learns the theme once App mounts, which is several hundred
+         milliseconds after the browser has already painted the loading screen.
+         That gap showed as a white flash on the way into the OLED theme and a
+         black one on the way into light. Setting the attribute here, ahead of
+         the stylesheet, means the splash is already the right colour. -->
+    <script>
+      (function () {
+        var mode = 'oled';
+        try {
+          var saved = localStorage.getItem('floodypredict_theme');
+          if (saved === 'light' || saved === 'oled') mode = saved;
+          else if (window.matchMedia('(prefers-color-scheme: light)').matches) mode = 'light';
+        } catch (e) {}
+        document.documentElement.dataset.theme = mode;
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', mode === 'light' ? '#eef4fa' : '#000000');
+      })();
+    </script>
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.webmanifest" />
