@@ -44,6 +44,7 @@ import {
 import { MessageTransport } from './MessageTransport';
 import { DeviceDiscovery } from './DeviceDiscovery';
 import { BluetoothSupport, WebBluetoothScanner } from './WebBluetoothScanner';
+import { LocalLink } from '../link/LocalLink';
 import { ConnectionManager } from './ConnectionManager';
 import { OfflineStorage } from './OfflineStorage';
 
@@ -143,13 +144,50 @@ class FloodyBluetoothService {
           console.error('[BluetoothService] Native write failed:', e);
           return false;
         }
-      } else {
-        // In Web/Simulation mode, handle loopback / simulated peer reception
-        if (this.isSimulatedMode && ConnectionManager.isConnected()) {
-          this.simulatePeerResponseToPacket(packetStr);
-          return true;
-        }
+      }
+
+      // The local-network link is the only browser transport that actually
+      // carries a message to another handset, so it is tried before anything
+      // else once it is up.
+      if (LocalLink.isConnected()) {
+        return LocalLink.send(packetStr);
+      }
+
+      if (this.isSimulatedMode && ConnectionManager.isConnected()) {
+        this.simulatePeerResponseToPacket(packetStr);
         return true;
+      }
+
+      // Nothing can carry it. Reporting true here is what used to make the
+      // chat mark messages as sent while transmitting nothing.
+      return false;
+    });
+
+    /*
+     * Packets arriving over the local link go through exactly the same
+     * reassembly, acknowledgement and heartbeat path as Bluetooth ones. That
+     * is the whole reason the transport was given this shape: chunking and
+     * delivery receipts did not have to be written twice.
+     */
+    LocalLink.onPacket((raw) => MessageTransport.handleIncomingRawPacket(raw));
+
+    LocalLink.addStatusListener((status) => {
+      if (status.state === 'connected') {
+        const peer: BluetoothDevicePeer = {
+          id: 'local-link',
+          name: 'Nearby phone over Wi-Fi',
+          nickname: 'Nearby phone',
+          lastSeen: Date.now(),
+          isConnected: true,
+          source: 'local-link',
+        };
+        DeviceDiscovery.registerDiscoveredPeer(peer);
+        ConnectionManager.setState('connected', peer);
+      } else if (status.state === 'closed' || status.state === 'failed') {
+        if (ConnectionManager.getConnectedPeer()?.id === 'local-link') {
+          ConnectionManager.setState('disconnected', null);
+        }
+        DeviceDiscovery.removePeer('local-link');
       }
     });
 

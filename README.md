@@ -392,6 +392,91 @@ Everything in the app is open on arrival. The login modal, both `/api/auth/*`
 routes, the OTP store and the email dependency have been removed rather than
 hidden, so there is no dormant auth surface left in the build.
 
+## Chatting with a phone next to you, with no network
+
+This is the part of the offline chat that actually carries a message between
+two handsets. Bluetooth cannot, in a browser: Web Bluetooth only talks to BLE
+GATT peripherals and a phone running a browser does not advertise itself as
+one, and iPhone has no Web Bluetooth at all. WebRTC can, and it works on both
+platforms.
+
+What makes it work with the internet gone is that nothing else is involved.
+No signalling server, no STUN, no TURN, no relay. Each phone gathers only its
+own addresses on the local network, and the two descriptions travel between
+the handsets **by hand** - as a short code the person copies, AirDrops, or
+sends over Nearby Share, all of which work with no internet. After that,
+packets go straight from one phone to the other over Wi-Fi.
+
+### Pairing
+
+Three steps, and it cannot be fewer - WebRTC needs each side to know the
+other before it will connect, and with no server the person is the channel:
+
+1. One phone taps **Create invite code** and sends the code across.
+2. The other pastes it, taps **Make a reply code**, and sends that back.
+3. The first pastes the reply and taps **Connect**.
+
+The codes are ~195 characters. That is short because almost all of an SDP is
+boilerplate that is identical on every device; `src/services/link/sdpCodec.ts`
+keeps only the five things that genuinely differ - ICE user fragment and
+password, the DTLS fingerprint, the DTLS role, and the host addresses - and
+rebuilds the rest from a template. A full offer is ~790 characters; the code
+is under 200.
+
+A damaged code is rejected with a reason rather than attempted. A wrong
+fingerprint in particular does not fail loudly at connect time - DTLS simply
+never completes and the user watches a spinner - so it is caught when the
+code is read.
+
+### Once connected
+
+Messages ride the existing protocol unchanged: the same chunking, the same
+delivery receipts, the same ping/pong heartbeat used by the Bluetooth path.
+`MessageTransport` was already built around a raw string sender and receiver,
+so the link just plugs into that seam and none of it had to be written twice.
+
+An arriving message rings the alert tone and buzzes the phone.
+
+### The honest limits
+
+- **Both phones must be on the same network.** Same Wi-Fi, or one of them
+  sharing a hotspot. A router with no internet uplink is fine. Two phones with
+  no Wi-Fi at all cannot do this.
+- **On iPhone the hotspot needs a mobile plan**, so two iPhones with no
+  network at all are stuck. An Android hotspot works and an iPhone can join it.
+- **No QR scanning yet.** Generating a QR is easy; reading one is not - iOS
+  Safari has no `BarcodeDetector`, so a scanner would work on Android and
+  quietly fail on iPhone. Copy and the system share sheet work on both, so
+  that is what shipped.
+
+### How it is tested
+
+`tools/nearby-chat-test.mjs` is the test that decides whether the feature
+exists. It opens **two separate browser pages** - each with its own
+RTCPeerConnection, its own storage and its own React tree - pairs them
+through the real UI by moving the codes between them the way a person would,
+sends a message from one, and checks it arrives on the other:
+
+```
+PASS  phone A produced an invite code - 194 chars
+PASS  phone B produced a reply code - 193 chars
+PASS  phone A reports connected     PASS  phone B reports connected
+PASS  the message arrived on the other phone
+PASS  the alert sound fired on the receiving phone - 2 tones
+PASS  no STUN, TURN or signalling server was contacted
+```
+
+Nothing is stubbed; the WebRTC stack and the data channel are real.
+
+Two notes for anyone running it. The test passes
+`--disable-features=WebRtcHideLocalIpsWithMdns`, because Chrome hides local
+IPs behind `.local` hostnames and two pages in one browser cannot resolve each
+other's - two real phones resolve mDNS normally, so this is a test-harness
+concern only. And the audio is armed with a real `touchscreen.tap`, not
+`element.click()`: a scripted click is untrusted, creates no user activation
+and fires no `pointerdown`, so the browser keeps audio locked. That is not a
+test artefact - it is exactly why the app arms its sound on a real touch.
+
 ## Offline Bluetooth chat: what works and what does not
 
 Two capabilities used to be described as one. They are separate, and only one
@@ -436,13 +521,17 @@ Two behaviours are worth knowing if you touch this code:
   nothing - ends that gesture. It is therefore called before the first
   `await` in the scan path, and only awaited afterwards.
 
-### Phone-to-phone chat: still needs the Android app
+### Phone-to-phone chat over Bluetooth: still needs the Android app
 
 Web Bluetooth connects only to BLE GATT peripherals, and a phone running a
 browser does not advertise itself as one. Two browsers can each see plenty of
-devices and still not be able to carry a message between them. That needs the
-native app on both handsets, and three things are missing before it can be
-built:
+devices and still not carry a message between them over Bluetooth.
+
+For chatting there is now a route that does work in a browser on both
+platforms - see "Chatting with a phone next to you" above, which goes over
+the local Wi-Fi instead. Bluetooth messaging specifically would still need
+the native app on both handsets, and three things are missing before that can
+be built:
 
 1. **Capacitor is not installed.** `package.json` has no `@capacitor/core`,
    `@capacitor/android` or `@capacitor/cli`, so `capacitor.config.ts` is

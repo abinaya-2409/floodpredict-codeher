@@ -14,6 +14,7 @@ import { ConnectionManager } from '../services/bluetooth/ConnectionManager';
 import { DeviceDiscovery, SweepStatus } from '../services/bluetooth/DeviceDiscovery';
 import { BluetoothSupport, DiscoverySource } from '../services/bluetooth/WebBluetoothScanner';
 import { arm, isArmed, isMuted, isSupported, notifyIncoming, setMuted } from '../utils/alertSound';
+import { NearbyLinkPanel } from './NearbyLinkPanel';
 import { OfflineStorage } from '../services/bluetooth/OfflineStorage';
 import {
   Bluetooth,
@@ -408,13 +409,17 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
 
   /** Whether a chat can actually be opened to this device from here. */
   const canChatWith = (device: BluetoothDevicePeer) =>
-    isNative || device.source === 'demo';
+    isNative || device.source === 'demo' || device.source === 'local-link';
 
   const SOURCE_LABEL: Record<DiscoverySource, { text: string; className: string }> = {
     native: { text: 'Phone radio', className: 'bg-emerald-500/15 border-emerald-400/30 text-emerald-300' },
     'web-scan': { text: 'Live scan', className: 'bg-cyan-500/15 border-cyan-400/30 text-cyan-300' },
     'web-remembered': { text: 'Allowed before', className: 'bg-blue-500/15 border-blue-400/30 text-blue-300' },
     'web-chooser': { text: 'You picked it', className: 'bg-indigo-500/15 border-indigo-400/30 text-indigo-300' },
+    'local-link': {
+      text: 'Wi-Fi direct',
+      className: 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300',
+    },
     demo: { text: 'Demo - not real', className: 'bg-purple-500/20 border-purple-400/40 text-purple-300' },
   };
 
@@ -582,6 +587,12 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column (5 cols): Device Discovery & Nearby Floody Users */}
         <div className="lg:col-span-5 space-y-4">
+          {/*
+            First, because it is the one route that actually carries a
+            message between two phones in a browser. Bluetooth discovery
+            below it can find devices but cannot chat to them.
+          */}
+          <NearbyLinkPanel />
           <div
             data-testid="nearby-panel"
             className="glass rounded-panel p-4 sm:p-5 border border-line-strong/60 shadow-xl flex flex-col gap-4"

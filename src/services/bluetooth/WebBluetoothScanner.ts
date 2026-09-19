@@ -73,6 +73,7 @@ export type DiscoverySource =
   | 'web-scan'         // requestLEScan advertisement
   | 'web-remembered'   // getDevices + watchAdvertisements
   | 'web-chooser'      // picked by the user in the browser's own chooser
+  | 'local-link'       // paired over the local network, the one that carries messages
   | 'demo';            // the two-device walkthrough, never mixed with the above
 
 export interface RadioDevice {
