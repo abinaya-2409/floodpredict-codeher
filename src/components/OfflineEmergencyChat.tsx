@@ -71,10 +71,6 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
   const [isAddingDevice, setIsAddingDevice] = useState(false);
   const [soundMuted, setSoundMuted] = useState(isMuted);
   const [soundArmed, setSoundArmed] = useState(isArmed);
-  // Ids already announced, so re-reading storage cannot re-ring old messages.
-  const announcedRef = useRef<Set<string>>(new Set());
-  /** Which conversation the snapshot in announcedRef belongs to. */
-  const primedPeerRef = useRef<string | null>(null);
   // Re-renders the 'seen 3s ago' labels without touching the device list.
   const [, setTick] = useState(0);
 
@@ -105,27 +101,7 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
     const unsubConn = ConnectionManager.addListener((state, peer) => {
       setConnState(state);
       setConnectedPeer(peer);
-      if (peer) {
-        /*
-         * Snapshot the existing thread here, synchronously, as history.
-         *
-         * The previous version primed on the first poll instead, which lost
-         * alerts: a message that arrived between connecting and that first
-         * poll was already in storage when the snapshot was taken, so it was
-         * marked as history and never rang. That is a silent failure and it
-         * showed up only against production, where the timing differed.
-         *
-         * Taking the snapshot at the moment of connection closes the window
-         * - anything stored afterwards is by definition not in it - and it
-         * uses no clocks, so the two phones disagreeing about the time
-         * cannot swallow an alert either.
-         */
-        if (primedPeerRef.current !== peer.id) {
-          primedPeerRef.current = peer.id;
-          announcedRef.current = new Set(OfflineStorage.getMessages(peer.id).map((m) => m.id));
-        }
-        loadMessagesForPeer(peer.id);
-      }
+      if (peer) loadMessagesForPeer(peer.id);
     });
 
     const unsubDiscovery = DeviceDiscovery.addListener((devices) => {
@@ -184,41 +160,12 @@ export const OfflineEmergencyChat: React.FC<Props> = ({ onBackToDashboard }) => 
   };
 
   // Poll / sync messages on connection or message updates
-  /**
-   * Reads the stored thread and rings for anything new that came from a peer.
-   *
-   * This runs on a 600ms poll, so "new" has to mean "not announced before"
-   * rather than "not in the previous render" - otherwise every poll would
-   * re-ring the whole thread. The first load of a conversation is marked as
-   * already-announced for the same reason: opening a chat should not replay
-   * every alert it ever received.
-   */
+  //
+  // Purely a read now. The alert is rung by BluetoothService the moment a
+  // message arrives, because deciding it here meant diffing storage against
+  // a snapshot and losing alerts whenever the timing shifted.
   const loadMessagesForPeer = (peerId: string) => {
-    const msgs = OfflineStorage.getMessages(peerId);
-    const seen = announcedRef.current;
-
-    // A conversation opened without going through the connect listener still
-    // needs its history treated as history rather than announced.
-    if (primedPeerRef.current !== peerId) {
-      primedPeerRef.current = peerId;
-      announcedRef.current = new Set(msgs.map((m) => m.id));
-      setMessages([...msgs]);
-      return;
-    }
-
-    let ring: 'sos' | 'message' | null = null;
-    for (const m of msgs) {
-      if (seen.has(m.id)) continue;
-      seen.add(m.id);
-      // Our own messages, delivery receipts and liveness probes are not
-      // things a person needs to be alerted to.
-      if (m.isSelf || m.type === 'ack' || m.type === 'ping' || m.type === 'pong') continue;
-      if (m.type === 'sos' || m.priority === 'emergency') ring = 'sos';
-      else if (!ring) ring = 'message';
-    }
-    if (ring) notifyIncoming(ring);
-
-    setMessages([...msgs]);
+    setMessages([...OfflineStorage.getMessages(peerId)]);
   };
 
   useEffect(() => {

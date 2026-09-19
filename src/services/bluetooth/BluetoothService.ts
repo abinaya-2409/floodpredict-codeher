@@ -45,6 +45,7 @@ import { MessageTransport } from './MessageTransport';
 import { DeviceDiscovery } from './DeviceDiscovery';
 import { BluetoothSupport, WebBluetoothScanner } from './WebBluetoothScanner';
 import { LocalLink } from '../link/LocalLink';
+import { notifyIncoming } from '../../utils/alertSound';
 import { ConnectionManager } from './ConnectionManager';
 import { OfflineStorage } from './OfflineStorage';
 
@@ -631,6 +632,18 @@ class FloodyBluetoothService {
     };
 
     OfflineStorage.saveMessage(storedMsg);
+
+    /*
+     * Ring here, where the message actually arrives.
+     *
+     * The alert used to be worked out in the UI by diffing stored messages
+     * against a snapshot, and that kept losing alerts to timing: whether a
+     * message counted as "new" depended on where it landed relative to the
+     * snapshot, which differed between a dev server and production. A
+     * message being handed to this function is the unambiguous fact that a
+     * message arrived from someone else - no diffing, no snapshot, no race.
+     */
+    notifyIncoming(payload.type === 'sos' || payload.priority === 'emergency' ? 'sos' : 'message');
 
     // Send immediate ACK response back to sender
     const ackPayload = MessageProtocol.createAckMessage(payload, this.identity);
