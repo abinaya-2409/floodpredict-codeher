@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Bot, FileText, Loader2, Send, Sparkles, User } from 'lucide-react';
+import { Bot, FileText, Loader2, Send, ShieldCheck, Sparkles, User } from 'lucide-react';
 import { CityData, SimulationParams, ZoneData, ZoneRiskAssessment } from '../types';
 import {
   buildChatContext,
@@ -38,6 +38,12 @@ interface Msg {
   text: string;
   /** Who wrote it: the app's own composer, or the model that answered. */
   source?: string;
+  /**
+   * Whether the answer was checked against the snapshot, and whether it took
+   * a correction to pass. Worth showing: an officer deciding how much to
+   * trust a sentence should be able to see that its figures were verified.
+   */
+  checked?: 'verified' | 'corrected';
 }
 
 /**
@@ -75,8 +81,8 @@ export function FloodAssistant({ city, zones, assessments, simulationParams }: P
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, busy]);
 
-  const append = (role: Msg['role'], text: string, source?: string) =>
-    setMessages((prev) => [...prev, { id: nextId(), role, text, source }]);
+  const append = (role: Msg['role'], text: string, source?: string, checked?: Msg['checked']) =>
+    setMessages((prev) => [...prev, { id: nextId(), role, text, source, checked }]);
 
   /** Report and Summarise: composed here, never sent anywhere. */
   const composeLocally = (kind: 'report' | 'summary') => {
@@ -112,7 +118,12 @@ export function FloodAssistant({ city, zones, assessments, simulationParams }: P
       });
       const data = await res.json();
       if (data.reply) {
-        append('assistant', data.reply, data.model ?? 'a language model');
+        append(
+          'assistant',
+          data.reply,
+          data.model ?? 'a language model',
+          data.corrected ? 'corrected' : data.verified ? 'verified' : undefined
+        );
       } else {
         // 429 included: the model runs on one key shared by everyone using
         // the site, so being turned away is ordinary traffic rather than a
@@ -218,6 +229,19 @@ export function FloodAssistant({ city, zones, assessments, simulationParams }: P
                   <Bot className="h-3 w-3" aria-hidden="true" />
                 )}
                 {m.role === 'user' ? 'You' : (m.source ?? 'Assistant')}
+                {m.checked && (
+                  <span
+                    className="inline-flex items-center gap-1 text-risk-low"
+                    title={
+                      m.checked === 'corrected'
+                        ? 'A figure did not match the data, so the answer was sent back and corrected before you saw it.'
+                        : 'Every figure in this answer was checked against the app’s own numbers.'
+                    }
+                  >
+                    <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+                    {m.checked === 'corrected' ? 'corrected' : 'checked'}
+                  </span>
+                )}
               </div>
               <p className="whitespace-pre-wrap text-xs leading-relaxed">{m.text}</p>
             </div>

@@ -1,5 +1,7 @@
 import express from 'express';
 import { clientIp, createRateLimiter } from './_rateLimit.js';
+import { errorLogConfigured, recordVerifications, VerificationRecord } from './_errorLog.js';
+import { correctionPrompt, readSnapshot, verifyAnswer } from './_verifyAnswer.js';
 
 export const app = express();
 // A chat turn with the ward snapshot attached is a few kilobytes. The default
@@ -188,6 +190,9 @@ app.get('/api/health', (_req, res) => {
     // Counts are per serverless instance; see the note in _rateLimit.ts.
     chatConfigured: Boolean(llmKey),
     chatUsage: chatLimiter.snapshot(),
+    // Answers are checked against the snapshot whether or not this is set;
+    // without it the findings go to the server log instead of a table.
+    checkLogConfigured: errorLogConfigured(),
   });
 });
 
@@ -605,17 +610,108 @@ app.post('/api/chat', async (req, res) => {
     : `${CHAT_SYSTEM_PROMPT}\n\nNo snapshot was supplied, so you have no data ` +
       `about this city. Say so if asked about it, and answer general questions normally.`;
 
+  const messages: ChainMessage[] = [{ role: 'system', content: system }, ...history];
+
   const result = await completeWithChain(
     conf,
     key,
-    [{ role: 'system', content: system }, ...history],
+    messages,
     // Warmer than the briefing rewrite, which is a transcription job. This is
     // a conversation, and 0.2 makes it read like one side of a form.
     { temperature: 0.5, maxTokens: 800 }
   );
 
   if (result.text) {
-    res.json({ reply: result.text, configured: true, model: result.model });
+    /*
+     * Check, correct, check again.
+     *
+     * The prompt asks the model not to invent figures about this city. This
+     * is where that is enforced rather than hoped for: the answer is measured
+     * against the same snapshot it was given, and a failure is handed back
+     * with the specific figures named. One retry, not a loop that runs until
+     * it passes - a second failure means the model cannot answer this from
+     * the data, and asking a third time spends a shared quota to get a third
+     * guess.
+     */
+    const question = history[history.length - 1].content;
+    const facts = snapshot ? readSnapshot(snapshot) : null;
+    const problems = facts ? verifyAnswer(result.text, facts) : [];
+
+    if (!problems.length) {
+      res.json({ reply: result.text, configured: true, model: result.model, verified: true });
+      return;
+    }
+
+    const retry = await completeWithChain(
+      conf,
+      key,
+      [
+        ...messages,
+        { role: 'assistant', content: result.text },
+        { role: 'user', content: correctionPrompt(problems) },
+      ],
+      // Colder for the correction: this is a repair against a list, not an
+      // invitation to write something new.
+      { temperature: 0.2, maxTokens: 800 }
+    );
+
+    const remaining = retry.text ? verifyAnswer(retry.text, facts) : problems;
+    const stillWrong = new Set(remaining.map((p) => `${p.kind}:${p.value.toLowerCase()}`));
+
+    const rows: VerificationRecord[] = problems.map((p) => ({
+      kind: p.kind,
+      value: p.value,
+      expected: p.expected,
+      context: p.context,
+      question,
+      model: result.model ?? 'unknown',
+      attempt: 1,
+      corrected: retry.text ? !stillWrong.has(`${p.kind}:${p.value.toLowerCase()}`) : false,
+    }));
+    for (const p of remaining) {
+      rows.push({
+        kind: p.kind,
+        value: p.value,
+        expected: p.expected,
+        context: p.context,
+        question,
+        model: retry.model ?? result.model ?? 'unknown',
+        attempt: 2,
+        corrected: null,
+      });
+    }
+    // Not awaited: a user waits for an answer, not for a database.
+    void recordVerifications(rows);
+
+    if (retry.text && !remaining.length) {
+      res.json({
+        reply: retry.text,
+        configured: true,
+        model: retry.model,
+        verified: true,
+        corrected: true,
+      });
+      return;
+    }
+
+    /*
+     * Twice wrong about the data. The structured answers are exact and one
+     * button away, so the honest thing is to say the answer could not be
+     * checked rather than print it with a disclaimer nobody reads.
+     */
+    console.warn(
+      'Chat: answer failed verification twice.',
+      remaining.map((p) => `${p.kind} "${p.value}"`)
+    );
+    res.json({
+      reply: null,
+      configured: true,
+      verified: false,
+      message:
+        'I could not answer that from the data without getting a figure wrong, ' +
+        'so I have not shown it. Report and Summarise are computed from the ' +
+        'same numbers and are exact.',
+    });
     return;
   }
 
