@@ -273,9 +273,18 @@ npm run build      # production bundle
 
 Copy `.env.example` to `.env`. Every variable is optional:
 
-- `GEMINI_API_KEY` — enables the AI analysis routes. Without it, those routes
-  return a response explicitly flagged `{"sample": true, "aiAvailable": false}`
-  so placeholder text can never be mistaken for real analysis.
+- `LLM_API_KEY` — one key, held on the server, that serves every visitor to
+  the site. It enables the briefing's "Rewrite as prose" button and the
+  assistant's open conversation. A free Groq key (`gsk_…`) or OpenRouter key
+  (`sk-or-…`); the prefix decides the provider, so `LLM_PROVIDER` can stay
+  empty. Without it the assistant's Report and Summarise still work, because
+  the app writes those itself.
+- `CHAT_RATE_PER_IP` / `CHAT_RATE_GLOBAL` / `CHAT_RATE_DAILY` — the shared
+  allowance, since one key serves everyone and the tier behind it is free.
+  Default 8 a minute per address, 60 a minute site-wide, 1500 a day.
+- `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` — where the assistant's mistakes are
+  recorded. The checking happens either way; without these the findings go to
+  the server log rather than a table. Schema in `supabase/assistant_errors.sql`.
 - `VITE_MAPTILER_KEY` — optional, and genuinely optional. The map ships four
   **keyless** Esri basemaps (Command, Satellite, Elevation, Streets) plus
   India-wide place search via Nominatim; a MapTiler key only appends a fifth
@@ -337,8 +346,8 @@ state a figure the model did not produce - which is the failure mode that
 matters when the output is an evacuation order.
 
 A language model is still offered, but only to rewrite those same facts as
-prose, and only when a key is set. Two providers, both serving **open-weight
-Llama 3.3 70B** on a free tier:
+prose, and only when a key is set. Two providers, both serving open-weight
+models on a free tier, both OpenAI-compatible:
 
 ```
 LLM_PROVIDER=groq        LLM_API_KEY=gsk_...    # console.groq.com
@@ -350,6 +359,60 @@ is precisely why the facts are computed elsewhere and the rewrite is optional.
 With no key the button explains itself and the briefing is untouched.
 
 `@google/genai` is gone, as are the three `/api/gemini/*` routes.
+
+Model names on a free tier retire without notice, so the list is a fallback
+chain rather than a single choice: anything answering 400, 404 or 429 is
+treated as "not this one" and the next is tried. All four OpenRouter models
+originally listed here had lost their `:free` variants by September 2026, and
+the chain silently exhausted on every request until they were replaced. If the
+rewrite or the assistant stops answering, check the live catalogue first.
+
+## The assistant
+
+A chat tab that reports, summarises, and talks about floods and weather
+generally. It runs on the one shared `LLM_API_KEY`, so anyone who opens the
+site can use it without bringing a key of their own.
+
+The three things it does are not equally trustworthy, and it is built around
+that rather than around hiding it:
+
+**Report and Summarise never touch the network.** They are composed in the
+browser from the same computed state the dashboard is drawing, so they answer
+instantly, offline, with no key, and cannot state a figure the app did not
+produce. Those are the two an officer presses during an actual event, and an
+event is when the network is worst.
+
+**Open conversation goes to the model**, with a snapshot of the current
+scenario as its only source of truth about this city. It may quote those
+numbers and may not invent, round or adjust one. Anything outside the
+snapshot — monsoons, drainage, what a coping deficit means on the ground — it
+answers from its own knowledge, and says so.
+
+**Every answer is then checked.** Prompts are asked, not enforced, so the
+reply is measured against the same snapshot it was given, looking for three
+things that can be checked mechanically:
+
+| | |
+|---|---|
+| `invented` | a figure in a sentence about a ward that is nowhere in the data |
+| `altered` | the same, but close to a real one — a rounded or drifted figure, the more dangerous of the two because it reads right |
+| `misnamed` | a ward, zone or shelter that does not exist here |
+
+A failing answer is handed back with the specific figures named — "you wrote
+47, the data says 45" produces a correction where "you got something wrong"
+produces another guess. One retry, not a loop that runs until it passes: a
+second failure means the model cannot answer that from the data, and the
+answer is withheld rather than shown with a disclaimer nobody reads.
+
+General conversation is deliberately exempt. "Tamil Nadu gets about 1,400 mm a
+year" is the model's own knowledge, correctly offered, and has no business
+being measured against a snapshot of one simulated afternoon. A figure is only
+held to the data when the sentence it sits in is about this city's wards.
+
+What was caught and whether the correction fixed it is written to Supabase
+(`supabase/assistant_errors.sql`), because a correction pass that never
+corrects anything is a cost with no benefit and the record is the only way to
+tell which it is. With no credentials set it goes to the server log instead.
 
 ## Keeping it simple
 

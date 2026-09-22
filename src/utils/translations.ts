@@ -76,6 +76,8 @@ export const TRANSLATIONS = {
     tabResources: 'Send Help',
     tabTimeline: 'Next 3 Days',
     tabOfflineChat: 'Offline Chat',
+
+    tabAssistant: 'Assistant',
     authorityHub: 'Official view',
     citizenView: 'Public view',
     offlineBannerTitle: 'Working offline',
@@ -120,6 +122,8 @@ export const TRANSLATIONS = {
     tabResources: 'संसाधन तैनाती',
     tabTimeline: '72 घंटे की समयरेखा',
     tabOfflineChat: 'ऑफ़लाइन आपातकालीन चैट',
+
+    tabAssistant: 'सहायक',
     authorityHub: 'प्राधिकरण केंद्र',
     citizenView: 'नागरिक दृश्य',
     offlineBannerTitle: 'ऑफ़लाइन कैश सक्रिय',
@@ -164,6 +168,8 @@ export const TRANSLATIONS = {
     tabResources: 'সম্পদ মোতায়েন',
     tabTimeline: '৭২ ঘণ্টার সময়রেখা',
     tabOfflineChat: 'অফলাইন জরুরি চ্যাট',
+
+    tabAssistant: 'সহায়ক',
     authorityHub: 'কর্তৃপক্ষ কেন্দ্র',
     citizenView: 'নাগরিক দৃশ্য',
     offlineBannerTitle: 'অফলাইন ক্যাশ সক্রিয়',
@@ -208,6 +214,8 @@ export const TRANSLATIONS = {
     tabResources: 'संसाधन तैनाती',
     tabTimeline: '७२ तासांची कालरेषा',
     tabOfflineChat: 'ऑफलाइन आपत्कालीन चॅट',
+
+    tabAssistant: 'सहाय्यक',
     authorityHub: 'प्राधिकरण केंद्र',
     citizenView: 'नागरिक दृश्य',
     offlineBannerTitle: 'ऑफलाइन कॅशे सक्रिय',
@@ -252,6 +260,8 @@ export const TRANSLATIONS = {
     tabResources: 'వనరుల మోహరింపు',
     tabTimeline: '72 గంటల కాలరేఖ',
     tabOfflineChat: 'ఆఫ్‌లైన్ అత్యవసర చాట్',
+
+    tabAssistant: 'సహాయకుడు',
     authorityHub: 'అధికార కేంద్రం',
     citizenView: 'పౌర వీక్షణ',
     offlineBannerTitle: 'ఆఫ్‌లైన్ కాష్ సక్రియం',
@@ -296,6 +306,8 @@ export const TRANSLATIONS = {
     tabResources: 'வள நிலைநிறுத்தல்',
     tabTimeline: '72 மணி நேர காலவரிசை',
     tabOfflineChat: 'ஆஃப்லைன் அவசர அரட்டை',
+
+    tabAssistant: 'உதவியாளர்',
     authorityHub: 'அதிகார மையம்',
     citizenView: 'குடிமக்கள் பார்வை',
     offlineBannerTitle: 'ஆஃப்லைன் சேமிப்பு செயலில்',
@@ -340,6 +352,8 @@ export const TRANSLATIONS = {
     tabResources: 'ಸಂಪನ್ಮೂಲ ನಿಯೋಜನೆ',
     tabTimeline: '72 ಗಂಟೆಗಳ ಕಾಲರೇಖೆ',
     tabOfflineChat: 'ಆಫ್‌ಲೈನ್ ತುರ್ತು ಚಾಟ್',
+
+    tabAssistant: 'ಸಹಾಯಕ',
     authorityHub: 'ಪ್ರಾಧಿಕಾರ ಕೇಂದ್ರ',
     citizenView: 'ನಾಗರಿಕ ನೋಟ',
     offlineBannerTitle: 'ಆಫ್‌ಲೈನ್ ಕ್ಯಾಶ್ ಸಕ್ರಿಯ',
@@ -384,6 +398,8 @@ export const TRANSLATIONS = {
     tabResources: 'വിഭവ വിന്യാസം',
     tabTimeline: '72 മണിക്കൂർ സമയരേഖ',
     tabOfflineChat: 'ഓഫ്‌ലൈൻ അടിയന്തര ചാറ്റ്',
+
+    tabAssistant: 'സഹായി',
     authorityHub: 'അധികാര കേന്ദ്രം',
     citizenView: 'പൗര കാഴ്ച',
     offlineBannerTitle: 'ഓഫ്‌ലൈൻ കാഷെ സജീവം',
@@ -428,6 +444,8 @@ export const TRANSLATIONS = {
     tabResources: 'সম্পদ মোতায়েন',
     tabTimeline: '৭২ ঘণ্টাৰ সময়ৰেখা',
     tabOfflineChat: 'অফলাইন জৰুৰীকালীন চ্যাট',
+
+    tabAssistant: 'সহায়ক',
     authorityHub: 'কৰ্তৃপক্ষ কেন্দ্ৰ',
     citizenView: 'নাগৰিক দৃশ্য',
     offlineBannerTitle: 'অফলাইন কেছ সক্ৰিয়',

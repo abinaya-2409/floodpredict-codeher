@@ -41,6 +41,7 @@ import { RiskBadge } from './components/ui/Badge';
 import { VulnerabilityIndexPanel } from './components/VulnerabilityIndexPanel';
 import { EvacuationPriorityQueue } from './components/EvacuationPriorityQueue';
 import { OfflineEmergencyChat } from './components/OfflineEmergencyChat';
+import { AssistantDock } from './components/AssistantDock';
 import { InstallAppPrompt } from './components/InstallAppPrompt';
 import { VantaBackground, ThemeMode } from './components/VantaBackground';
 import { AlertTriangle, ShieldCheck, Waves, Users, Clock, ArrowUpRight, Gauge, Cpu, CloudRain, Radio, WifiOff, Map as MapIcon, Sliders, Bluetooth } from 'lucide-react';
@@ -816,7 +817,20 @@ export default function App() {
         {activeTab === 'offline-chat' && (
           <OfflineEmergencyChat onBackToDashboard={() => setActiveTab('map')} />
         )}
+
       </main>
+
+      {/* The assistant, over every screen rather than behind a tab: a question
+          about a ward arrives while you are looking at that ward. Given the
+          same computed state the briefing panel gets, so the two can never
+          quote different numbers. */}
+      <AssistantDock
+        city={selectedCity}
+        zones={computedZones}
+        assessments={assessments}
+        simulationParams={simulationParams}
+        label={t.tabAssistant}
+      />
 
       {/* Footer.
           It used to carry a hackathon problem-statement code, a restatement
