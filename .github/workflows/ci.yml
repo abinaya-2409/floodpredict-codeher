@@ -1,0 +1,54 @@
+# Typecheck, tests and a real build, on every pull request and every push to
+# main.
+#
+# There was nothing here before, which is how four OpenRouter model ids sat
+# broken on main for weeks: every request down that branch returned 404, the
+# fallback chain silently exhausted, and no one found out until someone read
+# the file. A green tick is not proof the app works, but it is proof that the
+# thing you are about to merge still compiles and still passes its own tests,
+# and that is the floor.
+#
+# Deliberately not here: tools/dock-check.mjs. It drives a real browser
+# against a running server and needs a model key to be meaningful, so it is a
+# thing you run before a release, not on every push. `npm run test:dock`.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A second push to the same branch makes the first run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # `npm ci` rather than `npm install`: it installs exactly what the
+      # lockfile says and fails when the lockfile and package.json disagree,
+      # which is a drift worth being told about rather than papered over.
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm run test:run
+
+      # The build catches what neither of the above does - a bad import path,
+      # a Vite plugin failing, an asset that will not resolve in production.
+      - name: Build
+        run: npm run build

@@ -4,9 +4,14 @@
  * screenshot - "it renders" is not the same as "it works".
  */
 import puppeteer from 'puppeteer-core';
+import fs from 'node:fs';
 
 const BASE = process.argv[2] ?? 'http://localhost:3260/';
 const OUT = process.argv[3];
+// Create it rather than assume it. A missing screenshot directory threw
+// inside the per-view try and was reported as the browser falling over,
+// which is a confusing way to say "mkdir".
+if (OUT) fs.mkdirSync(OUT, { recursive: true });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const VIEWS = [
