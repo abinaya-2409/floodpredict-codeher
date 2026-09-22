@@ -94,6 +94,23 @@ const NOT_A_PLACE = new Set(
 const WARD_CONTEXT_RE =
   /\b(ward|zone|catchment|shelter|evacuat\w*|dispatch\w*|inundat\w*|vri|lead time|at risk|assisted)\b/i;
 
+/**
+ * A sentence that opens by pointing back at the last one.
+ *
+ * "Mudichur is worst. It has 99,000 people at risk." - the second sentence is
+ * as much a claim about that ward as the first, and it names nothing. Without
+ * this, every figure after the first sentence of an answer goes unchecked,
+ * which is the exact hole the check exists to close. Found by asking the live
+ * model to convert a depth to inches: it answered "That depth is roughly 5.9
+ * inches", and 5.9 was never looked at.
+ *
+ * Deliberately narrow. Carrying the subject across every following sentence
+ * would flag a reply that discusses a ward and then turns to the monsoon,
+ * which must stay free to quote the monsoon's own figures.
+ */
+const ANAPHORIC_RE =
+  /^(it|its|it's|that|this|they|them|their|there|these|those|the (ward|zone|area|figure|depth|number|total|same))\b/i;
+
 function normaliseNumber(raw: string): string {
   return raw.replace(/,/g, '');
 }
@@ -194,6 +211,7 @@ function sentences(text: string): string[] {
  */
 export function verifyAnswer(reply: string, facts: SnapshotFacts): Verification[] {
   const found: Verification[] = [];
+  let carried = false;
 
   for (const sentence of sentences(reply)) {
     const namesHere: string[] = [];
@@ -203,7 +221,10 @@ export function verifyAnswer(reply: string, facts: SnapshotFacts): Verification[
       if (re.test(sentence)) namesHere.push(name);
     }
 
-    const operational = namesHere.length > 0 || WARD_CONTEXT_RE.test(sentence);
+    const namesAWard = namesHere.length > 0 || WARD_CONTEXT_RE.test(sentence);
+    // Either this sentence is about a ward, or it points back at one that was.
+    const operational = namesAWard || (carried && ANAPHORIC_RE.test(sentence));
+    carried = operational;
     if (!operational) continue;
 
     // Figures in a sentence about this city must be the city's own figures.

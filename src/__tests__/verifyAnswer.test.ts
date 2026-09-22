@@ -132,6 +132,33 @@ describe('the three failures', () => {
     expect(found.some((f) => f.kind === 'misnamed' && f.value.includes('Netherfield'))).toBe(true);
   });
 
+  it('catches a figure in a sentence that points back at a ward', () => {
+    /*
+     * Found against the live model, which answered "That depth is roughly 5.9
+     * inches" - a sentence naming no ward, so every figure in it went
+     * unchecked. A model does not repeat the subject in every sentence, and
+     * checking only the sentences that name one let everything after the
+     * first through.
+     */
+    const { context, facts } = snapshot();
+    const reply = `${context.zones[0].name} is the worst affected. It has 987654 people at risk.`;
+
+    const found = verifyAnswer(reply, facts);
+    expect(found.some((f) => f.value === '987654')).toBe(true);
+  });
+
+  it('stops carrying a ward across a genuine change of subject', () => {
+    // The other half of that fix: an answer may discuss a ward and then turn
+    // to the monsoon, and the monsoon's own figures are not the data's to
+    // dispute.
+    const { context, facts } = snapshot();
+    const reply =
+      `${context.zones[0].name} is the worst affected. ` +
+      'Separately, Tamil Nadu takes about 800 mm from the north-east monsoon.';
+
+    expect(verifyAnswer(reply, facts).some((f) => f.value === '800')).toBe(false);
+  });
+
   it('reports each problem once, however often it is repeated', () => {
     const { context, facts } = snapshot();
     const reply =
