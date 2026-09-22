@@ -1076,8 +1076,22 @@
   padding-top: env(safe-area-inset-top, 0px);
 }
 
+/*
+ * Keep clear of the home indicator, without eating the element's own padding.
+ *
+ * This set `padding-bottom: env(safe-area-inset-bottom, 0px)`, which does not
+ * add to the padding already on the element - it replaces it. On anything
+ * without a bottom inset, which is every desktop browser and most Android
+ * phones, that resolved to 0px and flattened whatever padding was there:
+ * the footer's `py-6` became 24px top and 0 bottom, and the assistant's
+ * button became 12px top and 0 bottom, which is why it looked tipped.
+ *
+ * Margin instead. It adds the inset outside the box, so padding stays
+ * symmetrical, and on a fixed element with `bottom` set it simply lifts it
+ * clear - which is what the three callers actually wanted.
+ */
 .pad-safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  margin-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 body {

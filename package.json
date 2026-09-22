@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "test:maps": "node tools/map-loop.mjs",
     "test:mesh": "node tools/mesh-relay-test.mjs",
-    "test:dock": "node tools/dock-check.mjs"
+    "test:dock": "node tools/dock-check.mjs",
+    "test:align": "node tools/align-check.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",
