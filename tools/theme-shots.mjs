@@ -1,9 +1,11 @@
 /** Screenshots the live app at several viewports, both themes. */
 import puppeteer from 'puppeteer-core';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 const BASE = process.argv[2] ?? 'https://floodpredict-codeher.vercel.app/';
-const OUT  = process.argv[3] ?? 'C:/Users/andri/AppData/Local/Temp/claude/c--Users-andri-Documents-VS-Code/df0ae3b0-05e4-45f1-8057-133e02b33718/scratchpad/ui';
+const OUT  = process.argv[3] ?? path.join(os.tmpdir(), 'floodpredict', 'theme-shots');
 fs.mkdirSync(OUT, { recursive: true });
 
 const wait = ms => new Promise(r => setTimeout(r, ms));

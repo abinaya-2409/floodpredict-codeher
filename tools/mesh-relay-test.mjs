@@ -14,9 +14,11 @@
  *   node tools/mesh-relay-test.mjs [url]
  */
 import puppeteer from 'puppeteer-core';
+import os from 'node:os';
+import path from 'node:path';
 
 const BASE = process.argv[2] ?? 'http://localhost:4330/';
-const OUT = 'C:/Users/andri/AppData/Local/Temp/claude/c--Users-andri-Documents-VS-Code/df0ae3b0-05e4-45f1-8057-133e02b33718/scratchpad';
+const OUT = process.argv[3] ?? path.join(os.tmpdir(), 'floodpredict', 'mesh-relay');
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 let failures = 0;
