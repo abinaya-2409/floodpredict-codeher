@@ -114,6 +114,9 @@ export function FloodAssistant({ city, zones, assessments, simulationParams }: P
       if (data.reply) {
         append('assistant', data.reply, data.model ?? 'a language model');
       } else {
+        // 429 included: the model runs on one key shared by everyone using
+        // the site, so being turned away is ordinary traffic rather than a
+        // fault, and the message already says which of the two it is.
         setNote(data.message ?? 'No answer came back.');
       }
     } catch {

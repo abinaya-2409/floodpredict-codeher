@@ -1,7 +1,11 @@
 import express from 'express';
+import { clientIp, createRateLimiter } from './_rateLimit.js';
 
 export const app = express();
-app.use(express.json());
+// A chat turn with the ward snapshot attached is a few kilobytes. The default
+// 100kb body limit is far more than this API has any use for, and a smaller
+// one is a cheaper refusal than parsing a megabyte of nonsense first.
+app.use(express.json({ limit: '64kb' }));
 
 /* ---------------------------------------------------------------------------
  * API keys
@@ -179,6 +183,11 @@ app.get('/api/health', (_req, res) => {
     briefing: 'computed locally, no model required',
     rewriteProvider: llmKey ? (process.env.LLM_PROVIDER ?? 'groq') : null,
     rewriteConfigured: Boolean(llmKey),
+    // The assistant runs on one key for every visitor, so how much of the
+    // shared allowance is left is an operational question, not a debug one.
+    // Counts are per serverless instance; see the note in _rateLimit.ts.
+    chatConfigured: Boolean(llmKey),
+    chatUsage: chatLimiter.snapshot(),
   });
 });
 
@@ -460,6 +469,48 @@ const CHAT_HISTORY_TURNS = 12;
 /** A snapshot longer than this has something wrong with it. */
 const CHAT_CONTEXT_LIMIT = 12000;
 
+const envInt = (name: string, fallback: number): number => {
+  const parsed = Number.parseInt(process.env[name] ?? '', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+/**
+ * The shared allowance.
+ *
+ * Defaults sized for a Groq free tier, which permits far more per minute than
+ * this but caps the day: sixty a minute across the whole site is roughly
+ * 120,000 tokens a minute with a ward snapshot attached, comfortably inside
+ * the per-minute ceiling, and the daily number is what actually decides
+ * whether the site still answers at nine in the evening.
+ *
+ * All three are environment variables because the right value depends on the
+ * key that is actually in use, and finding that out should not need a code
+ * change.
+ */
+const chatLimiter = createRateLimiter({
+  perIp: { limit: envInt('CHAT_RATE_PER_IP', 8), windowMs: 60_000 },
+  global: { limit: envInt('CHAT_RATE_GLOBAL', 60), windowMs: 60_000 },
+  daily: { limit: envInt('CHAT_RATE_DAILY', 1500), windowMs: 24 * 60 * 60 * 1000 },
+});
+
+/**
+ * What to say when the allowance is spent.
+ *
+ * Each names the real reason and points at the two answers that still work,
+ * because "try again later" on its own reads as a broken feature.
+ */
+const LIMIT_MESSAGE: Record<string, string> = {
+  ip:
+    'You have asked a lot of questions in the last minute. Give it a moment - ' +
+    'Report and Summarise still work, and the app writes those itself.',
+  global:
+    'The assistant is busy across the site right now. Try again shortly; ' +
+    'Report and Summarise are written by the app and still work.',
+  daily:
+    "The shared daily allowance for the assistant is spent. It resets " +
+    'tomorrow. Report and Summarise need no model and still work.',
+};
+
 const CHAT_SYSTEM_PROMPT =
   'You are the assistant inside Floodylink, a flood risk dashboard for wards ' +
   'in Tamil Nadu, India. You are talking to municipal officers and emergency ' +
@@ -518,6 +569,21 @@ app.post('/api/chat', async (req, res) => {
         'No language model key is set, so I can only give you the report and ' +
         'the summary, which the app writes itself. For open questions, put a ' +
         'free Groq key in LLM_API_KEY.',
+    });
+    return;
+  }
+
+  // Checked here rather than earlier: with no key nothing is spent, so there
+  // is nothing to protect and no reason to refuse anybody.
+  const decision = chatLimiter.check(clientIp(req.headers, req.socket?.remoteAddress));
+  if (!decision.allowed) {
+    res.setHeader('Retry-After', String(decision.retryAfterSec));
+    res.status(429).json({
+      reply: null,
+      configured: true,
+      limited: decision.scope,
+      retryAfterSec: decision.retryAfterSec,
+      message: LIMIT_MESSAGE[decision.scope] ?? 'Too many requests. Try again shortly.',
     });
     return;
   }
