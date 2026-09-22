@@ -44,6 +44,7 @@ const TAB_GROUPS: {
       { id: 'whatif', key: 'tabWhatIf', hint: 'Change the rain, see what happens' },
       { id: 'fourinputs', key: 'tabFourInputs', hint: 'Live data and past floods' },
       { id: 'timeline', key: 'tabTimeline', hint: 'The next 3 days, hour by hour' },
+      { id: 'assistant', key: 'tabAssistant', hint: 'Ask about the scenario, or about floods' },
     ],
   },
   {

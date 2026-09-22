@@ -41,6 +41,7 @@ import { RiskBadge } from './components/ui/Badge';
 import { VulnerabilityIndexPanel } from './components/VulnerabilityIndexPanel';
 import { EvacuationPriorityQueue } from './components/EvacuationPriorityQueue';
 import { OfflineEmergencyChat } from './components/OfflineEmergencyChat';
+import { FloodAssistant } from './components/FloodAssistant';
 import { InstallAppPrompt } from './components/InstallAppPrompt';
 import { VantaBackground, ThemeMode } from './components/VantaBackground';
 import { AlertTriangle, ShieldCheck, Waves, Users, Clock, ArrowUpRight, Gauge, Cpu, CloudRain, Radio, WifiOff, Map as MapIcon, Sliders, Bluetooth } from 'lucide-react';
@@ -815,6 +816,17 @@ export default function App() {
         {/* Tab: Direct Offline Bluetooth Emergency Chat */}
         {activeTab === 'offline-chat' && (
           <OfflineEmergencyChat onBackToDashboard={() => setActiveTab('map')} />
+        )}
+
+        {/* Tab: the assistant. Given the same computed state the briefing
+            panel gets, so the two can never quote different numbers. */}
+        {activeTab === 'assistant' && (
+          <FloodAssistant
+            city={selectedCity}
+            zones={computedZones}
+            assessments={assessments}
+            simulationParams={simulationParams}
+          />
         )}
       </main>
 

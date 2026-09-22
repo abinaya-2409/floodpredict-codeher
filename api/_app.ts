@@ -193,8 +193,9 @@ app.get('/api/health', (_req, res) => {
  *
  * This endpoint only rewrites those already-computed facts into flowing
  * prose, so the worst a missing key can do is leave the structured version on
- * screen. Two providers, both serving open-weight Llama models on a free
- * tier, both OpenAI-compatible, so one code path covers either:
+ * screen. Two providers, both serving open-weight models on a free tier, both
+ * OpenAI-compatible, so one code path covers either - and the same path now
+ * also serves /api/chat below:
  *
  *   LLM_PROVIDER=groq        LLM_API_KEY=gsk_...   (console.groq.com)
  *   LLM_PROVIDER=openrouter  LLM_API_KEY=sk-or-... (openrouter.ai)
@@ -229,9 +230,13 @@ const LLM_PROVIDERS: Record<
     label: 'Groq',
     keyPrefix: /^gsk_/,
     models: [
-      'llama-3.3-70b-versatile',
+      // Groq documents the GPT-OSS pair as the free-tier models, at 250K
+      // tokens a minute. Both jobs here - rephrasing a briefing, answering a
+      // question from a snapshot - are instruction-following rather than
+      // reasoning, so the larger one leads and the faster one catches it.
       'openai/gpt-oss-120b',
-      'qwen/qwen3-32b',
+      'openai/gpt-oss-20b',
+      'llama-3.3-70b-versatile',
       'llama-3.1-8b-instant',
     ],
   },
@@ -240,10 +245,16 @@ const LLM_PROVIDERS: Record<
     label: 'OpenRouter',
     keyPrefix: /^sk-or-/,
     models: [
-      'meta-llama/llama-3.3-70b-instruct:free',
-      'deepseek/deepseek-chat-v3-0324:free',
-      'qwen/qwen3-235b-a22b:free',
-      'mistralai/mistral-small-3.2-24b-instruct:free',
+      // The four models that stood here - Llama 3.3 70B, DeepSeek v3, Qwen3
+      // 235B and Mistral Small 3.2 - all lost their `:free` variants and are
+      // paid-only now, so every request down this branch returned 404 and the
+      // chain always exhausted. Replaced against the live catalogue; the
+      // comment above about names retiring was right, and this is the second
+      // time it has happened.
+      'google/gemma-4-31b-it:free',
+      'google/gemma-4-26b-a4b-it:free',
+      'nvidia/nemotron-3.5-lightning:free',
+      'qwen/qwen3.8-27b:free',
     ],
   },
 };
@@ -264,6 +275,85 @@ function resolveProvider(key: string): { id: string; conf: (typeof LLM_PROVIDERS
     if (conf.keyPrefix.test(key)) return { id, conf };
   }
   return { id: 'groq', conf: LLM_PROVIDERS.groq };
+}
+
+interface ChainMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+/**
+ * Flat rather than a discriminated union on purpose: this project compiles
+ * without `strict`, and with strictNullChecks off a `ok: true | false`
+ * discriminant does not narrow, so every read of `.attempts` is an error.
+ * One shape with nullable fields needs no narrowing to be safe.
+ */
+interface ChainResult {
+  /** The answer, or null if nothing answered. */
+  text: string | null;
+  /** Which model produced it, for attribution in the UI. */
+  model: string | null;
+  /** Why there is no text: a rejected key, or the chain running out. */
+  reason: 'auth' | 'exhausted' | null;
+  /** Each model tried and how it failed, for the server log. */
+  attempts: string[];
+}
+
+/**
+ * Walk a provider's model list until one answers.
+ *
+ * A free tier retires and rate-limits models without warning, so "this model
+ * is unavailable" has to mean "try the next one" rather than "the feature is
+ * broken". A rejected key is different in kind - every model will reject it -
+ * so that stops the walk immediately instead of failing four times slowly.
+ */
+async function completeWithChain(
+  conf: (typeof LLM_PROVIDERS)[string],
+  key: string,
+  messages: ChainMessage[],
+  opts: { temperature: number; maxTokens: number }
+): Promise<ChainResult> {
+  const attempts: string[] = [];
+
+  for (const model of conf.models) {
+    try {
+      const upstream = await fetch(conf.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+        body: JSON.stringify({
+          model,
+          temperature: opts.temperature,
+          max_tokens: opts.maxTokens,
+          messages,
+        }),
+      });
+
+      if (upstream.status === 401 || upstream.status === 403) {
+        return { text: null, model: null, reason: 'auth', attempts };
+      }
+
+      if (!upstream.ok) {
+        // 400 unknown model, 404 retired, 429 rate-limited: all "next".
+        attempts.push(`${model} -> ${upstream.status}`);
+        continue;
+      }
+
+      const body = (await upstream.json()) as {
+        choices?: { message?: { content?: string } }[];
+      };
+      const text = body.choices?.[0]?.message?.content?.trim();
+      if (!text) {
+        attempts.push(`${model} -> empty`);
+        continue;
+      }
+
+      return { text, model: `${model} (${conf.label})`, reason: null, attempts };
+    } catch (err) {
+      attempts.push(`${model} -> ${(err as Error).message}`);
+    }
+  }
+
+  return { text: null, model: null, reason: 'exhausted', attempts };
 }
 
 function briefingToPlainText(b: BriefingPayload): string {
@@ -318,64 +408,161 @@ app.post('/api/briefing/rewrite', async (req, res) => {
     return;
   }
 
-  const userContent = briefingToPlainText(briefing);
-  const attempts: string[] = [];
+  const result = await completeWithChain(
+    conf,
+    key,
+    [
+      { role: 'system', content: REWRITE_SYSTEM_PROMPT },
+      { role: 'user', content: briefingToPlainText(briefing) },
+    ],
+    { temperature: 0.2, maxTokens: 700 }
+  );
 
-  // Walk the chain. A free tier retires and rate-limits models without
-  // warning, so "this model is unavailable" has to mean "try the next one"
-  // rather than "the feature is broken".
-  for (const model of conf.models) {
-    try {
-      const upstream = await fetch(conf.url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-        body: JSON.stringify({
-          model,
-          temperature: 0.2,
-          max_tokens: 700,
-          messages: [
-            { role: 'system', content: REWRITE_SYSTEM_PROMPT },
-            { role: 'user', content: userContent },
-          ],
-        }),
-      });
-
-      if (upstream.status === 401 || upstream.status === 403) {
-        res.json({
-          prose: null,
-          configured: true,
-          message: `${conf.label} rejected the API key.`,
-        });
-        return;
-      }
-
-      if (!upstream.ok) {
-        // 400 unknown model, 404 retired, 429 rate-limited: all "next".
-        attempts.push(`${model} -> ${upstream.status}`);
-        continue;
-      }
-
-      const body = (await upstream.json()) as {
-        choices?: { message?: { content?: string } }[];
-      };
-      const prose = body.choices?.[0]?.message?.content?.trim();
-      if (!prose) {
-        attempts.push(`${model} -> empty`);
-        continue;
-      }
-
-      res.json({ prose, configured: true, model: `${model} (${conf.label})` });
-      return;
-    } catch (err) {
-      attempts.push(`${model} -> ${(err as Error).message}`);
-    }
+  if (result.text) {
+    res.json({ prose: result.text, configured: true, model: result.model });
+    return;
   }
 
-  console.warn('Briefing rewrite: every model failed.', attempts);
+  if (result.reason === 'auth') {
+    res.json({ prose: null, configured: true, message: `${conf.label} rejected the API key.` });
+    return;
+  }
+
+  console.warn('Briefing rewrite: every model failed.', result.attempts);
   res.json({
     prose: null,
     configured: true,
-    message: `No model on ${conf.label} answered. Tried: ${attempts.join('; ')}`,
+    message: `No model on ${conf.label} answered. Tried: ${result.attempts.join('; ')}`,
+  });
+});
+
+/* ---------------------------------------------------------------------------
+ * The assistant
+ *
+ * A chat box is the one place a flood model gets asked open questions, and
+ * the questions split cleanly in two. "Which ward do I send the boats to" is
+ * answerable only from what this app computed; "why does Chennai flood every
+ * November" is general knowledge and the model is genuinely good at it.
+ *
+ * So the rule is by subject rather than by mode. Scenario facts arrive in the
+ * snapshot the client builds from the live dashboard state, and the model may
+ * only quote them. Everything else it may answer itself, provided it does not
+ * dress a general answer up as a reading from this city.
+ *
+ * Report and Summarise do not come through here at all unless the user wants
+ * them rephrased - the client composes both locally from the same snapshot,
+ * so the two buttons that matter work with no key and no network.
+ * ------------------------------------------------------------------------ */
+
+/** Turns kept from the conversation. Enough to follow a thread, bounded so a
+ *  long session cannot walk into a context limit or a rate limit. */
+const CHAT_HISTORY_TURNS = 12;
+/** A snapshot longer than this has something wrong with it. */
+const CHAT_CONTEXT_LIMIT = 12000;
+
+const CHAT_SYSTEM_PROMPT =
+  'You are the assistant inside Floodylink, a flood risk dashboard for wards ' +
+  'in Tamil Nadu, India. You are talking to municipal officers and emergency ' +
+  'staff.\n\n' +
+  'A SNAPSHOT of the current modelled situation is given below. It is the ' +
+  'only source of truth about this city right now.\n\n' +
+  'Rules about the snapshot:\n' +
+  '- Any claim about this city, its wards, depths, populations, lead times, ' +
+  'shelters or scores must come from the snapshot, quoted exactly.\n' +
+  '- Never invent, estimate, round or adjust one of those numbers. If a ' +
+  'figure is not in the snapshot, say it is not in the data.\n' +
+  '- The snapshot is a model of a scenario, not a live sensor reading. Do not ' +
+  'call it an observation.\n\n' +
+  'Outside the snapshot you may talk normally. Questions about weather, ' +
+  'monsoons, rivers, drainage, climate, past disasters and how floods work ' +
+  'are welcome, and you should answer them from your own knowledge, plainly ' +
+  'and with interest. When you do, make it clear you are speaking generally ' +
+  'rather than reading this city\'s data.\n\n' +
+  'Style: conversational and direct. Short paragraphs. No headings, no ' +
+  'bullet lists unless asked. Usually under 150 words. Plain English that a ' +
+  'non-specialist can act on. Never open with a greeting when the ' +
+  'conversation is already running.';
+
+interface ChatRequestMessage {
+  role?: string;
+  content?: string;
+}
+
+app.post('/api/chat', async (req, res) => {
+  const key = readApiKey('LLM_API_KEY');
+
+  const incoming = Array.isArray(req.body?.messages)
+    ? (req.body.messages as ChatRequestMessage[])
+    : [];
+  const history: ChainMessage[] = incoming
+    .filter((m) => typeof m?.content === 'string' && m.content.trim())
+    .map((m) => ({
+      role: m.role === 'assistant' ? ('assistant' as const) : ('user' as const),
+      content: String(m.content).slice(0, 4000),
+    }))
+    .slice(-CHAT_HISTORY_TURNS);
+
+  if (!history.length) {
+    res.status(400).json({ reply: null, message: 'No message to answer.' });
+    return;
+  }
+
+  if (!key) {
+    // The buttons that matter still work: the client composes the report and
+    // the summary from the same snapshot. Only open conversation needs a key,
+    // and saying so is more use than a generic failure.
+    res.json({
+      reply: null,
+      configured: false,
+      message:
+        'No language model key is set, so I can only give you the report and ' +
+        'the summary, which the app writes itself. For open questions, put a ' +
+        'free Groq key in LLM_API_KEY.',
+    });
+    return;
+  }
+
+  const resolved = resolveProvider(key);
+  if (!resolved) {
+    res.json({
+      reply: null,
+      configured: false,
+      message: `Unknown LLM_PROVIDER "${process.env.LLM_PROVIDER}". Use groq or openrouter.`,
+    });
+    return;
+  }
+  const { conf } = resolved;
+
+  const snapshot = String(req.body?.context ?? '').slice(0, CHAT_CONTEXT_LIMIT);
+  const system = snapshot
+    ? `${CHAT_SYSTEM_PROMPT}\n\nSNAPSHOT\n${snapshot}`
+    : `${CHAT_SYSTEM_PROMPT}\n\nNo snapshot was supplied, so you have no data ` +
+      `about this city. Say so if asked about it, and answer general questions normally.`;
+
+  const result = await completeWithChain(
+    conf,
+    key,
+    [{ role: 'system', content: system }, ...history],
+    // Warmer than the briefing rewrite, which is a transcription job. This is
+    // a conversation, and 0.2 makes it read like one side of a form.
+    { temperature: 0.5, maxTokens: 800 }
+  );
+
+  if (result.text) {
+    res.json({ reply: result.text, configured: true, model: result.model });
+    return;
+  }
+
+  if (result.reason === 'auth') {
+    res.json({ reply: null, configured: true, message: `${conf.label} rejected the API key.` });
+    return;
+  }
+
+  console.warn('Chat: every model failed.', result.attempts);
+  res.json({
+    reply: null,
+    configured: true,
+    message: `No model on ${conf.label} answered. Tried: ${result.attempts.join('; ')}`,
   });
 });
 
