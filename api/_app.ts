@@ -534,10 +534,12 @@ const CHAT_SYSTEM_PROMPT =
   'are welcome, and you should answer them from your own knowledge, plainly ' +
   'and with interest. When you do, make it clear you are speaking generally ' +
   'rather than reading this city\'s data.\n\n' +
-  'Style: conversational and direct. Short paragraphs. No headings, no ' +
-  'bullet lists unless asked. Usually under 150 words. Plain English that a ' +
-  'non-specialist can act on. Never open with a greeting when the ' +
-  'conversation is already running.';
+  'Style: conversational and direct. Short paragraphs. Usually under 150 ' +
+  'words. Plain English that a non-specialist can act on. Never open with a ' +
+  'greeting when the conversation is already running.\n' +
+  'Write plain text only. No markdown: no **bold**, no headings, no bullet ' +
+  'lists unless asked. The answer is shown as written, so a stray asterisk ' +
+  'is an asterisk on screen.';
 
 interface ChatRequestMessage {
   role?: string;

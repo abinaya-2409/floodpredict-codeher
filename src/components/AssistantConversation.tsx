@@ -8,21 +8,25 @@ import {
   localSummary,
 } from '../utils/chatContext';
 import { Button } from './ui/Button';
-import { Panel } from './ui/Panel';
 
 /**
- * The assistant.
+ * The assistant's conversation.
+ *
+ * Chrome-free on purpose: this is the part that talks, and it is rendered
+ * inside whatever frame is wanted - currently the dock in the corner of every
+ * screen. Keeping it separate is what stops a second copy of this logic
+ * appearing the first time someone wants the assistant somewhere else.
  *
  * Two of the three things it does need no model at all. Report and Summarise
  * are composed here, from the same numbers the dashboard is drawing, so they
  * answer instantly, offline, with no key, and cannot state a figure the app
- * did not compute. That is deliberate: those are the two an officer presses
- * during an actual event, and an event is exactly when the network is worst.
+ * did not compute. Those are the two an officer presses during an actual
+ * event, and an event is exactly when the network is worst.
  *
  * Open conversation is the part that needs a model, and it is the part where
  * being wrong is cheapest - a general question about monsoons has no
- * operational consequence. When there is no key, the two buttons still work
- * and the input says why it cannot.
+ * operational consequence. Every answer that does touch this city's figures
+ * is checked against the snapshot before it is shown; see api/_verifyAnswer.
  */
 
 interface Props {
@@ -30,6 +34,11 @@ interface Props {
   zones: ZoneData[];
   assessments: ZoneRiskAssessment[];
   simulationParams: SimulationParams;
+  /**
+   * The dock is a fixed-height floating card, so its log fills the space it
+   * is given. A panel in the page flow sizes to its content instead.
+   */
+  variant?: 'panel' | 'dock';
 }
 
 interface Msg {
@@ -55,13 +64,35 @@ interface Msg {
 const OPENERS = [
   'Which ward should I move on first, and why?',
   'Why does Tamil Nadu flood in the north-east monsoon?',
-  'What does a high coping deficit actually mean on the ground?',
+  'What does a high coping deficit actually mean?',
 ];
 
 let seq = 0;
 const nextId = () => `m${++seq}`;
 
-export function FloodAssistant({ city, zones, assessments, simulationParams }: Props) {
+/**
+ * Markdown the model was asked not to write.
+ *
+ * The prompt says plain text, and mostly it obliges. When it does not, the
+ * answer is rendered as written, so "**Kolathur & Perambur**" arrives on
+ * screen with the asterisks still on it - which in an operational readout
+ * reads as something broken rather than as emphasis. Cheaper to strip the
+ * markers here than to render markdown for the one case that needs it.
+ */
+function plainText(s: string): string {
+  return s
+    .replace(/\*\*(.+?)\*\*/gs, '$1')
+    .replace(/__(.+?)__/gs, '$1')
+    .replace(/^#{1,6}\s+/gm, '');
+}
+
+export function AssistantConversation({
+  city,
+  zones,
+  assessments,
+  simulationParams,
+  variant = 'panel',
+}: Props) {
   const context = useMemo(
     () => buildChatContext(city, zones, assessments, simulationParams),
     [city, zones, assessments, simulationParams]
@@ -88,11 +119,7 @@ export function FloodAssistant({ city, zones, assessments, simulationParams }: P
   const composeLocally = (kind: 'report' | 'summary') => {
     setNote(null);
     append('user', kind === 'report' ? 'Give me the report.' : 'Summarise this.');
-    append(
-      'assistant',
-      kind === 'report' ? localReport(context) : localSummary(context),
-      'the app'
-    );
+    append('assistant', kind === 'report' ? localReport(context) : localSummary(context), 'the app');
   };
 
   const send = async (text: string) => {
@@ -149,23 +176,17 @@ export function FloodAssistant({ city, zones, assessments, simulationParams }: P
     }
   };
 
+  const dock = variant === 'dock';
+
   return (
-    <Panel
-      eyebrow="Grounded in the current scenario"
-      title="Assistant"
-      icon={<Bot className="h-4 w-4 text-accent" aria-hidden="true" />}
-      action={
-        <span className="font-mono text-micro uppercase tracking-[0.14em] text-subtle">
-          {city.name} · {context.zones.length} wards
-        </span>
-      }
-    >
-      <div className="flex flex-wrap gap-2">
+    <div className={dock ? 'flex min-h-0 flex-1 flex-col' : ''}>
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           size="sm"
           pill
           icon={<FileText className="h-3.5 w-3.5" aria-hidden="true" />}
           onClick={() => composeLocally('report')}
+          data-testid="assistant-report"
         >
           Report
         </Button>
@@ -177,9 +198,7 @@ export function FloodAssistant({ city, zones, assessments, simulationParams }: P
         >
           Summarise
         </Button>
-        <span className="self-center font-mono text-micro text-subtle">
-          both written by the app, no key needed
-        </span>
+        <span className="font-mono text-micro text-subtle">no key needed</span>
       </div>
 
       <div
@@ -187,10 +206,14 @@ export function FloodAssistant({ city, zones, assessments, simulationParams }: P
         role="log"
         aria-live="polite"
         aria-label="Conversation"
-        className="mt-4 max-h-[26rem] min-h-[14rem] space-y-3 overflow-y-auto rounded-card border border-line bg-surface-2/40 p-3"
+        data-testid="assistant-log"
+        className={[
+          'mt-3 space-y-3 overflow-y-auto rounded-card border border-line bg-surface-2/40 p-3',
+          dock ? 'min-h-0 flex-1' : 'max-h-[26rem] min-h-[14rem]',
+        ].join(' ')}
       >
         {messages.length === 0 && (
-          <div className="px-1 py-6 text-center">
+          <div className="px-1 py-5 text-center">
             <p className="text-xs text-muted">
               Ask about this scenario, or about how floods work in general.
             </p>
@@ -200,7 +223,7 @@ export function FloodAssistant({ city, zones, assessments, simulationParams }: P
                   key={o}
                   type="button"
                   onClick={() => void send(o)}
-                  className="rounded-full border border-line px-3 py-1 text-mini text-fg-soft transition-colors hover:border-line-strong hover:bg-surface-3 hover:text-fg"
+                  className="rounded-full border border-line px-3 py-1 text-left text-mini text-fg-soft transition-colors hover:border-line-strong hover:bg-surface-3 hover:text-fg"
                 >
                   {o}
                 </button>
@@ -212,17 +235,20 @@ export function FloodAssistant({ city, zones, assessments, simulationParams }: P
         {messages.map((m) => (
           <div
             key={m.id}
+            data-testid="assistant-msg"
+            data-role={m.role}
+            data-checked={m.checked ?? ''}
             className={m.role === 'user' ? 'flex justify-end' : 'flex justify-start'}
           >
             <div
               className={[
-                'max-w-[85%] rounded-card border px-3 py-2',
+                'max-w-[88%] rounded-card border px-3 py-2',
                 m.role === 'user'
                   ? 'border-accent/35 bg-accent/12 text-fg'
                   : 'border-line bg-surface-2 text-fg-soft',
               ].join(' ')}
             >
-              <div className="mb-1 flex items-center gap-1.5 font-mono text-micro uppercase tracking-[0.14em] text-subtle">
+              <div className="mb-1 flex flex-wrap items-center gap-1.5 font-mono text-micro uppercase tracking-[0.14em] text-subtle">
                 {m.role === 'user' ? (
                   <User className="h-3 w-3" aria-hidden="true" />
                 ) : (
@@ -243,7 +269,7 @@ export function FloodAssistant({ city, zones, assessments, simulationParams }: P
                   </span>
                 )}
               </div>
-              <p className="whitespace-pre-wrap text-xs leading-relaxed">{m.text}</p>
+              <p className="whitespace-pre-wrap text-xs leading-relaxed">{plainText(m.text)}</p>
             </div>
           </div>
         ))}
@@ -269,23 +295,27 @@ export function FloodAssistant({ city, zones, assessments, simulationParams }: P
           onKeyDown={onKeyDown}
           rows={2}
           aria-label="Ask the assistant"
-          placeholder="Ask about this scenario, or about floods and weather generally..."
-          className="min-h-[2.75rem] flex-1 resize-y rounded-control border border-line bg-surface-2 px-3 py-2 text-xs text-fg placeholder:text-subtle focus:border-accent/50 focus:outline-none"
+          data-testid="assistant-input"
+          // Short enough to sit on one or two lines in the dock. The longer
+          // version wrapped past the box and was cut off mid-word.
+          placeholder={dock ? 'Ask about a ward, or about floods...' : 'Ask about this scenario, or about floods generally...'}
+          className="min-h-[2.75rem] flex-1 resize-none rounded-control border border-line bg-surface-2 px-3 py-2 text-xs text-fg placeholder:text-subtle focus:border-accent/50 focus:outline-none"
         />
         <Button
           variant="primary"
           onClick={() => void send(draft)}
           disabled={busy || !draft.trim()}
           icon={<Send className="h-3.5 w-3.5" aria-hidden="true" />}
+          data-testid="assistant-send"
         >
           Send
         </Button>
       </div>
 
       <p className="mt-2 font-mono text-micro text-subtle">
-        Figures about {city.name} come from the app&apos;s own model. General answers
-        are the language model&apos;s own and are not readings from this city.
+        Figures about {city.name} come from the app&apos;s own model and are checked
+        before you see them. General answers are the model&apos;s own.
       </p>
-    </Panel>
+    </div>
   );
 }
